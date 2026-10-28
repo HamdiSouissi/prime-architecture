@@ -40,7 +40,7 @@ class BilingualPagesTest extends TestCase
 
     public function test_session_language_is_used_for_security_errors(): void
     {
-        $this->app['router']->get('/_test-error/{status}', fn (string $status) => abort((int) $status));
+        $this->app['router']->get('/_test-error/{status}', fn (string $status) => abort((int) $status))->middleware('web');
         $this->withSession(['locale' => 'ar'])->get('/_test-error/419')
             ->assertStatus(419)->assertSee('lang="ar" dir="rtl"', false)->assertSee('انتهت صلاحية الجلسة');
         $this->withSession(['locale' => 'ar'])->get('/_test-error/429')
