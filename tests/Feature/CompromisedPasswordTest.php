@@ -15,7 +15,11 @@ class CompromisedPasswordTest extends TestCase
         $verifier = new StrictUncompromisedVerifier;
         $this->assertFalse($verifier->verify(['value' => 'known-password', 'threshold' => 0]));
         Http::assertSent(fn ($request) => str_ends_with($request->url(), substr($hash, 0, 5)) && ! str_contains($request->url(), 'known-password'));
+    }
+
+    public function test_verifier_fails_closed_when_api_is_unavailable(): void
+    {
         Http::fake(['*' => Http::response('unavailable', 503)]);
-        $this->assertFalse($verifier->verify(['value' => 'another-password', 'threshold' => 0]));
+        $this->assertFalse((new StrictUncompromisedVerifier)->verify(['value' => 'another-password', 'threshold' => 0]));
     }
 }

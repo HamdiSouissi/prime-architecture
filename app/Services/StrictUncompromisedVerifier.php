@@ -19,7 +19,7 @@ class StrictUncompromisedVerifier implements UncompromisedVerifier
             $response = Http::withHeaders(['Add-Padding' => 'true'])->timeout(5)
                 ->get('https://api.pwnedpasswords.com/range/'.substr($hash, 0, 5))->throw();
             $validLines = 0;
-            foreach (preg_split('/\r?\n/', $response->body()) as $line) {
+            foreach (preg_split('/\r?\n/', $response->body()) ?: [] as $line) {
                 if (! preg_match('/^([A-F0-9]{35}):([0-9]+)$/i', trim($line), $match)) {
                     continue;
                 }
