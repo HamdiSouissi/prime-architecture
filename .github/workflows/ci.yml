@@ -43,8 +43,20 @@ jobs:
           cache: npm
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: npm ci && npm run build
-      - run: php artisan migrate --force --no-interaction
-      - run: php artisan test
+      - name: Migrate database
+        run: |
+          if ! php artisan migrate --force --no-interaction > migration-result.txt 2>&1; then
+            cat migration-result.txt
+            echo "::error title=Migration::$(head -c 4000 migration-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
+      - name: Run tests
+        run: |
+          if ! php artisan test --no-ansi > test-result.txt 2>&1; then
+            cat test-result.txt
+            echo "::error title=Tests::$(tail -c 4000 test-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
       - name: Check PHP formatting
         run: |
           if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
