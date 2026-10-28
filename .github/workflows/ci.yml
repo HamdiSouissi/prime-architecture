@@ -114,7 +114,7 @@ jobs:
       - name: Summarize Laravel errors from CI environment
         if: failure()
         run: |
-          docker compose exec -T app sh -c 'tail -c 3500 storage/logs/laravel-*.log 2>/dev/null || true' > laravel-error.txt || true
+          docker compose exec -T app sh -c 'grep -h '\.ERROR:' storage/logs/laravel-*.log 2>/dev/null | tail -3 | head -c 3500 || true' > laravel-error.txt || true
           if test -s laravel-error.txt; then
             echo "::error title=Laravel log::$(tr '\r\n' '  ' < laravel-error.txt)"
           fi
