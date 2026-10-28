@@ -94,6 +94,16 @@ class PhaseTwoTest extends TestCase
         Notification::assertSentTo($user->fresh(), VerifyEmail::class);
     }
 
+    public function test_admin_changing_own_email_is_logged_out(): void
+    {
+        Notification::fake();
+        $admin = $this->userWithRole('admin');
+        $this->actingAs($admin)->put(route('users.update', $admin), ['name' => $admin->name, 'email' => 'new-admin@example.com', 'role' => 'admin', 'is_active' => '1'])->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertNull($admin->fresh()->email_verified_at);
+        Notification::assertSentTo($admin->fresh(), VerifyEmail::class);
+    }
+
     public function test_changing_pending_email_invalidates_old_invitation(): void
     {
         Notification::fake();

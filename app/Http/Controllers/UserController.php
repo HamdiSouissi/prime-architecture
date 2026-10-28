@@ -61,12 +61,17 @@ class UserController extends Controller
         Gate::authorize('update', $user);
         $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)], 'role' => ['required', Rule::in(array_keys(config('access.roles')))], 'is_active' => ['required', 'boolean']]);
         $ownEmailChanged = $request->user()->id === $user->id && isset($data['email']) && $data['email'] !== $user->email;
-        $service->update($request->user(), $user, $data);
+        try {
+            $service->update($request->user(), $user, $data);
+        } finally {
+            // The database update may succeed even if sending the email fails.
+            if ($ownEmailChanged && $user->fresh()?->email === $data['email']) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
         if ($ownEmailChanged) {
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
             return redirect()->route('login');
         }
 
