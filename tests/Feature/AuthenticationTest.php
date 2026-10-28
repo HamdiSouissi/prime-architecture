@@ -66,6 +66,6 @@ class AuthenticationTest extends TestCase
     {
         $this->post('/logout')->assertRedirect(route('login'));
         $this->get('/register')->assertNotFound();
-        $this->post('/register')->assertNotFound();
+        $this->post('/register')->assertStatus(405);
     }
 }

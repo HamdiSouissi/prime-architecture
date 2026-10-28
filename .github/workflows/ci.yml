@@ -41,6 +41,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - run: cp .env.example .env
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: npm ci && npm run build
       - name: Migrate database
