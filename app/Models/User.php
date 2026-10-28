@@ -16,6 +16,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
+    protected $attributes = ['locale' => 'fr', 'is_active' => true];
+
     /**
      * The attributes that are mass assignable.
      *
