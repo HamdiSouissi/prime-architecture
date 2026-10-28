@@ -26,6 +26,7 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh()->last_login_at);
+        $this->assertDatabaseHas('activity_log', ['event' => 'login.succeeded', 'causer_id' => $user->id]);
         $this->get('/')->assertSee('lang="ar" dir="rtl"', false);
     }
 
@@ -34,6 +35,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
         $this->post('/login', ['email' => $user->email, 'password' => 'wrong'])->assertSessionHasErrors('email');
         $this->assertGuest();
+        $this->assertDatabaseHas('activity_log', ['event' => 'login.failed']);
 
         $user->forceFill(['is_active' => false])->save();
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('email');
