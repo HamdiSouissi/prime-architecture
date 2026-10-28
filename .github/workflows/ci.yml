@@ -98,7 +98,12 @@ jobs:
           docker compose exec -T app php artisan db:seed --class=RolePermissionSeeder --force
           docker compose exec -T app php artisan db:seed --class=InitialAdminSeeder --force
       - name: Verify invitation through Mailpit
-        run: python3 tests/smoke/docker_phase2.py
+        run: |
+          if ! python3 tests/smoke/docker_phase2.py > smoke-result.txt 2>&1; then
+            cat smoke-result.txt
+            echo "::error title=Invitation smoke test::$(tail -c 2000 smoke-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
       - name: Verify Mailpit receives email
         run: |
           docker compose exec -T app php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); Illuminate\Support\Facades\Mail::raw("Archi TN smoke test", function ($message) { $message->to("test@example.com")->subject("Smoke test"); });'
