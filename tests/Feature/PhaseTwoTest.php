@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Invitation;
 use App\Models\User;
 use App\Notifications\UserInvitation;
+use App\Services\UserAdministration;
 use Database\Seeders\InitialAdminSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,7 +72,7 @@ class PhaseTwoTest extends TestCase
         $this->actingAs($admin)->delete(route('users.destroy', $admin))->assertSessionHasErrors('role');
         $other = $this->userWithRole('architect');
         try {
-            app(\App\Services\UserAdministration::class)->update($other, $admin, ['name' => 'Admin', 'role' => 'architect', 'is_active' => true]);
+            app(UserAdministration::class)->update($other, $admin, ['name' => 'Admin', 'role' => 'architect', 'is_active' => true]);
             $this->fail('The last active administrator was demoted.');
         } catch (ValidationException $exception) {
             $this->assertArrayHasKey('role', $exception->errors());
