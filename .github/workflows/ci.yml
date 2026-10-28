@@ -45,5 +45,11 @@ jobs:
       - run: npm ci && npm run build
       - run: php artisan migrate --force --no-interaction
       - run: php artisan test
-      - run: vendor/bin/pint --test
+      - name: Check PHP formatting
+        run: |
+          if ! vendor/bin/pint --test --format=json > pint-result.json; then
+            cat pint-result.json
+            echo "::error title=Pint::$(tr '\n' ' ' < pint-result.json)"
+            exit 1
+          fi
       - run: vendor/bin/phpstan analyse --no-progress
