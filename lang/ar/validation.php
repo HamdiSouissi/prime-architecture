@@ -1,6 +1,22 @@
 <?php
 
 return [
+    'attributes' => [
+        'email' => 'البريد الإلكتروني',
+        'name' => 'الاسم',
+        'phone' => 'الهاتف',
+        'role' => 'الدور',
+        'is_active' => 'الحالة',
+        'locale' => 'اللغة',
+        'password' => 'كلمة المرور',
+        'password_confirmation' => 'تأكيد كلمة المرور',
+        'current_password' => 'كلمة المرور الحالية',
+        'date_from' => 'تاريخ البداية',
+        'date_to' => 'تاريخ النهاية',
+        'action' => 'الإجراء',
+        'user_id' => 'المستخدم',
+        'search' => 'البحث',
+    ],
     'accepted' => 'يجب قبول :attribute.',
     'accepted_if' => 'يجب قبول :attribute في حالة :other يساوي :value.',
     'active_url' => 'حقل :attribute لا يُمثّل رابطًا صحيحًا.',

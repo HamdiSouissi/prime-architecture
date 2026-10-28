@@ -1,6 +1,22 @@
 <?php
 
 return [
+    'attributes' => [
+        'email' => 'adresse e-mail',
+        'name' => 'nom',
+        'phone' => 'téléphone',
+        'role' => 'rôle',
+        'is_active' => 'statut',
+        'locale' => 'langue',
+        'password' => 'mot de passe',
+        'password_confirmation' => 'confirmation du mot de passe',
+        'current_password' => 'mot de passe actuel',
+        'date_from' => 'date de début',
+        'date_to' => 'date de fin',
+        'action' => 'action',
+        'user_id' => 'utilisateur',
+        'search' => 'recherche',
+    ],
     'accepted' => 'Le champ :attribute doit être accepté.',
     'accepted_if' => 'Le champ :attribute doit être accepté quand :other a la valeur :value.',
     'active_url' => 'Le champ :attribute n\'est pas une URL valide.',
