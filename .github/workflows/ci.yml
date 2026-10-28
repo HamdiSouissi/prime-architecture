@@ -47,9 +47,10 @@ jobs:
       - run: php artisan test
       - name: Check PHP formatting
         run: |
-          if ! vendor/bin/pint --test --format=json > pint-result.json; then
-            cat pint-result.json
-            echo "::error title=Pint::$(tr '\n' ' ' < pint-result.json)"
+          if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
+            head -c 8000 pint-result.json
+            echo
+            echo "::error title=Pint::$(head -c 4000 pint-result.json | tr '\r\n' '  ')"
             exit 1
           fi
       - run: vendor/bin/phpstan analyse --no-progress
