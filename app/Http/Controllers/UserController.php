@@ -64,6 +64,14 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('status', __('common.saved'));
     }
 
+    public function resendInvitation(User $user, UserAdministration $service): RedirectResponse
+    {
+        Gate::authorize('update', $user);
+        $service->resendInvitation($user);
+
+        return redirect()->route('users.index')->with('status', __('common.invitation_sent'));
+    }
+
     public function destroy(Request $request, User $user, UserAdministration $service): RedirectResponse
     {
         Gate::authorize('delete', $user);

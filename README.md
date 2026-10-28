@@ -46,7 +46,7 @@ Les routes d'administration passent par la policy utilisateur ou par les permiss
 
 ## Invitation et emails
 
-Aucune inscription publique. Dans **Utilisateurs → Inviter**, l'administrateur indique nom, email et rôle. L'invité reçoit un lien signé à usage unique ; le jeton n'est stocké qu'après hachage. Le lien expire après `INVITATION_EXPIRY_MINUTES` minutes (1 440 par défaut). L'utilisateur définit son mot de passe ; l'adresse est alors vérifiée. Un lien expiré, altéré ou déjà utilisé ne peut pas être réutilisé.
+Aucune inscription publique. Dans **Utilisateurs → Inviter**, l'administrateur indique nom, email et rôle. L'invité reçoit un lien signé à usage unique ; le jeton n'est stocké qu'après hachage. Le lien expire après `INVITATION_EXPIRY_MINUTES` minutes (1 440 par défaut). L'utilisateur définit son mot de passe ; l'adresse est alors vérifiée. Un lien expiré, altéré ou déjà utilisé ne peut pas être réutilisé. Depuis la fiche d’un compte actif non vérifié, l’administrateur peut renvoyer une invitation ; tous les liens précédents sont invalidés. En cas d’échec SMTP, le compte reste créé et le renvoi permet de réessayer.
 
 Mailpit intercepte les emails de développement : <http://localhost:8025>, accessible uniquement depuis l'hôte. Les messages ne sont pas réellement délivrés. Ils peuvent contenir des liens sensibles ; ne pas exposer Mailpit sur Internet. phpMyAdmin est optionnel : `docker compose --profile dev up -d`, puis <http://localhost:8081>. MySQL n'est pas publié directement sur l'hôte.
 

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'resend_invitation' => 'إعادة إرسال الدعوة',
     'forgot_password' => 'نسيت كلمة المرور؟',
     'reset_password' => 'إعادة تعيين كلمة المرور',
     'send_reset' => 'إرسال الرابط',

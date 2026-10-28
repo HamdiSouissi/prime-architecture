@@ -65,6 +65,20 @@ class PhaseTwoTest extends TestCase
         $this->assertNotNull(Invitation::firstOrFail()->used_at);
     }
 
+    public function test_admin_can_resend_an_invitation_and_invalidate_the_old_link(): void
+    {
+        Notification::fake();
+        $admin = $this->userWithRole('admin');
+        $this->actingAs($admin)->post('/users', ['name' => 'Invité', 'email' => 'resend@example.com', 'role' => 'client']);
+        $invited = User::where('email', 'resend@example.com')->firstOrFail();
+        $oldUrl = Notification::sent($invited, UserInvitation::class)->first()->toMail($invited)->actionUrl;
+        $this->actingAs($admin)->post(route('users.invitation', $invited))->assertRedirect('/users');
+        $newUrl = Notification::sent($invited, UserInvitation::class)->last()->toMail($invited)->actionUrl;
+        $this->post('/logout');
+        $this->get($oldUrl)->assertStatus(410);
+        $this->get($newUrl)->assertOk();
+    }
+
     public function test_admin_cannot_deactivate_self_and_last_admin_is_protected(): void
     {
         $admin = $this->userWithRole('admin');

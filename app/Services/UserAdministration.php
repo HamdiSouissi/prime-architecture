@@ -32,6 +32,22 @@ class UserAdministration
         return $user;
     }
 
+    public function resendInvitation(User $target): void
+    {
+        $token = Str::random(64);
+        $expires = now()->addMinutes((int) config('security.invitation_expiry_minutes'));
+        $user = DB::transaction(function () use ($target, $token, $expires) {
+            $user = User::query()->lockForUpdate()->findOrFail($target->id);
+            abort_if(! $user->is_active || $user->hasVerifiedEmail(), 403);
+            Invitation::where('user_id', $user->id)->whereNull('used_at')->update(['used_at' => now()]);
+            Invitation::create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'expires_at' => $expires]);
+
+            return $user;
+        });
+        $url = URL::temporarySignedRoute('invitation.show', $expires, ['token' => $token]);
+        $user->notify((new UserInvitation($url))->locale($user->locale));
+    }
+
     public function update(User $actor, User $target, array $data, bool $delete = false): void
     {
         DB::transaction(function () use ($actor, $target, $data, $delete) {

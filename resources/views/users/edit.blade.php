@@ -10,6 +10,9 @@
         <label for="is_active" class="block">{{ __('common.status') }}</label><select id="is_active" name="is_active"><option value="1" @selected((string) old('is_active', (int) $user->is_active) === '1')>{{ __('common.active') }}</option><option value="0" @selected((string) old('is_active', (int) $user->is_active) === '0')>{{ __('common.inactive') }}</option></select>
         <div><x-button type="submit">{{ __('common.save') }}</x-button></div>
     </form>
+    @if (! $user->hasVerifiedEmail() && $user->is_active)
+    <form method="POST" action="{{ route('users.invitation', $user) }}" class="mt-6">@csrf <x-button type="submit">{{ __('common.resend_invitation') }}</x-button></form>
+    @endif
     <form method="POST" action="{{ route('users.destroy', $user) }}" class="mt-6" onsubmit="return confirm(@js(__('common.confirm_delete')))">@csrf @method('DELETE')<x-button type="submit">{{ __('common.delete') }}</x-button></form>
 </x-card>
 @endsection
