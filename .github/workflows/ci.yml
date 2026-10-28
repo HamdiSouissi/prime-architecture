@@ -53,4 +53,10 @@ jobs:
             echo "::error title=Pint::$(head -c 4000 pint-result.json | tr '\r\n' '  ')"
             exit 1
           fi
-      - run: vendor/bin/phpstan analyse --no-progress
+      - name: Analyse PHP
+        run: |
+          if ! vendor/bin/phpstan analyse --no-progress --error-format=raw > phpstan-result.txt 2>&1; then
+            cat phpstan-result.txt
+            echo "::error title=PHPStan::$(head -c 4000 phpstan-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
