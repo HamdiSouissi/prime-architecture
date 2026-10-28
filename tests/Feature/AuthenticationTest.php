@@ -64,6 +64,17 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_logout_is_recorded_without_credentials(): void
+    {
+        $user = User::factory()->create();
+        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $this->post('/logout')->assertRedirect('/');
+
+        $this->assertGuest();
+        $this->assertDatabaseHas('activity_log', ['event' => 'logout', 'causer_id' => $user->id]);
+        $this->assertDatabaseMissing('activity_log', ['properties' => '{"password":"password"}']);
+    }
+
     public function test_guest_cannot_log_out_and_public_registration_does_not_exist(): void
     {
         $this->post('/logout')->assertRedirect(route('login'));

@@ -58,14 +58,14 @@ Une fonctionnalité par branche, issue de `develop` selon votre organisation ; P
 ## Dépendances ajoutées
 
 - Laravel : infrastructure MVC, sessions, migrations et protection CSRF.
-- Breeze, Spatie Permission et Spatie Activitylog sont installés pour préparer la phase 2 ; ils ne sont pas encore configurés ni utilisables comme authentification ou contrôle d’accès.
+- Breeze fournit le point de départ du flux de connexion ; Spatie Permission stocke les rôles et permissions et Spatie Activitylog les événements de connexion. Leur intégration reste incomplète : les interfaces et les contrôles d’accès ne sont pas encore terminés.
 - Tailwind/PostCSS/Autoprefixer et Vite : styles et compilation des ressources ; Alpine.js : menu mobile léger.
 - PHPUnit, Mockery, Faker, Collision : tests et outils Laravel de développement ; Pint : formatage ; Larastan/PHPStan : analyse statique.
 - Composer et Node sont utilisés dans les images pour installer/compiler les dépendances ; Nginx, MySQL et phpMyAdmin servent respectivement HTTP, persistance et administration locale optionnelle.
 
 ### Phase 2 en cours
 
-La migration ajoute les champs de sécurité et la suppression logique aux utilisateurs. **Elle n'active pas l'authentification et ne bloque pas encore les comptes désactivés** : Breeze, les permissions, les invitations et le journal restent à implémenter et vérifier avant toute utilisation. Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; le flag `Secure` est activé par défaut lorsque `APP_ENV=production`, sauf surcharge explicite. La configuration Compose reste réservée au développement.
+La migration ajoute les champs de sécurité et la suppression logique aux utilisateurs. **La phase 2 reste incomplète** : les invitations, la gestion des comptes, les profils, les politiques d’accès et la consultation du journal restent à implémenter et vérifier avant toute utilisation. Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; le flag `Secure` est activé par défaut lorsque `APP_ENV=production`, sauf surcharge explicite. La configuration Compose reste réservée au développement.
 
 La matrice initiale des permissions est définie dans `config/access.php` et créée par `RolePermissionSeeder` (aucune route ne l'utilise encore) :
 
