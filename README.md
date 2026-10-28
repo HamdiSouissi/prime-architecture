@@ -37,7 +37,7 @@ docker compose exec app composer audit
 
 `docker compose logs -f app` affiche les logs du processus ; ceux de Laravel sont sous `storage/logs` dans le volume, avec rotation quotidienne. Pour les lire : `docker compose exec app ls -l storage/logs`.
 
-La CI exécute la migration sur MySQL, les tests, Pint, Larastan niveau 5 et la compilation Vite sur chaque push et pull request. Le lock npm est versionné. **Le lock Composer n'a pas pu être généré dans cet environnement** : Composer et Packagist y sont inaccessibles. Avant de considérer les builds reproductibles, exécuter `composer update` avec PHP 8.2 et accès à Packagist, examiner et versionner `composer.lock`, puis vérifier les tests et le build Docker. Sans ce lock, `composer install` résout les versions à chaque construction.
+La CI exécute la migration sur MySQL, les tests, Pint, Larastan niveau 5 et la compilation Vite sur chaque push et pull request. Les fichiers `package-lock.json` et `composer.lock` sont versionnés ; utiliser `npm ci` et `composer install` pour installer les versions verrouillées.
 
 ## Organisation
 
@@ -58,6 +58,7 @@ Une fonctionnalité par branche, issue de `develop` selon votre organisation ; P
 ## Dépendances ajoutées
 
 - Laravel : infrastructure MVC, sessions, migrations et protection CSRF.
+- Breeze, Spatie Permission et Spatie Activitylog sont installés pour préparer la phase 2 ; ils ne sont pas encore configurés ni utilisables comme authentification ou contrôle d’accès.
 - Tailwind/PostCSS/Autoprefixer et Vite : styles et compilation des ressources ; Alpine.js : menu mobile léger.
 - PHPUnit, Mockery, Faker, Collision : tests et outils Laravel de développement ; Pint : formatage ; Larastan/PHPStan : analyse statique.
 - Composer et Node sont utilisés dans les images pour installer/compiler les dépendances ; Nginx, MySQL et phpMyAdmin servent respectivement HTTP, persistance et administration locale optionnelle.
