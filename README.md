@@ -13,10 +13,10 @@ git clone https://github.com/HamdiSouissi/prime-architecture.git
 cd prime-architecture
 cp .env.example .env
 docker compose up -d --build
-docker compose exec app php artisan migrate --force
+docker compose exec -u www-data app php artisan migrate --force
 ```
 
-Les sessions utilisent MySQL : la migration est indispensable avant la première requête. Accéder à <http://localhost:8080>. Le code est intégré aux images : après une modification, reconstruire avec `docker compose up -d --build`.
+Les sessions utilisent MySQL : la migration est indispensable avant la première requête. Exécuter les commandes Artisan et Composer avec `-u www-data` pour éviter de créer des fichiers de cache appartenant à root, que PHP-FPM ne pourrait pas modifier. Accéder à <http://localhost:8080>. Le code est intégré aux images : après une modification, reconstruire avec `docker compose up -d --build`.
 
 ### Premier administrateur
 
@@ -24,8 +24,8 @@ Dans `.env` **local et non versionné**, définir `ADMIN_NAME`, `ADMIN_EMAIL`, `
 
 ```sh
 docker compose up -d
-docker compose exec app php artisan db:seed --class=RolePermissionSeeder --force
-docker compose exec app php artisan db:seed --class=InitialAdminSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
 ```
 
 Le seeder d'initialisation ne modifie pas un administrateur actif existant, refuse un email déjà utilisé et vérifie la politique de mot de passe. Les valeurs sont lues via les variables d'environnement du conteneur ; recréer le service avec `docker compose up -d` après modification du `.env`. Ne pas publier de secrets dans Git, des captures ou des journaux. Supprimer `ADMIN_PASSWORD` de l'environnement après initialisation et recréer le service ; conserver la clé d'application et les sauvegardes.
@@ -65,10 +65,10 @@ Le journal conserve connexions réussies et échouées, déconnexions, création
 ## Tests et qualité
 
 ```sh
-docker compose exec app php artisan test
-docker compose exec app vendor/bin/pint --test
-docker compose exec app vendor/bin/phpstan analyse --no-progress
-docker compose exec app composer audit
+docker compose exec -u www-data app php artisan test
+docker compose exec -u www-data app vendor/bin/pint --test
+docker compose exec -u www-data app vendor/bin/phpstan analyse --no-progress
+docker compose exec -u www-data app composer audit
 ```
 
 La CI exécute les migrations MySQL, PHPUnit, Pint, Larastan niveau 5, la compilation Vite et des vérifications Docker/Mailpit à chaque push et pull request. Le contrôle des mots de passe compromis est désactivé dans les tests automatisés, avec un test du vérificateur utilisant des réponses HTTP simulées. `composer.lock` et `package-lock.json` sont versionnés. Les traductions Laravel FR/AR utilisent les catalogues [Laravel-Lang](https://github.com/Laravel-Lang/lang).

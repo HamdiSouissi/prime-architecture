@@ -84,7 +84,7 @@ jobs:
       - name: Build and start services
         run: docker compose up -d --build --wait
       - name: Apply migrations
-        run: docker compose exec -T app php artisan migrate --force --no-interaction
+        run: docker compose exec -T -u www-data app php artisan migrate --force --no-interaction
       - name: Verify French and Arabic pages
         run: |
           curl --fail --silent --show-error -c cookies.txt http://localhost:8080/ > home.html
@@ -95,8 +95,8 @@ jobs:
           grep -q 'lang="ar" dir="rtl"' arabic.html
       - name: Seed roles and initial administrator
         run: |
-          docker compose exec -T app php artisan db:seed --class=RolePermissionSeeder --force
-          docker compose exec -T app php artisan db:seed --class=InitialAdminSeeder --force
+          docker compose exec -T -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+          docker compose exec -T -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
       - name: Verify invitation through Mailpit
         run: |
           if ! python3 tests/smoke/docker_phase2.py > smoke-result.txt 2>&1; then
@@ -106,7 +106,7 @@ jobs:
           fi
       - name: Verify Mailpit receives email
         run: |
-          docker compose exec -T app php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); Illuminate\Support\Facades\Mail::raw("Archi TN smoke test", function ($message) { $message->to("test@example.com")->subject("Smoke test"); });'
+          docker compose exec -T -u www-data app php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); Illuminate\Support\Facades\Mail::raw("Archi TN smoke test", function ($message) { $message->to("test@example.com")->subject("Smoke test"); });'
           curl --fail --silent --show-error http://127.0.0.1:8025/api/v1/messages | python3 -c 'import json,sys; assert json.load(sys.stdin)["total"] >= 1'
       - name: Collect container logs on failure
         if: failure()
@@ -114,7 +114,7 @@ jobs:
       - name: Summarize Laravel errors from CI environment
         if: failure()
         run: |
-          docker compose exec -T app sh -c 'grep -h '\.ERROR:' storage/logs/laravel-*.log 2>/dev/null | tail -3 | head -c 3500 || true' > laravel-error.txt || true
+          docker compose exec -T -u www-data app sh -c 'grep -h '\.ERROR:' storage/logs/laravel-*.log 2>/dev/null | tail -3 | head -c 3500 || true' > laravel-error.txt || true
           if test -s laravel-error.txt; then
             echo "::error title=Laravel log::$(tr '\r\n' '  ' < laravel-error.txt)"
           fi
