@@ -22,6 +22,10 @@ Ouvrir <http://localhost:8080>. Le bouton de langue conserve le choix en session
 
 L'interface phpMyAdmin est facultative : `docker compose --profile dev up -d`, puis <http://localhost:8081> (accessible uniquement depuis la machine hôte). Utiliser l'utilisateur et le mot de passe MySQL du `.env` ; ne jamais exposer phpMyAdmin sur Internet. Les identifiants par défaut sont strictement locaux. Modifier les identifiants avant le premier démarrage : MySQL ne réinitialise pas un volume existant lors d'un changement de variables. Pour la production, définir des secrets uniques hors Git, HTTPS et cookies sécurisés, et remplacer la configuration Compose de développement (qui impose `APP_ENV=local`) par une configuration de déploiement adaptée.
 
+## Emails en développement
+
+Docker Compose inclut Mailpit : l'application envoie ses emails vers le service SMTP interne `mailpit:1025`, et sa boîte de réception est accessible sur <http://localhost:8025>, uniquement depuis la machine hôte. Mailpit intercepte les messages et ne les remet pas à leurs destinataires. Ne pas utiliser cette configuration en production ; les messages de test peuvent contenir des liens sensibles. Il n'y a pas encore de flux d'invitation ou d'authentification dans le socle actuel.
+
 ## Vérification et développement
 
 ```sh

@@ -13,6 +13,11 @@ services:
       DB_DATABASE: ${DB_DATABASE:-archi_tn}
       DB_USERNAME: ${DB_USERNAME:-archi}
       DB_PASSWORD: ${DB_PASSWORD:-archi_local_only}
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Archi TN}
     volumes:
       - app_runtime:/var/www/runtime
       - app_storage:/var/www/html/storage
@@ -42,6 +47,10 @@ services:
       timeout: 5s
       retries: 30
       start_period: 30s
+  mailpit:
+    image: axllent/mailpit:v1.27.2
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
   phpmyadmin:
     image: phpmyadmin:5
     profiles: ["dev"]
