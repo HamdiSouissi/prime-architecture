@@ -37,8 +37,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
         Route::delete('/profile/sessions', [ProfileController::class, 'logoutOthers'])->name('profile.sessions.destroy');
-        Route::resource('users', UserController::class)->except(['show']);
-        Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+        Route::resource('users', UserController::class)->except(['show'])->middleware('permission:users.manage');
+        Route::get('/activity', [ActivityController::class, 'index'])->middleware('permission:activity.view')->name('activity.index');
     });
 });
 Route::fallback(fn () => abort(404));

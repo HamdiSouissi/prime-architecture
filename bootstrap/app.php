@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias(['role' => RoleMiddleware::class, 'permission' => PermissionMiddleware::class, 'role_or_permission' => RoleOrPermissionMiddleware::class]);
+        $middleware->trustHosts(at: function () {
+            $host = parse_url(config('app.url'), PHP_URL_HOST);
+
+            return is_string($host) && $host !== '' ? ['^'.preg_quote($host, '/').'$'] : [];
+        }, subdomains: false);
         $middleware->append(SecurityHeaders::class);
         $middleware->web(append: [SetLocale::class, EnsureUserIsActive::class]);
     })

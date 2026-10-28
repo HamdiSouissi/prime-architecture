@@ -56,7 +56,7 @@ Le mot de passe doit comporter au moins `PASSWORD_MIN_LENGTH` caractères, avec 
 
 La connexion est limitée par email et IP, régénère la session et charge la langue préférée ; la déconnexion invalide la session. Le profil permet de modifier nom, téléphone et langue, de changer son mot de passe avec l'ancien, de consulter ses sessions actives et de déconnecter les autres appareils. Une désactivation, une suppression ou une réinitialisation de mot de passe révoque les sessions stockées en base et renouvelle le jeton de connexion persistante. Un middleware refuse également les comptes inactifs à chaque requête.
 
-Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; `Secure` est activé par défaut pour `APP_ENV=production`. HTTPS et une configuration de déploiement adaptée sont indispensables. L'application ajoute `X-Frame-Options`, `X-Content-Type-Options` et `Referrer-Policy`. Les demandes de réinitialisation affichent une réponse identique pour les adresses connues ou inconnues.
+Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; `Secure` est activé par défaut pour `APP_ENV=production`. HTTPS et une configuration de déploiement adaptée sont indispensables. Hors développement, renseigner `APP_URL` avec le nom d’hôte public exact : les autres hôtes sont refusés. L'application ajoute `X-Frame-Options`, `X-Content-Type-Options` et `Referrer-Policy`. Les demandes de réinitialisation affichent une réponse identique pour les adresses connues ou inconnues.
 
 La double authentification TOTP est **reportée** : elle nécessite notamment récupération sécurisée, codes de secours et tests dédiés. Il n'y a pas encore de prise en charge multi-cabinet ; ne pas utiliser cette version pour isoler plusieurs organisations.
 
