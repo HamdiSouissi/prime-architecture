@@ -5,6 +5,7 @@
 @section('content')
     <x-card class="max-w-md">
         <h1 class="mb-6 text-2xl font-bold">{{ __('common.login') }}</h1>
+        @if (session('status')) <x-alert class="mb-4">{{ session('status') }}</x-alert> @endif
         <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
             <x-form-field name="email" :label="__('common.email')" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" />
@@ -13,6 +14,7 @@
                 <input type="checkbox" name="remember" value="1" class="rounded border-slate-300">
                 <span>{{ __('common.remember') }}</span>
             </label>
+            <a href="{{ route('password.request') }}" class="block text-sm underline">{{ __('common.forgot_password') }}</a>
             <x-button type="submit">{{ __('common.login') }}</x-button>
         </form>
     </x-card>

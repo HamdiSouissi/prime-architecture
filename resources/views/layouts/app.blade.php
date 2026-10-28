@@ -33,7 +33,13 @@
     </header>
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col md:flex-row">
         <nav id="site-navigation" :class="menuOpen ? 'block' : 'hidden'" class="hidden w-full border-slate-200 bg-white p-4 md:block md:w-56 md:border-e">
-            <a href="{{ route('home') }}" class="block rounded bg-slate-100 px-3 py-2 font-medium" aria-current="page">{{ __('common.home') }}</a>
+            <a href="{{ route('home') }}" class="block rounded bg-slate-100 px-3 py-2 font-medium">{{ __('common.home') }}</a>
+            @auth
+                @canany(['dashboard.internal.view', 'dashboard.client.view'])<a href="{{ route('dashboard') }}" class="block px-3 py-2">{{ __('common.dashboard') }}</a>@endcanany
+                <a href="{{ route('profile.edit') }}" class="block px-3 py-2">{{ __('common.profile') }}</a>
+                @can('users.manage')<a href="{{ route('users.index') }}" class="block px-3 py-2">{{ __('common.users') }}</a>@endcan
+                @can('activity.view')<a href="{{ route('activity.index') }}" class="block px-3 py-2">{{ __('common.activity') }}</a>@endcan
+            @endauth
         </nav>
         <main class="min-w-0 flex-1 p-4 sm:p-6">@yield('content')</main>
     </div>

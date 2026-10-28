@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Password::defaults(function () {
+            $rule = Password::min((int) config('security.password_min_length'));
+
+            return config('security.check_compromised') ? $rule->uncompromised() : $rule;
+        });
+
         Event::listen(Login::class, function (Login $event): void {
             if ($event->user instanceof User) {
                 activity('authentication')->causedBy($event->user)->event('login.succeeded')->log('login.succeeded');

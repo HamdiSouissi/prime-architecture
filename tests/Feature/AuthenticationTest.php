@@ -22,7 +22,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create(['locale' => 'ar']);
 
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/')
+            ->assertRedirect(route('dashboard'))
             ->assertSessionHas('locale', 'ar');
 
         $this->assertAuthenticatedAs($user);
