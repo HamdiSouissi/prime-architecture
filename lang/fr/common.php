@@ -1,0 +1,21 @@
+<?php
+
+return [
+    'app_name' => 'Archi TN',
+    'home' => 'Accueil',
+    'welcome' => 'Bienvenue sur Archi TN',
+    'description' => 'Le socle de votre espace de gestion pour cabinet d’architecture.',
+    'language' => 'Langue',
+    'french' => 'Français',
+    'arabic' => 'العربية',
+    'change_language' => 'Changer de langue',
+    'menu' => 'Menu',
+    'footer' => 'Archi TN — Cabinet d’architecture',
+    'back_home' => 'Retour à l’accueil',
+    'error_403_title' => 'Accès interdit',
+    'error_403_text' => 'Vous ne pouvez pas accéder à cette page.',
+    'error_404_title' => 'Page introuvable',
+    'error_404_text' => 'La page demandée est introuvable.',
+    'error_500_title' => 'Erreur du serveur',
+    'error_500_text' => 'Une erreur est survenue. Veuillez réessayer plus tard.',
+];
