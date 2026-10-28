@@ -75,6 +75,10 @@ jobs:
           fi
   docker-smoke:
     runs-on: ubuntu-latest
+    env:
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: CI-admin-password-123
+      PASSWORD_CHECK_COMPROMISED: 'false'
     steps:
       - uses: actions/checkout@v4
       - name: Build and start services
@@ -89,6 +93,12 @@ jobs:
           curl --fail --silent --show-error -b cookies.txt -c cookies.txt -d "_token=$token&locale=ar" http://localhost:8080/locale -o /dev/null
           curl --fail --silent --show-error -b cookies.txt http://localhost:8080/ > arabic.html
           grep -q 'lang="ar" dir="rtl"' arabic.html
+      - name: Seed roles and initial administrator
+        run: |
+          docker compose exec -T app php artisan db:seed --class=RolePermissionSeeder --force
+          docker compose exec -T app php artisan db:seed --class=InitialAdminSeeder --force
+      - name: Verify invitation through Mailpit
+        run: python3 tests/smoke/docker_phase2.py
       - name: Verify Mailpit receives email
         run: |
           docker compose exec -T app php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); Illuminate\Support\Facades\Mail::raw("Archi TN smoke test", function ($message) { $message->to("test@example.com")->subject("Smoke test"); });'
