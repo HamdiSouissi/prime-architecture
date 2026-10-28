@@ -38,6 +38,15 @@ class BilingualPagesTest extends TestCase
         }
     }
 
+    public function test_session_language_is_used_for_security_errors(): void
+    {
+        $this->app['router']->get('/_test-error/{status}', fn (string $status) => abort((int) $status));
+        $this->withSession(['locale' => 'ar'])->get('/_test-error/419')
+            ->assertStatus(419)->assertSee('lang="ar" dir="rtl"', false)->assertSee('انتهت صلاحية الجلسة');
+        $this->withSession(['locale' => 'ar'])->get('/_test-error/429')
+            ->assertStatus(429)->assertSee('lang="ar" dir="rtl"', false)->assertSee('محاولات كثيرة');
+    }
+
     public function test_email_verification_page_renders_in_both_languages(): void
     {
         $user = User::factory()->unverified()->create();
