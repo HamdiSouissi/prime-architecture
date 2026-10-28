@@ -16,13 +16,15 @@ jobs:
           php-version: '8.2'
           extensions: pdo_mysql, mbstring, intl, zip
           coverage: none
-      - run: composer update --no-interaction --prefer-dist --no-progress --no-scripts
+      - run: composer require spatie/laravel-permission:^6.0 spatie/laravel-activitylog:^4.0 --no-interaction --no-progress --no-scripts
+      - run: composer require --dev laravel/breeze:^2.3 --no-interaction --no-progress --no-scripts
+      - run: vendor/bin/pint
       - name: Commit lock to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add composer.lock
+          git add composer.json composer.lock bootstrap/providers.php app/Models/User.php database/factories/UserFactory.php config/auth.php
           if ! git diff --cached --quiet; then
-            git commit -m 'chore: lock composer dependencies'
+            git commit -m 'chore: prepare authentication dependencies and formatting'
             git push origin HEAD:arena/a74fd998-prime-architecture
           fi
