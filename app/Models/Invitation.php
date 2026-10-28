@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property \Illuminate\Support\Carbon $expires_at
+ * @property-read User|null $user
+ */
 class Invitation extends Model
 {
     protected $guarded = [];
