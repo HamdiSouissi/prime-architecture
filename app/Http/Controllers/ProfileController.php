@@ -36,9 +36,11 @@ class ProfileController extends Controller
     {
         $data = $request->validate(['current_password' => ['required', 'current_password'], 'password' => ['required', 'confirmed', Password::defaults()]]);
         $user = $request->user();
-        $user->forceFill(['password' => $data['password']])->save();
-        $sessions->revokeAll($user, $request->session()->getId());
-        activity('security')->causedBy($user)->event('password.changed')->log('password.changed');
+        DB::transaction(function () use ($user, $data, $sessions, $request) {
+            $user->forceFill(['password' => $data['password']])->save();
+            $sessions->revokeAll($user, $request->session()->getId());
+            activity('security')->causedBy($user)->event('password.changed')->log('password.changed');
+        });
 
         return redirect()->route('profile.edit')->with('status', __('common.saved'));
     }
@@ -46,7 +48,7 @@ class ProfileController extends Controller
     public function logoutOthers(Request $request, SessionRevoker $sessions): RedirectResponse
     {
         $request->validate(['current_password' => ['required', 'current_password']]);
-        $sessions->revokeAll($request->user(), $request->session()->getId());
+        DB::transaction(fn () => $sessions->revokeAll($request->user(), $request->session()->getId()));
 
         return redirect()->route('profile.edit')->with('status', __('common.sessions_revoked'));
     }

@@ -8,6 +8,7 @@ use App\Services\SessionRevoker;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -44,13 +45,14 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                app(SessionRevoker::class)->revokeAll($user);
-                activity('security')->causedBy($user)->event('password.changed')->log('password.changed');
+                DB::transaction(function () use ($user, $request) {
+                    $user->forceFill([
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
+                    app(SessionRevoker::class)->revokeAll($user);
+                    activity('security')->causedBy($user)->event('password.changed')->log('password.changed');
+                });
                 event(new PasswordReset($user));
             }
         );

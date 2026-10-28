@@ -153,6 +153,15 @@ class PhaseTwoTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHas('locale', 'ar');
     }
 
+    public function test_password_change_revokes_other_sessions_and_records_the_event(): void
+    {
+        $user = $this->userWithRole('client');
+        DB::table('sessions')->insert(['id' => 'old-device', 'user_id' => $user->id, 'payload' => '', 'last_activity' => now()->timestamp]);
+        $this->actingAs($user)->put('/profile/password', ['current_password' => 'password', 'password' => 'A-safe-password-123', 'password_confirmation' => 'A-safe-password-123'])->assertRedirect('/profile');
+        $this->assertDatabaseMissing('sessions', ['id' => 'old-device']);
+        $this->assertDatabaseHas('activity_log', ['event' => 'password.changed', 'causer_id' => $user->id]);
+    }
+
     public function test_initial_admin_seeder_is_idempotent(): void
     {
         config(['security.admin_email' => 'initial@example.com', 'security.admin_password' => 'A-safe-password-123']);
