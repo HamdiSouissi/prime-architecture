@@ -1,14 +1,12 @@
-# Archi TN — socle technique
+# Archi TN
 
-Application de gestion pour cabinets d'architecture en Tunisie. Cette première phase fournit Laravel 11, PHP 8.2, MySQL 8, Blade, Tailwind CSS, Alpine.js, FR/AR et Docker. Aucun module métier ni authentification n'est encore implémenté.
+Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 11 / PHP 8.2, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette phase couvre l'authentification, les rôles, les utilisateurs, le profil et les premiers événements du journal ; elle ne comprend aucun module métier.
 
-> **Sécurité : Laravel 11 est en fin de support depuis le 12 mars 2026.** Il a été retenu conformément à la demande, mais ne doit pas être déployé en production en l'état. Composer est configuré pour autoriser la résolution de dépendances signalées vulnérables (`audit.block-insecure=false`) afin de permettre l'installation de cette version en fin de vie ; cela ne corrige aucune vulnérabilité. Faire `composer audit` et décider d'une migration vers une version de Laravel maintenue avant toute mise en production.
+> **Avertissement sécurité : Laravel 11 est hors support depuis mars 2026.** Ce projet ne doit pas être déployé en production en l'état. `composer.json` autorise explicitement la résolution de paquets signalés vulnérables (`audit.block-insecure=false`) pour pouvoir conserver cette version. Planifier une mise à niveau vers une version maintenue, exécuter `composer audit` et traiter les alertes avant tout déploiement. Docker Compose est réservé au développement local.
 
-## Prérequis
+## Prérequis et installation
 
-Git, Docker Engine et Docker Compose v2, accès à Internet pour la construction des images. Les ports 8080 et, si souhaité, 8081 doivent être libres. Aucune installation locale de PHP ou Node n'est nécessaire.
-
-## Installation en cinq commandes
+Git, Docker Engine et Docker Compose v2, accès Internet pour construire les images. Ports 8080, 8025 et éventuellement 8081 libres.
 
 ```sh
 git clone https://github.com/HamdiSouissi/prime-architecture.git
@@ -18,15 +16,53 @@ docker compose up -d --build
 docker compose exec app php artisan migrate --force
 ```
 
-Ouvrir <http://localhost:8080>. Le bouton de langue conserve le choix en session ; l'arabe active la direction RTL. Le premier démarrage peut prendre plusieurs minutes. `docker compose up -d` suffit aussi sans fichier `.env` : les valeurs de développement par défaut sont alors utilisées. `.env` pilote les variables Compose ; le conteneur crée au premier démarrage sa propre clé dans le volume `app_runtime`. La conserver, car sa perte invalide les données chiffrées et les sessions. Les changements au code nécessitent `docker compose up -d --build` (pas de montage du code source). Les fichiers de session et les journaux sont dans `app_storage` ; MySQL est dans `mysql_data`. `docker compose down` conserve les données ; `down -v` les détruit ainsi que la clé.
+Les sessions utilisent MySQL : la migration est indispensable avant la première requête. Accéder à <http://localhost:8080>. Le code est intégré aux images : après une modification, reconstruire avec `docker compose up -d --build`.
 
-L'interface phpMyAdmin est facultative : `docker compose --profile dev up -d`, puis <http://localhost:8081> (accessible uniquement depuis la machine hôte). Utiliser l'utilisateur et le mot de passe MySQL du `.env` ; ne jamais exposer phpMyAdmin sur Internet. Les identifiants par défaut sont strictement locaux. Modifier les identifiants avant le premier démarrage : MySQL ne réinitialise pas un volume existant lors d'un changement de variables. Pour la production, définir des secrets uniques hors Git, HTTPS et cookies sécurisés, et remplacer la configuration Compose de développement (qui impose `APP_ENV=local`) par une configuration de déploiement adaptée.
+### Premier administrateur
 
-## Emails en développement
+Dans `.env` **local et non versionné**, définir `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (au moins 10 caractères). La vérification des mots de passe compromis est activée par défaut et nécessite un accès HTTPS à `api.pwnedpasswords.com`. Puis lancer :
 
-Docker Compose inclut Mailpit : l'application envoie ses emails vers le service SMTP interne `mailpit:1025`, et sa boîte de réception est accessible sur <http://localhost:8025>, uniquement depuis la machine hôte. Mailpit intercepte les messages et ne les remet pas à leurs destinataires. Ne pas utiliser cette configuration en production ; les messages de test peuvent contenir des liens sensibles. Il n'y a pas encore de flux d'invitation ou d'authentification dans le socle actuel.
+```sh
+docker compose up -d
+docker compose exec app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec app php artisan db:seed --class=InitialAdminSeeder --force
+```
 
-## Vérification et développement
+Le seeder d'initialisation ne modifie pas un administrateur actif existant, refuse un email déjà utilisé et vérifie la politique de mot de passe. Les valeurs sont lues via les variables d'environnement du conteneur ; recréer le service avec `docker compose up -d` après modification du `.env`. Ne pas publier de secrets dans Git, des captures ou des journaux. Supprimer `ADMIN_PASSWORD` de l'environnement après initialisation et recréer le service ; conserver la clé d'application et les sauvegardes.
+
+## Rôles et autorisations
+
+La configuration `config/access.php` sert de source à `RolePermissionSeeder`, qui synchronise les permissions des rôles à chaque exécution : modifier la configuration avant de relancer le seeder. Aucune permission métier n'est présumée avant les phases correspondantes.
+
+| Rôle | Permissions | Accès actuel |
+|---|---|---|
+| `admin` | `dashboard.internal.view`, `users.manage`, `activity.view` | Tableau interne, utilisateurs, journal |
+| `architect` | `dashboard.internal.view` | Tableau interne et profil |
+| `collaborator` | `dashboard.internal.view` | Tableau interne et profil |
+| `client` | `dashboard.client.view` | Accueil externe et profil |
+| `contractor` | `dashboard.client.view` | Accueil externe et profil |
+
+Les routes d'administration passent par la policy utilisateur ou par les permissions ; `role`, `permission` et `role_or_permission` sont aussi disponibles en middleware. Les pages protégées requièrent une connexion et un email vérifié. L'interface d'administration permet de rechercher, filtrer, inviter, modifier, désactiver et supprimer logiquement. Un administrateur ne peut pas se désactiver, se supprimer ou se retirer son rôle ; les modifications d'administrateur sont sérialisées et le dernier administrateur actif est protégé.
+
+## Invitation et emails
+
+Aucune inscription publique. Dans **Utilisateurs → Inviter**, l'administrateur indique nom, email et rôle. L'invité reçoit un lien signé à usage unique ; le jeton n'est stocké qu'après hachage. Le lien expire après `INVITATION_EXPIRY_MINUTES` minutes (1 440 par défaut). L'utilisateur définit son mot de passe ; l'adresse est alors vérifiée. Un lien expiré, altéré ou déjà utilisé ne peut pas être réutilisé.
+
+Mailpit intercepte les emails de développement : <http://localhost:8025>, accessible uniquement depuis l'hôte. Les messages ne sont pas réellement délivrés. Ils peuvent contenir des liens sensibles ; ne pas exposer Mailpit sur Internet. phpMyAdmin est optionnel : `docker compose --profile dev up -d`, puis <http://localhost:8081>. MySQL n'est pas publié directement sur l'hôte.
+
+## Sécurité et profil
+
+Le mot de passe doit comporter au moins `PASSWORD_MIN_LENGTH` caractères, avec un minimum absolu de 10. `PASSWORD_CHECK_COMPROMISED=true` utilise l'API Pwned Passwords par préfixe SHA-1 (k-anonymat), sans transmettre le mot de passe. La vérification échoue de manière fermée si l'API est inaccessible ou renvoie une réponse invalide : la création ou le changement de mot de passe sera alors refusé. Pour les tests ou un environnement isolé uniquement, `PASSWORD_CHECK_COMPROMISED=false` désactive ce contrôle ; ne pas le désactiver en production.
+
+La connexion est limitée par email et IP, régénère la session et charge la langue préférée ; la déconnexion invalide la session. Le profil permet de modifier nom, téléphone et langue, de changer son mot de passe avec l'ancien, de consulter ses sessions actives et de déconnecter les autres appareils. Une désactivation, une suppression ou une réinitialisation de mot de passe révoque les sessions stockées en base et renouvelle le jeton de connexion persistante. Un middleware refuse également les comptes inactifs à chaque requête.
+
+Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; `Secure` est activé par défaut pour `APP_ENV=production`. HTTPS et une configuration de déploiement adaptée sont indispensables. L'application ajoute `X-Frame-Options`, `X-Content-Type-Options` et `Referrer-Policy`. Les demandes de réinitialisation affichent une réponse identique pour les adresses connues ou inconnues.
+
+La double authentification TOTP est **reportée** : elle nécessite notamment récupération sécurisée, codes de secours et tests dédiés. Il n'y a pas encore de prise en charge multi-cabinet ; ne pas utiliser cette version pour isoler plusieurs organisations.
+
+Le journal conserve connexions réussies et échouées, déconnexions, création/modification/désactivation/suppression de compte, changement de rôle et de mot de passe. Les échecs de connexion sont anonymisés ; les mots de passe ne sont jamais enregistrés. La page Journal est limitée à la permission `activity.view`, avec filtres et pagination. Définir une politique de conservation et une protection des données personnelles avant déploiement.
+
+## Tests et qualité
 
 ```sh
 docker compose exec app php artisan test
@@ -35,50 +71,16 @@ docker compose exec app vendor/bin/phpstan analyse --no-progress
 docker compose exec app composer audit
 ```
 
-`docker compose logs -f app` affiche les logs du processus ; ceux de Laravel sont sous `storage/logs` dans le volume, avec rotation quotidienne. Pour les lire : `docker compose exec app ls -l storage/logs`.
+La CI exécute les migrations MySQL, PHPUnit, Pint, Larastan niveau 5 et la compilation Vite à chaque push et pull request. Le contrôle des mots de passe compromis est désactivé dans les tests automatisés, avec un test du vérificateur utilisant des réponses HTTP simulées. `composer.lock` et `package-lock.json` sont versionnés. Les traductions Laravel FR/AR utilisent les catalogues [Laravel-Lang](https://github.com/Laravel-Lang/lang).
 
-La CI exécute la migration sur MySQL, les tests, Pint, Larastan niveau 5 et la compilation Vite sur chaque push et pull request. Les fichiers `package-lock.json` et `composer.lock` sont versionnés ; utiliser `npm ci` et `composer install` pour installer les versions verrouillées.
+Les données MySQL sont dans `mysql_data`, la clé générée au premier démarrage dans `app_runtime`, les journaux applicatifs dans `app_storage`. `docker compose down` les conserve ; `docker compose down -v` les détruit, y compris la clé. Laravel journalise dans `storage/logs` avec rotation quotidienne. Attention : modifier les identifiants MySQL dans `.env` ne reconfigure pas une base déjà initialisée.
 
-## Organisation
+## Structure et conventions
 
-- `app/Models`, `app/Http/Controllers` : modèles et contrôleurs Laravel de base.
-- `app/Services`, `app/Policies`, `app/Enums` : emplacements réservés aux futures phases.
-- `routes/web.php`, `app/Http/Middleware` : routes et sélection de langue.
-- `lang/fr`, `lang/ar`, `resources/views` : traductions et composants Blade.
-- `database/migrations`, `database/seeders` : schéma versionné et seeder vide.
-- `tests/Unit`, `tests/Feature` : tests automatisés.
-- `docker/`, `Dockerfile`, `docker-compose.yml` : environnement local.
+- `app/Http/Controllers`, `app/Http/Middleware`, `app/Policies`, `app/Services`, `app/Models` : contrôle d'accès, flux HTTP et logique métier.
+- `config/access.php`, `config/security.php` : rôles et paramètres de sécurité.
+- `database/migrations`, `database/seeders` : schéma versionné et initialisation.
+- `lang/fr`, `lang/ar`, `resources/views` : traductions, vues et composants RTL.
+- `tests/Feature`, `tests/Unit` : tests automatisés ; `docker/` : configuration locale.
 
-Les migrations de base Laravel (utilisateurs, cache et jobs) sont présentes, mais aucune authentification n'est activée. `APP_CURRENCY` fixe la devise par défaut sans figer les futurs taux ; toute règle fiscale devra être configurable et validée séparément. Les composants utilisent les classes logiques de Tailwind pour FR/AR.
-
-## Conventions Git
-
-Une fonctionnalité par branche, issue de `develop` selon votre organisation ; PR revue vers la branche cible. Utiliser des commits Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`). La branche de travail de cette session est imposée par Arena ; ni `main` ni `develop` n'ont été créées ou modifiées ici. Ne jamais committer `.env`, les secrets, `vendor` ou `node_modules`.
-
-## Dépendances ajoutées
-
-- Laravel : infrastructure MVC, sessions, migrations et protection CSRF.
-- Breeze fournit le point de départ du flux de connexion ; Spatie Permission stocke les rôles et permissions et Spatie Activitylog les événements de connexion. Leur intégration reste incomplète : les interfaces et les contrôles d’accès ne sont pas encore terminés.
-- Tailwind/PostCSS/Autoprefixer et Vite : styles et compilation des ressources ; Alpine.js : menu mobile léger.
-- PHPUnit, Mockery, Faker, Collision : tests et outils Laravel de développement ; Pint : formatage ; Larastan/PHPStan : analyse statique.
-- Composer et Node sont utilisés dans les images pour installer/compiler les dépendances ; Nginx, MySQL et phpMyAdmin servent respectivement HTTP, persistance et administration locale optionnelle.
-
-### Phase 2 en cours
-
-La migration ajoute les champs de sécurité et la suppression logique aux utilisateurs. **La phase 2 reste incomplète** : les invitations, la gestion des comptes, les profils, les politiques d’accès et la consultation du journal restent à implémenter et vérifier avant toute utilisation. Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; le flag `Secure` est activé par défaut lorsque `APP_ENV=production`, sauf surcharge explicite. La configuration Compose reste réservée au développement.
-
-La matrice initiale des permissions est définie dans `config/access.php` et créée par `RolePermissionSeeder` (aucune route ne l'utilise encore) :
-
-| Rôle | Permissions initiales |
-|---|---|
-| admin | `dashboard.internal.view`, `users.manage`, `activity.view` |
-| architect | `dashboard.internal.view` |
-| collaborator | `dashboard.internal.view` |
-| client | `dashboard.client.view` |
-| contractor | `dashboard.client.view` |
-
-Le seeder synchronise les permissions de ces rôles avec la configuration : modifier cette dernière avant de réexécuter le seeder. Aucun administrateur initial n'est encore créé. Les permissions métier seront ajoutées lors des phases correspondantes.
-
-Une connexion et une déconnexion partielles sont issues des contrôleurs Breeze : le compte actif est vérifié et la session régénérée. Les comptes désactivés sont déconnectés à la requête suivante. **Le parcours reste incomplet** : aucun administrateur initial, aucune invitation, aucun profil, aucune réinitialisation ni vérification d'email, aucun journal et aucune interface d'administration ne sont encore disponibles. La phase 2 ne doit pas être considérée comme achevée ni déployée en production.
-
-Le journal enregistre les événements de connexion réussie/échouée et de déconnexion. Les échecs sont anonymisés et aucun mot de passe n'est enregistré. La consultation et les événements d'administration restent à implémenter.
+Une fonctionnalité par branche, PR revue, commits Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`). Ne jamais committer `.env`, les secrets, `vendor` ou `node_modules`.
