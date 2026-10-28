@@ -73,3 +73,29 @@ jobs:
             echo "::error title=PHPStan::$(head -c 4000 phpstan-result.txt | tr '\r\n' '  ')"
             exit 1
           fi
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start services
+        run: docker compose up -d --build --wait
+      - name: Apply migrations
+        run: docker compose exec -T app php artisan migrate --force --no-interaction
+      - name: Verify French and Arabic pages
+        run: |
+          curl --fail --silent --show-error -c cookies.txt http://localhost:8080/ > home.html
+          grep -q 'lang="fr" dir="ltr"' home.html
+          token=$(python3 -c 'import re; print(re.search(r"name=\"_token\" value=\"([^\"]+)", open("home.html").read()).group(1))')
+          curl --fail --silent --show-error -b cookies.txt -c cookies.txt -d "_token=$token&locale=ar" http://localhost:8080/locale -o /dev/null
+          curl --fail --silent --show-error -b cookies.txt http://localhost:8080/ > arabic.html
+          grep -q 'lang="ar" dir="rtl"' arabic.html
+      - name: Verify Mailpit receives email
+        run: |
+          docker compose exec -T app php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); Illuminate\Support\Facades\Mail::raw("Archi TN smoke test", function ($message) { $message->to("test@example.com")->subject("Smoke test"); });'
+          curl --fail --silent --show-error http://127.0.0.1:8025/api/v1/messages | python3 -c 'import json,sys; assert json.load(sys.stdin)["total"] >= 1'
+      - name: Collect container logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Clean up
+        if: always()
+        run: docker compose down -v
