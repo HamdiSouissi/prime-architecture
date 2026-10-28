@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'login' => 'Connexion',
+    'logout' => 'Déconnexion',
+    'email' => 'Adresse e-mail',
+    'password' => 'Mot de passe',
+    'remember' => 'Se souvenir de moi',
     'app_name' => 'Archi TN',
     'home' => 'Accueil',
     'welcome' => 'Bienvenue sur Archi TN',

@@ -78,3 +78,5 @@ La matrice initiale des permissions est définie dans `config/access.php` et cr�
 | contractor | `dashboard.client.view` |
 
 Le seeder synchronise les permissions de ces rôles avec la configuration : modifier cette dernière avant de réexécuter le seeder. Aucun administrateur initial n'est encore créé. Les permissions métier seront ajoutées lors des phases correspondantes.
+
+Une connexion et une déconnexion partielles sont issues des contrôleurs Breeze : le compte actif est vérifié et la session régénérée. Les comptes désactivés sont déconnectés à la requête suivante. **Le parcours reste incomplet** : aucun administrateur initial, aucune invitation, aucun profil, aucune réinitialisation ni vérification d'email, aucun journal et aucune interface d'administration ne sont encore disponibles. La phase 2 ne doit pas être considérée comme achevée ni déployée en production.

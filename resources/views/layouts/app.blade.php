@@ -12,6 +12,14 @@
         <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
             <a href="{{ route('home') }}" class="font-bold text-lg">{{ __('common.app_name') }}</a>
             <button type="button" class="ms-auto rounded border border-slate-500 px-3 py-1 md:hidden" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen.toString()" aria-controls="site-navigation">{{ __('common.menu') }}</button>
+            @guest
+                <a href="{{ route('login') }}" class="rounded border border-slate-500 px-3 py-1 text-sm">{{ __('common.login') }}</a>
+            @else
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="rounded border border-slate-500 px-3 py-1 text-sm">{{ __('common.logout') }}</button>
+                </form>
+            @endguest
             <form action="{{ route('locale.update') }}" method="POST" class="flex items-center gap-2 md:ms-auto">
                 @csrf
                 <label for="locale" class="text-sm">{{ __('common.language') }}</label>
