@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'error_410_title' => 'Lien expiré ou déjà utilisé',
+    'error_410_text' => 'Demandez une nouvelle invitation à votre administrateur.',
+    'error_419_title' => 'Session expirée',
+    'error_419_text' => 'Actualisez la page et réessayez.',
+    'error_429_title' => 'Trop de tentatives',
+    'error_429_text' => 'Veuillez patienter avant de réessayer.',
     'resend_invitation' => 'Renvoyer l’invitation',
     'forgot_password' => 'Mot de passe oublié ?',
     'reset_password' => 'Réinitialiser le mot de passe',

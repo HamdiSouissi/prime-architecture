@@ -59,7 +59,7 @@ class PhaseTwoTest extends TestCase
         $this->get($url)->assertOk();
         $this->post($url, ['password' => 'A-safe-password-123', 'password_confirmation' => 'A-safe-password-123'])->assertRedirect(route('login'));
         $this->assertNotNull($invited->fresh()->email_verified_at);
-        $this->get($url)->assertStatus(410);
+        $this->withSession(['locale' => 'ar'])->get($url)->assertStatus(410)->assertSee('الرابط منتهي الصلاحية أو مستخدم');
         $this->get('/invitation/not-signed')->assertForbidden();
         $expired = URL::temporarySignedRoute('invitation.show', now()->subMinute(), ['token' => 'expired']);
         $this->get($expired)->assertForbidden();
