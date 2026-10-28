@@ -1,6 +1,8 @@
 name: Generate Composer lock (temporary)
 on:
-  workflow_dispatch:
+  push:
+    branches: ['arena/a74fd998-prime-architecture']
+    paths: ['.github/workflows/lock-temporary.yml']
 permissions:
   contents: write
 jobs:
