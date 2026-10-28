@@ -66,3 +66,15 @@ Une fonctionnalité par branche, issue de `develop` selon votre organisation ; P
 ### Phase 2 en cours
 
 La migration ajoute les champs de sécurité et la suppression logique aux utilisateurs. **Elle n'active pas l'authentification et ne bloque pas encore les comptes désactivés** : Breeze, les permissions, les invitations et le journal restent à implémenter et vérifier avant toute utilisation. Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; le flag `Secure` est activé par défaut lorsque `APP_ENV=production`, sauf surcharge explicite. La configuration Compose reste réservée au développement.
+
+La matrice initiale des permissions est définie dans `config/access.php` et créée par `RolePermissionSeeder` (aucune route ne l'utilise encore) :
+
+| Rôle | Permissions initiales |
+|---|---|
+| admin | `dashboard.internal.view`, `users.manage`, `activity.view` |
+| architect | `dashboard.internal.view` |
+| collaborator | `dashboard.internal.view` |
+| client | `dashboard.client.view` |
+| contractor | `dashboard.client.view` |
+
+Le seeder synchronise les permissions de ces rôles avec la configuration : modifier cette dernière avant de réexécuter le seeder. Aucun administrateur initial n'est encore créé. Les permissions métier seront ajoutées lors des phases correspondantes.

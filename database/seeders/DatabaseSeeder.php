@@ -8,6 +8,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Démonstrations à ajouter dans une phase ultérieure.
+        $this->call(RolePermissionSeeder::class);
     }
 }
