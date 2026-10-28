@@ -8,6 +8,7 @@ use App\Notifications\UserInvitation;
 use App\Services\UserAdministration;
 use Database\Seeders\InitialAdminSeeder;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -74,6 +75,34 @@ class PhaseTwoTest extends TestCase
         $oldUrl = Notification::sent($invited, UserInvitation::class)->first()->toMail($invited)->actionUrl;
         $this->actingAs($admin)->post(route('users.invitation', $invited))->assertRedirect('/users');
         $newUrl = Notification::sent($invited, UserInvitation::class)->last()->toMail($invited)->actionUrl;
+        $this->post('/logout');
+        $this->get($oldUrl)->assertStatus(410);
+        $this->get($newUrl)->assertOk();
+    }
+
+    public function test_changing_user_email_revokes_sessions_and_requires_verification(): void
+    {
+        Notification::fake();
+        $admin = $this->userWithRole('admin');
+        $user = $this->userWithRole('client');
+        DB::table('sessions')->insert(['id' => 'old-user-session', 'user_id' => $user->id, 'payload' => '', 'last_activity' => now()->timestamp]);
+        DB::table('password_reset_tokens')->insert(['email' => $user->email, 'token' => 'old-token', 'created_at' => now()]);
+        $this->actingAs($admin)->put(route('users.update', $user), ['name' => $user->name, 'email' => 'changed@example.com', 'role' => 'client', 'is_active' => '1'])->assertRedirect('/users');
+        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertDatabaseMissing('sessions', ['id' => 'old-user-session']);
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        Notification::assertSentTo($user->fresh(), VerifyEmail::class);
+    }
+
+    public function test_changing_pending_email_invalidates_old_invitation(): void
+    {
+        Notification::fake();
+        $admin = $this->userWithRole('admin');
+        $this->actingAs($admin)->post('/users', ['name' => 'Invité', 'email' => 'old@example.com', 'role' => 'client']);
+        $user = User::where('email', 'old@example.com')->firstOrFail();
+        $oldUrl = Notification::sent($user, UserInvitation::class)->first()->toMail($user)->actionUrl;
+        $this->actingAs($admin)->put(route('users.update', $user), ['name' => $user->name, 'email' => 'new@example.com', 'role' => 'client', 'is_active' => '1'])->assertRedirect('/users');
+        $newUrl = Notification::sent($user->fresh(), UserInvitation::class)->last()->toMail($user)->actionUrl;
         $this->post('/logout');
         $this->get($oldUrl)->assertStatus(410);
         $this->get($newUrl)->assertOk();

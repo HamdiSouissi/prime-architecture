@@ -42,7 +42,7 @@ La configuration `config/access.php` sert de source à `RolePermissionSeeder`, q
 | `client` | `dashboard.client.view` | Accueil externe et profil |
 | `contractor` | `dashboard.client.view` | Accueil externe et profil |
 
-Les routes d'administration passent par la policy utilisateur ou par les permissions ; `role`, `permission` et `role_or_permission` sont aussi disponibles en middleware. Les pages protégées requièrent une connexion et un email vérifié. L'interface d'administration permet de rechercher, filtrer, inviter, modifier, désactiver et supprimer logiquement. Un administrateur ne peut pas se désactiver, se supprimer ou se retirer son rôle ; les modifications d'administrateur sont sérialisées et le dernier administrateur actif est protégé.
+Les routes d'administration passent par la policy utilisateur ou par les permissions ; `role`, `permission` et `role_or_permission` sont aussi disponibles en middleware. Les pages protégées requièrent une connexion et un email vérifié. L'interface d'administration permet de rechercher, filtrer, inviter, modifier, désactiver et supprimer logiquement. Un changement d’email révoque les sessions, invalide les anciens jetons et demande une nouvelle vérification (ou une nouvelle invitation pour un compte en attente). Un administrateur ne peut pas se désactiver, se supprimer ou se retirer son rôle ; les modifications d'administrateur sont sérialisées et le dernier administrateur actif est protégé.
 
 ## Invitation et emails
 

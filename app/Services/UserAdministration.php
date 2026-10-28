@@ -50,7 +50,7 @@ class UserAdministration
 
     public function update(User $actor, User $target, array $data, bool $delete = false): void
     {
-        DB::transaction(function () use ($actor, $target, $data, $delete) {
+        $result = DB::transaction(function () use ($actor, $target, $data, $delete) {
             // Serialize every admin mutation, including concurrent demotion/deactivation.
             Role::query()->where('name', 'admin')->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
             $user = User::query()->lockForUpdate()->findOrFail($target->id);
@@ -67,12 +67,27 @@ class UserAdministration
             }
             $oldRole = $user->getRoleNames()->first();
             $wasActive = $user->is_active;
-            $user->forceFill(['name' => $data['name'] ?? $user->name, 'is_active' => $active])->save();
+            $wasVerified = $user->hasVerifiedEmail();
+            $oldEmail = $user->email;
+            $newEmail = $delete ? $oldEmail : ($data['email'] ?? $oldEmail);
+            $emailChanged = $oldEmail !== $newEmail;
+            $user->forceFill(['name' => $data['name'] ?? $user->name, 'email' => $newEmail, 'is_active' => $active]);
+            if ($emailChanged) {
+                $user->email_verified_at = null;
+                Invitation::where('user_id', $user->id)->whereNull('used_at')->update(['used_at' => now()]);
+                DB::table(config('auth.passwords.users.table'))->whereIn('email', [$oldEmail, $newEmail])->delete();
+            }
+            $user->save();
+            if ($emailChanged) {
+                app(SessionRevoker::class)->revokeAll($user);
+            }
             if (! $delete) {
                 $user->syncRoles([$role]);
             }
             if ($wasActive && ! $active) {
-                app(SessionRevoker::class)->revokeAll($user);
+                if (! $emailChanged) {
+                    app(SessionRevoker::class)->revokeAll($user);
+                }
                 activity('users')->performedOn($user)->event('user.deactivated')->log('user.deactivated');
             }
             if ($delete) {
@@ -82,6 +97,15 @@ class UserAdministration
                 activity('users')->performedOn($user)->withProperties(['from' => $oldRole, 'to' => $role])->event('role.changed')->log('role.changed');
             }
             activity('users')->performedOn($user)->event($delete ? 'user.deleted' : 'user.updated')->log($delete ? 'user.deleted' : 'user.updated');
+
+            return ['user' => $user, 'email_changed' => $emailChanged, 'was_verified' => $wasVerified];
         });
+        if ($result['email_changed'] && $result['user']->is_active) {
+            if ($result['was_verified']) {
+                $result['user']->sendEmailVerificationNotification();
+            } else {
+                $this->resendInvitation($result['user']);
+            }
+        }
     }
 }

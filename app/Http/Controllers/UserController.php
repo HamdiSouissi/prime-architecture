@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\UserAdministration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -58,8 +59,16 @@ class UserController extends Controller
     public function update(Request $request, User $user, UserAdministration $service): RedirectResponse
     {
         Gate::authorize('update', $user);
-        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'role' => ['required', Rule::in(array_keys(config('access.roles')))], 'is_active' => ['required', 'boolean']]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)], 'role' => ['required', Rule::in(array_keys(config('access.roles')))], 'is_active' => ['required', 'boolean']]);
+        $ownEmailChanged = $request->user()->id === $user->id && isset($data['email']) && $data['email'] !== $user->email;
         $service->update($request->user(), $user, $data);
+        if ($ownEmailChanged) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login');
+        }
 
         return redirect()->route('users.index')->with('status', __('common.saved'));
     }
