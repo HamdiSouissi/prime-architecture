@@ -61,3 +61,7 @@ Une fonctionnalité par branche, issue de `develop` selon votre organisation ; P
 - Tailwind/PostCSS/Autoprefixer et Vite : styles et compilation des ressources ; Alpine.js : menu mobile léger.
 - PHPUnit, Mockery, Faker, Collision : tests et outils Laravel de développement ; Pint : formatage ; Larastan/PHPStan : analyse statique.
 - Composer et Node sont utilisés dans les images pour installer/compiler les dépendances ; Nginx, MySQL et phpMyAdmin servent respectivement HTTP, persistance et administration locale optionnelle.
+
+### Phase 2 en cours
+
+La migration ajoute les champs de sécurité et la suppression logique aux utilisateurs. **Elle n'active pas l'authentification et ne bloque pas encore les comptes désactivés** : Breeze, les permissions, les invitations et le journal restent à implémenter et vérifier avant toute utilisation. Les cookies de session sont `HttpOnly` et `SameSite=Lax` par défaut ; le flag `Secure` est activé par défaut lorsque `APP_ENV=production`, sauf surcharge explicite. La configuration Compose reste réservée au développement.
