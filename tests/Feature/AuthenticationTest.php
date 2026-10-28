@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -72,7 +73,7 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
         $this->assertDatabaseHas('activity_log', ['event' => 'logout', 'causer_id' => $user->id]);
-        $this->assertDatabaseMissing('activity_log', ['properties' => '{"password":"password"}']);
+        $this->assertStringNotContainsString('password', DB::table('activity_log')->get()->toJson());
     }
 
     public function test_guest_cannot_log_out_and_public_registration_does_not_exist(): void
