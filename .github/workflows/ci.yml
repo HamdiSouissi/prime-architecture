@@ -111,6 +111,13 @@ jobs:
       - name: Collect container logs on failure
         if: failure()
         run: docker compose logs --no-color app web mailpit
+      - name: Summarize Laravel errors from CI environment
+        if: failure()
+        run: |
+          docker compose exec -T app sh -c 'tail -c 3500 storage/logs/laravel-*.log 2>/dev/null || true' > laravel-error.txt || true
+          if test -s laravel-error.txt; then
+            echo "::error title=Laravel log::$(tr '\r\n' '  ' < laravel-error.txt)"
+          fi
       - name: Clean up
         if: always()
         run: docker compose down -v
