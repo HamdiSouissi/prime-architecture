@@ -1,5 +1,92 @@
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/inter/latin-ext-700.css';
+@import '@fontsource/cairo/arabic-400.css';
+@import '@fontsource/cairo/arabic-600.css';
+@import '@fontsource/cairo/arabic-700.css';
+@import '@fontsource/cairo/latin-400.css';
+@import '@fontsource/cairo/latin-600.css';
+@import '@fontsource/cairo/latin-700.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    body { @apply bg-canvas text-ink antialiased; }
+    :focus-visible { @apply outline outline-2 outline-offset-2 outline-brand-600; }
+    input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']), select, textarea {
+        @apply min-h-11 w-full max-w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-ink;
+    }
+    input[type='checkbox'], input[type='radio'] { @apply h-5 w-5 rounded border-slate-400 text-brand-600; }
+    table { @apply w-full border-separate border-spacing-0 text-start text-sm; }
+    th { @apply bg-slate-50 px-3 py-3 text-start font-semibold text-slate-700; }
+    td { @apply border-t border-slate-100 px-3 py-3 align-middle; }
+    tbody tr:hover { @apply bg-brand-50/30; }
+    a.underline { @apply text-brand-700 decoration-brand-500/50 underline-offset-4 hover:decoration-brand-700; }
+}
+@layer components {
+    .app-nav-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700; }
+    .app-nav-link-active { @apply bg-brand-50 font-semibold text-brand-700; }
+    .app-tab { @apply min-h-11 border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-slate-700 hover:text-brand-700; }
+    .app-tab[aria-selected='true'] { @apply border-brand-600 text-brand-700; }
+}
 [x-cloak] { display: none !important; }
+#planning-gantt { --dhx-gantt-task-background: #3730a3; --dhx-gantt-task-color: #fff; }
+.gantt_container .gantt_task_cell.planning-today { background-color: #fef3c7; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+@layer components {
+    .app-header { @apply relative z-10 border-b border-slate-200/80 bg-white; box-shadow: 0 5px 24px -22px rgba(23,32,51,.32); }
+    .app-sidebar { @apply border-slate-200/80 bg-white; }
+    .brand-mark { @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white; background: linear-gradient(145deg, #4338ca 0%, #3730a3 100%); box-shadow: 0 8px 16px -8px rgba(67,56,202,.6); }
+    .avatar-mark { @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700; }
+    .nav-caption { @apply px-3 pb-2 pt-2 text-xs font-bold uppercase tracking-wider text-slate-500; }
+    .nav-divider { @apply my-4 border-t border-slate-100; }
+    .app-nav-link { @apply min-h-11 rounded-xl px-3 py-2.5; }
+    .app-nav-link-active { box-shadow: inset 3px 0 0 #4338ca; }
+    [dir='rtl'] .app-nav-link-active { box-shadow: inset -3px 0 0 #4338ca; }
+    .eyebrow { @apply text-xs font-bold tracking-widest text-brand-700; }
+    .hero-panel { @apply relative overflow-hidden rounded-3xl border border-indigo-100 bg-white; box-shadow: 0 24px 60px -40px rgba(49,46,129,.35); }
+    .hero-art { background: radial-gradient(circle at 70% 26%, rgba(199,210,254,.8), transparent 45%), linear-gradient(140deg,#f5f7ff,#e9f5f2); }
+    .hero-line { @apply absolute rounded-2xl border border-white; box-shadow: 0 18px 40px -24px rgba(67,56,202,.42); }
+    .stat-card { @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft; }
+    .section-title { @apply text-lg font-bold tracking-tight text-ink; }
+}
+@layer components {
+    .billing-badge { @apply inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-brand-700; }
+    .billing-label { @apply mb-1 block text-sm font-semibold text-slate-700; }
+    .billing-value { @apply font-semibold tabular-nums text-ink; }
+}
+@layer components {
+    .action-link { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-soft hover:bg-brand-700; }
+}
+@layer base {
+    thead th:first-child { border-start-start-radius: .75rem; }
+    thead th:last-child { border-start-end-radius: .75rem; }
+}
+@layer components {
+    .planning-view-link { @apply rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 no-underline hover:text-brand-700; }
+    .planning-view-link[aria-current="page"] { @apply bg-white text-brand-700 shadow-sm; }
+}
+@layer components {
+    .secondary-action-link { @apply inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700 no-underline hover:border-indigo-200 hover:bg-indigo-50; }
+    .detail-grid > div { @apply rounded-xl bg-slate-50 p-4; }
+    .detail-grid dt { @apply text-sm font-medium text-slate-600; }
+    .detail-grid dd { @apply mt-1 font-semibold text-ink; overflow-wrap: anywhere; }
+}
+
+@layer components {
+    .form-layout label { @apply text-sm font-semibold text-slate-700; }
+    .form-layout label > input:not([type='checkbox']):not([type='radio']),
+    .form-layout label > select, .form-layout label > textarea { @apply mt-1.5 block w-full; }
+    .form-layout input:focus, .form-layout select:focus, .form-layout textarea:focus { @apply border-brand-600 outline-none ring-2 ring-brand-100; }
+    .form-layout textarea { @apply min-h-28; }
+}
+
+@layer base {
+    form label > input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+    form label > select, form label > textarea { @apply mt-1.5 block w-full; }
+}

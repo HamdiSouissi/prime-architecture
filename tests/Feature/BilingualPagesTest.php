@@ -31,7 +31,7 @@ class BilingualPagesTest extends TestCase
             foreach (['/login', '/forgot-password', '/reset-password/example?email=test@example.com', $invite] as $url) {
                 $this->withSession(['locale' => $locale])->get($url)->assertOk()->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false);
             }
-            foreach (['/dashboard', '/profile', '/users', '/users/create', route('users.edit', $admin), '/activity'] as $url) {
+            foreach (['/dashboard', '/profile', '/users', '/users/create', route('users.edit', $admin), '/activity', '/clients/create', '/projects/create'] as $url) {
                 $this->actingAs($admin)->withSession(['locale' => $locale])->get($url)->assertOk()->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false);
             }
             $this->post('/logout');
@@ -45,6 +45,19 @@ class BilingualPagesTest extends TestCase
             ->assertStatus(419)->assertSee('lang="ar" dir="rtl"', false)->assertSee('انتهت صلاحية الجلسة');
         $this->withSession(['locale' => 'ar'])->get('/_test-error/429')
             ->assertStatus(429)->assertSee('lang="ar" dir="rtl"', false)->assertSee('محاولات كثيرة');
+    }
+
+    public function test_error_pages_render_in_both_languages(): void
+    {
+        config(['app.debug' => false]);
+        $this->app['router']->get('/_test-error-page/{status}', fn (string $status) => abort((int) $status))->middleware('web');
+        foreach (['fr' => 'ltr', 'ar' => 'rtl'] as $locale => $direction) {
+            foreach ([403, 404, 410, 419, 429, 500] as $status) {
+                $this->withSession(['locale' => $locale])->get('/_test-error-page/'.$status)
+                    ->assertStatus($status)->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false)
+                    ->assertSee((string) $status);
+            }
+        }
     }
 
     public function test_email_verification_page_renders_in_both_languages(): void

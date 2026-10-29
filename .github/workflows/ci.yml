@@ -35,15 +35,21 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, mbstring, intl, zip
+          extensions: pdo_mysql, mbstring, intl, zip, bcmath, gd, exif
           coverage: none
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: cp .env.example .env
+      - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer audit --locked --no-interaction
       - run: npm ci && npm run build
+      - name: Check design token contrast
+        run: node tests/smoke/contrast_tokens.mjs
+      - name: Audit private PDF renderer dependencies
+        run: npm --prefix docker/pdf audit --package-lock-only --omit=dev --audit-level=moderate
       - name: Migrate database
         run: |
           if ! php artisan migrate --force --no-interaction > migration-result.txt 2>&1; then
@@ -58,7 +64,16 @@ jobs:
             echo "::error title=Tests::$(tail -c 4000 test-result.txt | tr '\r\n' '  ')"
             exit 1
           fi
+      - name: Verify concurrent project reference allocation
+        run: php tests/smoke/concurrent_references.php
+      - name: Verify concurrent document version allocation
+        run: php tests/smoke/concurrent_document_versions.php
+      - name: Verify concurrent billing number allocation
+        run: php tests/smoke/concurrent_billing_numbers.php
+      - name: Verify concurrent quote issuance
+        run: php tests/smoke/concurrent_billing_issuance.php
       - name: Check PHP formatting
+        if: success() || failure()
         run: |
           if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
             head -c 8000 pint-result.json
@@ -67,24 +82,35 @@ jobs:
             exit 1
           fi
       - name: Analyse PHP
+        if: success() || failure()
         run: |
           if ! vendor/bin/phpstan analyse --no-progress --error-format=raw > phpstan-result.txt 2>&1; then
             cat phpstan-result.txt
             echo "::error title=PHPStan::$(head -c 4000 phpstan-result.txt | tr '\r\n' '  ')"
             exit 1
           fi
+      - name: Export formatting diagnostic on failure
+        if: failure()
+        run: |
+          vendor/bin/pint --format=json > /dev/null || true
+          git diff -- '*.php' | gzip -c | base64 -w 0 | fold -w 2000 | awk '{printf "::warning title=PINTPART%03d::%s\n", NR, $0}'
   docker-smoke:
     runs-on: ubuntu-latest
     env:
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: CI-admin-password-123
       PASSWORD_CHECK_COMPROMISED: 'false'
+      BILLING_PDF_TOKEN: 'ci-only-pdf-renderer-token-at-least-32-characters'
     steps:
       - uses: actions/checkout@v4
       - name: Build and start services
         run: docker compose up -d --build --wait
       - name: Apply migrations
         run: docker compose exec -T -u www-data app php artisan migrate --force --no-interaction
+      - name: Verify Composer development tools in image
+        run: |
+          docker compose exec -T -u www-data app vendor/bin/phpstan --version
+          docker compose exec -T -u www-data app vendor/bin/pint --version
       - name: Verify French and Arabic pages
         run: |
           curl --fail --silent --show-error -c cookies.txt http://localhost:8080/ > home.html
@@ -97,6 +123,84 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
           docker compose exec -T -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
+      - name: Set up Node for browser smoke test
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install browser test dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Seed geography and test location forms in Chrome
+        run: |
+          docker compose exec -T -u www-data app php artisan db:seed --class=GeographySeeder --force
+          npm run test:location-ui
+      - name: Test document forms in Chrome
+        run: |
+          docker compose exec -T -u www-data app php artisan db:seed --class=DocumentCategorySeeder --force
+          npm run test:documents-ui
+      - name: Verify planning Gantt in French and Arabic
+        run: |
+          docker compose exec -T -u www-data app php artisan db:seed --class=WorkingCalendarSeeder --force
+          npm run test:planning-ui
+      - name: Verify billing editor and mobile RTL in Chrome
+        run: |
+          docker compose exec -T -u www-data app php tests/smoke/prepare_billing_ui.php
+          node tests/smoke/billing_ui.mjs
+      - name: Check French and Arabic accessibility in Chrome
+        run: |
+          docker compose exec -T -u www-data app php tests/smoke/prepare_accessibility.php
+          node tests/smoke/accessibility_ui.mjs
+      - name: Verify private-safe PWA shell
+        run: |
+          for test in pwa_shell pwa_progress; do
+            if ! node "tests/smoke/${test}.mjs" > pwa-test.log 2>&1; then
+              echo "::error title=PWA ${test}::$(tail -c 3500 pwa-test.log | tr '\r\n' '  ' | sed 's/%/%25/g')"
+              exit 1
+            fi
+            cat pwa-test.log
+          done
+      - name: Install PDF inspection tools
+        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+      - name: Build and start private PDF renderer
+        run: |
+          if ! docker compose --profile pdf up -d --build --wait pdf > pdf-build.log 2>&1; then
+            echo "::error title=PDF build::$(tail -c 3800 pdf-build.log | tr '\r\n' '  ')"
+            exit 1
+          fi
+      - name: Generate and inspect French and Arabic billing PDFs
+        run: |
+          trap 'echo "::error title=PDF diagnostic::Command on workflow line $LINENO failed"' ERR
+          docker compose --profile pdf exec -T pdf node --input-type=module < tests/smoke/pdf_security.mjs
+          docker compose --profile pdf exec -T pdf cat /tmp/security-probe.pdf > security-probe.pdf
+          pdftotext security-probe.pdf security-probe.txt
+          grep -q SAFE_RENDER security-probe.txt
+          ! grep -q SCRIPT_EXECUTED security-probe.txt
+          docker compose exec -T -u www-data app php tests/smoke/generate_billing_pdf.php
+          docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-fr.pdf > ci-quote-fr.pdf
+          docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-ar.pdf > ci-quote-ar.pdf
+          pdfinfo ci-quote-fr.pdf | grep -q 'Pages:'
+          pdfinfo ci-quote-fr.pdf | grep -Eq '^Title:[[:space:]]+Devis'
+          pdfinfo ci-quote-ar.pdf | grep -q 'Pages:'
+          pdfinfo ci-quote-fr.pdf | grep -Eq '^Tagged:[[:space:]]+yes$'
+          pdfinfo ci-quote-ar.pdf | grep -Eq '^Tagged:[[:space:]]+yes$'
+          pdffonts ci-quote-fr.pdf | grep -qi 'Inter'
+          pdffonts ci-quote-ar.pdf | grep -qi 'Cairo'
+          pdftotext ci-quote-ar.pdf ci-quote-ar.txt
+          python3 -c "import pathlib; s=pathlib.Path('ci-quote-ar.txt').read_text(); assert any('\u0600' <= c <= '\u06ff' for c in s), 'Arabic text missing'"
+          pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-fr.pdf ci-quote-fr
+          pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-ar.pdf ci-quote-ar
+      - name: Save synthetic bilingual PDF examples
+        uses: actions/upload-artifact@v4
+        with:
+          name: billing-pdf-examples
+          path: |
+            ci-quote-fr.pdf
+            ci-quote-ar.pdf
+          retention-days: 3
+      - name: Verify development scheduler container
+        run: |
+          docker compose --profile scheduler up -d scheduler
+          docker compose exec -T -u www-data scheduler php artisan schedule:list
       - name: Verify invitation through Mailpit
         run: |
           if ! python3 tests/smoke/docker_phase2.py > smoke-result.txt 2>&1; then
@@ -110,7 +214,14 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8025/api/v1/messages | python3 -c 'import json,sys; assert json.load(sys.stdin)["total"] >= 1'
       - name: Collect container logs on failure
         if: failure()
-        run: docker compose logs --no-color app web mailpit
+        run: docker compose logs --no-color app web mailpit pdf
+      - name: Summarize PDF renderer errors
+        if: failure()
+        run: |
+          docker compose logs --no-color pdf > pdf-error.txt 2>&1 || true
+          if test -s pdf-error.txt; then
+            echo "::error title=PDF renderer::$(tail -c 3500 pdf-error.txt | tr '\r\n' '  ')"
+          fi
       - name: Summarize Laravel errors from CI environment
         if: failure()
         run: |
@@ -119,5 +230,51 @@ jobs:
             echo "::error title=Laravel log::$(tr '\r\n' '  ' < laravel-error.txt)"
           fi
       - name: Clean up
+        if: always()
+        run: docker compose down -v
+  laravel-upgrade:
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: CI-admin-password-123
+      PASSWORD_CHECK_COMPROMISED: 'false'
+      COMPOSE_PROJECT_NAME: archi-upgrade
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare Laravel 11 baseline without changing branches
+        run: |
+          mkdir -p "$RUNNER_TEMP/archi-laravel11"
+          git archive 60e487939bbd1baa98098c5e9020c7a8c579185a | tar -x -C "$RUNNER_TEMP/archi-laravel11"
+      - name: Start baseline and create existing data
+        run: |
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" up -d --build --wait
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan migrate --force --no-interaction
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
+          python3 tests/smoke/docker_phase2.py
+          python3 tests/smoke/laravel_upgrade.py seed
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app sh -c "grep '^APP_KEY=' /var/www/runtime/.env | sha256sum" > "$RUNNER_TEMP/old-key-hash"
+      - name: Upgrade using existing volumes
+        run: |
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" down
+          docker compose up -d --build --wait
+          docker compose exec -T -u www-data app php artisan migrate --force --no-interaction
+          docker compose exec -T -u www-data app php artisan optimize:clear
+          docker compose exec -T -u www-data app php artisan --version | grep -F 'Laravel Framework 12.'
+          docker compose exec -T -u www-data app sh -c "grep '^APP_KEY=' /var/www/runtime/.env | sha256sum" > "$RUNNER_TEMP/new-key-hash"
+          cmp "$RUNNER_TEMP/old-key-hash" "$RUNNER_TEMP/new-key-hash"
+      - name: Verify existing session, credentials and profile
+        run: |
+          if ! python3 tests/smoke/laravel_upgrade.py verify > upgrade-result.txt 2>&1; then
+            cat upgrade-result.txt
+            echo "::error title=Laravel upgrade::$(tail -c 2000 upgrade-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
+      - name: Collect application logs on failure
+        if: failure()
+        run: docker compose logs --no-color app web mailpit pdf || true
+      - name: Clean up test volumes
         if: always()
         run: docker compose down -v

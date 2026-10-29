@@ -3,16 +3,25 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:location-ui": "node tests/smoke/location_forms.mjs",
+        "test:documents-ui": "node tests/smoke/documents_ui.mjs",
+        "test:planning-ui": "node tests/smoke/planning_ui.mjs"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.20",
+        "axe-core": "4.10.3",
         "laravel-vite-plugin": "^1.2.0",
+        "playwright-core": "1.64.1",
         "postcss": "^8.4.47",
         "tailwindcss": "^3.4.13",
         "vite": "^6.0.11"
     },
     "dependencies": {
-        "alpinejs": "^3.14.0"
+        "@fontsource/cairo": "5.3.0",
+        "@fontsource/inter": "5.3.0",
+        "alpinejs": "^3.14.0",
+        "chart.js": "^4.6.1",
+        "dhtmlx-gantt": "10.0.3"
     }
 }

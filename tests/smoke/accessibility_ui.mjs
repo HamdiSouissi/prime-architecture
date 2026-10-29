@@ -1,0 +1,207 @@
+import assert from 'node:assert/strict';
+import axe from 'axe-core';
+import { chromium } from 'playwright-core';
+
+// Synthetic CI data only. Automated checks complement, but do not replace,
+// keyboard, assistive-technology and human contrast reviews.
+const base = 'http://localhost:8080';
+const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const findings = new Map();
+function add(key, value, identity = value) {
+    const entry = findings.get(key) ?? { count: 0, examples: [], identities: new Set() };
+    entry.count++;
+    if (entry.examples.length < 25 && !entry.identities.has(identity)) { entry.examples.push(value); entry.identities.add(identity); }
+    findings.set(key, entry);
+}
+async function open(path) {
+    const response = await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response.status(), 200, `${path} returned ${response.status()}`);
+    await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: axe.source });
+}
+async function scanState(state, path, locale, width) {
+    const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
+    if (overflow.scroll > overflow.viewport + 1) {
+        const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
+            const r = element.getBoundingClientRect();
+            return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
+        }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
+        add('horizontal-overflow', `${locale}/${width}/${state} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
+    }
+    const structure = await page.evaluate(() => ({
+        main: document.querySelectorAll('main#main-content').length,
+        headings: document.querySelectorAll('main#main-content h1').length,
+        emptyHeadings: [...document.querySelectorAll('main#main-content h1')].filter(element => !element.textContent.trim()).length,
+        lang: document.documentElement.lang,
+        dir: document.documentElement.dir,
+    }));
+    if (structure.main !== 1) add('landmark-main', `${locale}/${width}/${state} ${path}: ${structure.main} main landmarks`);
+    if (structure.main === 1 && structure.headings !== 1) add('heading-structure', `${locale}/${width}/${state} ${path}: ${structure.headings} level-one headings`, path);
+    if (structure.emptyHeadings) add('empty-heading', `${locale}/${width}/${state} ${path}: ${structure.emptyHeadings} empty level-one heading`, path);
+    if (locale === 'ar' ? structure.dir !== 'rtl' : structure.dir !== 'ltr') add('document-direction', `${locale}/${width}/${state} ${path}: dir=${structure.dir}`, path);
+    if (structure.lang !== locale) add('document-language', `${locale}/${width}/${state} ${path}: lang=${structure.lang}`, path);
+    const duplicateIds = await page.evaluate(() => {
+        const seen = new Set();
+        const duplicates = new Set();
+        for (const element of document.querySelectorAll('[id]')) {
+            if (seen.has(element.id)) duplicates.add(element.id);
+            seen.add(element.id);
+        }
+        return [...duplicates];
+    });
+    for (const id of duplicateIds) add('duplicate-id', `${locale}/${width}/${state} ${path}: #${id}`, `${path}#${id}`);
+    const result = await page.evaluate(async () => window.axe.run(document, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+    }));
+    for (const violation of result.violations) {
+        for (const node of violation.nodes) add(violation.id, `${locale}/${width}/${state} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
+    }
+}
+async function check(path, locale, width) {
+    await open(path);
+    await scanState('initial', path, locale, width);
+    const details = await page.locator('details').count();
+    if (details) {
+        await page.evaluate(() => document.querySelectorAll('details').forEach(element => { element.open = true; }));
+        await scanState('expanded', path, locale, width);
+    }
+}
+async function checkValidation(path, locale, width) {
+    await open(path);
+    const form = page.locator('#main-content form[method="POST"]').first();
+    await form.evaluate(element => { element.noValidate = true; });
+    const submit = form.locator('button[type="submit"], [type="submit"]').first();
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), submit.click()]);
+    await page.locator('#main-content [aria-invalid="true"], #main-content [role="alert"]').first().waitFor({ timeout: 15000 });
+    await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: axe.source });
+    await scanState('validation', path, locale, width);
+}
+async function checkMenu(locale, width) {
+    await open('/dashboard');
+    const toggle = page.locator('button[aria-controls="site-navigation"]');
+    await toggle.click();
+    await page.locator('#site-navigation').waitFor({ state: 'visible' });
+    await scanState('menu-open', '/dashboard', locale, width);
+    await toggle.click();
+}
+async function checkKeyboard(locale, width) {
+    await open('/projects/create');
+    for (let step = 1; step <= 8; step++) {
+        await page.keyboard.press('Tab');
+        const focus = await page.evaluate(() => {
+            const element = document.activeElement;
+            if (!element || element === document.body || element === document.documentElement) return { tag: element?.tagName ?? 'none' };
+            const style = getComputedStyle(element);
+            return {
+                tag: element.tagName.toLowerCase(),
+                outline: style.outlineStyle,
+                width: Number.parseFloat(style.outlineWidth || '0'),
+                shadow: style.boxShadow,
+                hidden: element.getBoundingClientRect().width === 0,
+            };
+        });
+        const label = `${locale}/${width} keyboard step ${step} (${focus.tag})`;
+        if (focus.tag === 'body' || focus.tag === 'html' || focus.tag === 'none') add('keyboard-focus-lost', label, `${locale}/${step}`);
+        else if (!focus.hidden && (focus.outline === 'none' || focus.width < 1) && focus.shadow === 'none') add('focus-not-visible', label, `${locale}/${step}`);
+    }
+}
+async function checkNotFound(locale, width) {
+    const response = await page.goto(`${base}/page-introuvable`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response.status(), 404);
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: axe.source });
+    await scanState('not-found', '/page-introuvable', locale, width);
+}
+try {
+    for (const path of ['/login', '/forgot-password', '/reset-password/example?email=test@example.com']) await check(path, 'fr', 1440);
+    await page.goto(`${base}/login`);
+    await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
+    await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
+    await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
+    await page.goto(`${base}/projects`);
+    const projectHref = await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').first().getAttribute('href');
+    const project = new URL(projectHref, base).pathname;
+    await page.goto(`${base}/billing`);
+    const quoteHref = await page.locator('tr').filter({ hasText: 'Accepté' }).locator('a[href*="/billing/quotes/"]').first().getAttribute('href');
+    const invoiceHref = await page.locator('tr').filter({ hasText: 'Payée' }).locator('a[href*="/billing/invoices/"]').first().getAttribute('href');
+    const draftQuote = new URL(await page.locator('tr').filter({ hasText: 'Brouillon' }).locator('a[href*="/billing/quotes/"]').first().getAttribute('href'), base).pathname;
+    const draftInvoice = new URL(await page.locator('tr').filter({ hasText: 'Brouillon' }).locator('a[href*="/billing/invoices/"]').first().getAttribute('href'), base).pathname;
+    await page.goto(`${base}/clients`);
+    const client = new URL(await page.getByRole('link', { name: 'Client UI Delegation', exact: true }).getAttribute('href'), base).pathname;
+    await page.goto(`${base}${project}/documents`);
+    const document = new URL(await page.getByRole('link', { name: 'Document UI', exact: true }).getAttribute('href'), base).pathname;
+    await page.goto(`${base}${project}/planning`);
+    const task = new URL(await page.getByRole('link', { name: 'Planning UI test', exact: true }).first().getAttribute('href'), base).pathname;
+    await page.goto(`${base}${project}/permits`);
+    const permit = new URL(await page.getByRole('link', { name: 'Permis UI test', exact: true }).first().getAttribute('href'), base).pathname;
+    await page.goto(`${base}/users`);
+    const userEdit = new URL(await page.locator('a[href*="/users/"][href$="/edit"]').first().getAttribute('href'), base).pathname;
+    const paths = ['/', '/dashboard', '/clients', '/clients/create', client, `${client}/edit`,
+        '/projects', '/projects/create', project, `${project}/edit`,
+        `${project}/documents`, `${project}/documents/create`, document, `${document}/edit`, '/document-categories',
+        `${project}/planning`, `${project}/planning?view=kanban`, `${project}/planning?view=calendar`,
+        `${project}/planning?view=gantt`, `${project}/planning/workload`, `${project}/planning/tasks/create`, task, `${task}/edit`,
+        `${project}/billing/fees`, `${project}/billing/quotes/create`, `${project}/billing/invoices/create`,
+        '/billing', '/billing/settings', new URL(quoteHref, base).pathname, new URL(invoiceHref, base).pathname,
+        draftQuote, `${draftQuote}/edit`, draftInvoice, `${draftInvoice}/edit`,
+        '/profile', '/users', '/users/create', userEdit, '/activity',
+        '/planning/templates', '/planning/calendar', '/planning/notifications', '/my-tasks',
+        '/time', '/reports', '/reports/settings', `${project}/site`, `${project}/permits`, permit];
+    const validationPaths = ['/clients/create', '/projects/create', '/users/create', `${project}/planning/tasks/create`, `${project}/documents/create`, `${project}/billing/quotes/create`];
+    for (const path of paths) await check(path, 'fr', 1440);
+    for (const path of validationPaths) await checkValidation(path, 'fr', 1440);
+    await checkNotFound('fr', 1440);
+    await checkKeyboard('fr', 1440);
+    await page.setViewportSize({ width: 320, height: 720 });
+    for (const path of ['/dashboard', '/billing', '/time', '/reports', client, `${project}/documents`, `${project}/planning`, `${project}/site`, `${project}/permits`, permit]) await check(path, 'fr', 320);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setViewportSize({ width: 375, height: 812 });
+    for (const path of paths) await check(path, 'fr', 375);
+    await checkMenu('fr', 375);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.locator('#locale').selectOption('ar');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
+    assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    for (const path of paths) await check(path, 'ar', 1440);
+    for (const path of validationPaths) await checkValidation(path, 'ar', 1440);
+    await page.setViewportSize({ width: 375, height: 812 });
+    for (const path of paths) await check(path, 'ar', 375);
+    await checkMenu('ar', 375);
+    await checkNotFound('ar', 375);
+    // Client portal: separate authenticated session, explicit financial access.
+    await page.goto(`${base}/dashboard`);
+    await Promise.all([page.waitForURL('**/'), page.locator('form[action$="/logout"] button').click()]);
+    await page.goto(`${base}/login`);
+    await page.locator('#email').fill('portal-ui@example.test');
+    await page.locator('#password').fill('portal-ci-password-123');
+    await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
+    const portalPaths = ['/portal', `/portal${project}/finance`, `/portal${project}/upload`];
+    for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const path of portalPaths) await check(path, 'fr', width);
+    }
+    await page.goto(`${base}/dashboard`);
+    await page.locator('#locale').selectOption('ar');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
+    for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const path of portalPaths) await check(path, 'ar', width);
+    }
+    if (findings.size) {
+        for (const [id, entry] of findings) {
+            const message = `${entry.count} occurrences; ${entry.examples.join(' | ')}`.slice(0, 3700).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+            console.error(`::warning title=A11Y ${id}::${message}`);
+        }
+        throw new Error(`Accessibility checks found ${findings.size} types of issue`);
+    }
+    console.log(`Automated WCAG A/AA checks passed on ${paths.length} staff routes, ${validationPaths.length} validation-error states, the open mobile menu and the 404 page in French and Arabic, on desktop and mobile.`);
+} catch (error) {
+    console.error(`::error title=Accessibility browser::${String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')}`);
+    process.exitCode = 1;
+} finally {
+    await browser.close();
+}

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\DocumentScanner;
 use App\Models\User;
+use App\Services\NoopDocumentScanner;
 use App\Services\StrictUncompromisedVerifier;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -17,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(UncompromisedVerifier::class, StrictUncompromisedVerifier::class);
+        $this->app->bind(DocumentScanner::class, NoopDocumentScanner::class);
     }
 
     public function boot(): void

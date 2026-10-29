@@ -1,8 +1,9 @@
 @extends('layouts.app')
 @section('title', __('common.reset_password'))
 @section('content')
-<x-card class="max-w-md">
-    <h1 class="mb-4 text-xl font-bold">{{ __('common.reset_password') }}</h1>
+<x-card class="mx-auto w-full max-w-md">
+    <p class="eyebrow mb-3">{{ __('common.account_section') }}</p>
+    <h1 class="mb-5 text-3xl font-bold tracking-tight">{{ __('common.reset_password') }}</h1>
     <form method="POST" action="{{ route('password.store') }}" class="space-y-4">
         @csrf
         <input type="hidden" name="token" value="{{ $request->route('token') }}">

@@ -1,8 +1,9 @@
 @extends('layouts.app')
 @section('title', __('common.accept_invitation'))
 @section('content')
-<x-card class="max-w-md">
-    <h1 class="mb-4 text-xl font-bold">{{ __('common.accept_invitation') }}</h1>
+<x-card class="mx-auto w-full max-w-md">
+    <p class="eyebrow mb-3">{{ __('common.account_section') }}</p>
+    <h1 class="mb-5 text-3xl font-bold tracking-tight">{{ __('common.accept_invitation') }}</h1>
     <form method="POST" action="{{ request()->fullUrl() }}" class="space-y-4">
         @csrf
         <x-form-field name="password" type="password" :label="__('common.password')" required autocomplete="new-password" />

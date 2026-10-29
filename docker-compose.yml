@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: app
-    environment:
+    environment: &app_environment
       APP_ENV: local
       APP_DEBUG: "false"
       APP_URL: ${APP_URL:-http://localhost:8080}
@@ -20,11 +20,22 @@ services:
       PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-10}
       PASSWORD_CHECK_COMPROMISED: ${PASSWORD_CHECK_COMPROMISED:-true}
       INVITATION_EXPIRY_MINUTES: ${INVITATION_EXPIRY_MINUTES:-1440}
+      DOCUMENT_MAX_FILE_KB: ${DOCUMENT_MAX_FILE_KB:-25600}
+      DOCUMENT_MAX_ZIP_BYTES: ${DOCUMENT_MAX_ZIP_BYTES:-262144000}
+      DOCUMENT_MAX_ZIP_FILES: ${DOCUMENT_MAX_ZIP_FILES:-50}
+      BILLING_PDF_URL: http://pdf:3000
+      BILLING_PDF_TOKEN: ${BILLING_PDF_TOKEN:-}
+      PLANNING_TIMEZONE: ${PLANNING_TIMEZONE:-Africa/Tunis}
+      PLANNING_WEEKLY_CAPACITY_HOURS: ${PLANNING_WEEKLY_CAPACITY_HOURS:-40}
+      PLANNING_GANTT_MAX_ITEMS: ${PLANNING_GANTT_MAX_ITEMS:-500}
+      PLANNING_REMINDER_TIME: ${PLANNING_REMINDER_TIME:-08:00}
+      PLANNING_MILESTONE_REMINDER_DAYS: ${PLANNING_MILESTONE_REMINDER_DAYS:-7}
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Archi TN}
+    networks: [default, pdf_private]
     volumes:
       - app_runtime:/var/www/runtime
       - app_storage:/var/www/html/storage
@@ -36,6 +47,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+  scheduler:
+    profiles: ["scheduler"]
+    build:
+      context: .
+      target: app
+    environment: *app_environment
+    volumes:
+      - app_runtime:/var/www/runtime
+      - app_storage:/var/www/html/storage
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["su", "-s", "/bin/sh", "www-data", "-c", "php artisan schedule:work --no-interaction"]
   web:
     build:
       context: .
@@ -44,6 +68,28 @@ services:
       - "${APP_PORT:-8080}:80"
     depends_on:
       - app
+  pdf:
+    profiles: ["pdf"]
+    build:
+      context: .
+      dockerfile: docker/pdf/Dockerfile
+    environment:
+      BILLING_PDF_TOKEN: ${BILLING_PDF_TOKEN:-}
+    networks: [pdf_private]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+    init: true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health',{headers:{Authorization:'Bearer '+process.env.BILLING_PDF_TOKEN}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
   db:
     image: mysql:8.0
     environment:
@@ -77,3 +123,7 @@ volumes:
   mysql_data:
   app_runtime:
   app_storage:
+
+networks:
+  pdf_private:
+    internal: true
