@@ -152,8 +152,13 @@ jobs:
           node tests/smoke/accessibility_ui.mjs
       - name: Verify private-safe PWA shell
         run: |
-          node tests/smoke/pwa_shell.mjs
-          node tests/smoke/pwa_progress.mjs
+          for test in pwa_shell pwa_progress; do
+            if ! node "tests/smoke/${test}.mjs" > pwa-test.log 2>&1; then
+              echo "::error title=PWA ${test}::$(tail -c 3500 pwa-test.log | tr '\r\n' '  ' | sed 's/%/%25/g')"
+              exit 1
+            fi
+            cat pwa-test.log
+          done
       - name: Install PDF inspection tools
         run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
       - name: Build and start private PDF renderer
