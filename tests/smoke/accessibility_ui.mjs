@@ -14,44 +14,73 @@ function add(key, value, identity = value) {
     if (entry.examples.length < 25 && !entry.identities.has(identity)) { entry.examples.push(value); entry.identities.add(identity); }
     findings.set(key, entry);
 }
-async function check(path, locale, width) {
+async function open(path) {
     const response = await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 200, `${path} returned ${response.status()}`);
     await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
     await page.evaluate(() => document.fonts.ready);
     await page.addScriptTag({ content: axe.source });
-    const scan = async state => {
-        const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
-        if (overflow.scroll > overflow.viewport + 1) {
-            const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
-                const r = element.getBoundingClientRect();
-                return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
-            }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
-            add('horizontal-overflow', `${locale}/${width}/${state} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
+}
+async function scanState(state, path, locale, width) {
+    const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
+    if (overflow.scroll > overflow.viewport + 1) {
+        const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
+            const r = element.getBoundingClientRect();
+            return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
+        }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
+        add('horizontal-overflow', `${locale}/${width}/${state} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
+    }
+    const duplicateIds = await page.evaluate(() => {
+        const seen = new Set();
+        const duplicates = new Set();
+        for (const element of document.querySelectorAll('[id]')) {
+            if (seen.has(element.id)) duplicates.add(element.id);
+            seen.add(element.id);
         }
-        const duplicateIds = await page.evaluate(() => {
-            const seen = new Set();
-            const duplicates = new Set();
-            for (const element of document.querySelectorAll('[id]')) {
-                if (seen.has(element.id)) duplicates.add(element.id);
-                seen.add(element.id);
-            }
-            return [...duplicates];
-        });
-        for (const id of duplicateIds) add('duplicate-id', `${locale}/${width}/${state} ${path}: #${id}`, `${path}#${id}`);
-        const result = await page.evaluate(async () => window.axe.run(document, {
-            runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
-        }));
-        for (const violation of result.violations) {
-            for (const node of violation.nodes) add(violation.id, `${locale}/${width}/${state} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
-        }
-    };
-    await scan('initial');
+        return [...duplicates];
+    });
+    for (const id of duplicateIds) add('duplicate-id', `${locale}/${width}/${state} ${path}: #${id}`, `${path}#${id}`);
+    const result = await page.evaluate(async () => window.axe.run(document, {
+        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+    }));
+    for (const violation of result.violations) {
+        for (const node of violation.nodes) add(violation.id, `${locale}/${width}/${state} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
+    }
+}
+async function check(path, locale, width) {
+    await open(path);
+    await scanState('initial', path, locale, width);
     const details = await page.locator('details').count();
     if (details) {
         await page.evaluate(() => document.querySelectorAll('details').forEach(element => { element.open = true; }));
-        await scan('expanded');
+        await scanState('expanded', path, locale, width);
     }
+}
+async function checkValidation(path, locale, width) {
+    await open(path);
+    const submit = page.locator('#main-content form:has(button[type="submit"]) button[type="submit"]').first();
+    await Promise.all([page.waitForLoadState('load'), submit.click()]);
+    await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: axe.source });
+    const feedback = await page.locator('#main-content [aria-invalid="true"], #main-content [role="alert"], #main-content .text-red-700').count();
+    assert.ok(feedback > 0, `${path} did not display validation feedback`);
+    await scanState('validation', path, locale, width);
+}
+async function checkMenu(locale, width) {
+    await open('/dashboard');
+    const toggle = page.locator('button[aria-controls="site-navigation"]');
+    await toggle.click();
+    await page.locator('#site-navigation').waitFor({ state: 'visible' });
+    await scanState('menu-open', '/dashboard', locale, width);
+    await toggle.click();
+}
+async function checkNotFound(locale, width) {
+    const response = await page.goto(`${base}/page-introuvable`, { waitUntil: 'domcontentloaded' });
+    assert.equal(response.status(), 404);
+    await page.evaluate(() => document.fonts.ready);
+    await page.addScriptTag({ content: axe.source });
+    await scanState('not-found', '/page-introuvable', locale, width);
 }
 try {
     for (const path of ['/login', '/forgot-password', '/reset-password/example?email=test@example.com']) await check(path, 'fr', 1440);
@@ -85,16 +114,23 @@ try {
         draftQuote, `${draftQuote}/edit`, draftInvoice, `${draftInvoice}/edit`,
         '/profile', '/users', '/users/create', userEdit, '/activity',
         '/planning/templates', '/planning/calendar', '/planning/notifications', '/my-tasks'];
+    const validationPaths = ['/clients/create', '/projects/create', '/users/create', `${project}/planning/tasks/create`, `${project}/documents/create`, `${project}/billing/quotes/create`];
     for (const path of paths) await check(path, 'fr', 1440);
+    for (const path of validationPaths) await checkValidation(path, 'fr', 1440);
+    await checkNotFound('fr', 1440);
     await page.setViewportSize({ width: 375, height: 812 });
     for (const path of paths) await check(path, 'fr', 375);
+    await checkMenu('fr', 375);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#locale').selectOption('ar');
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     for (const path of paths) await check(path, 'ar', 1440);
+    for (const path of validationPaths) await checkValidation(path, 'ar', 1440);
     await page.setViewportSize({ width: 375, height: 812 });
     for (const path of paths) await check(path, 'ar', 375);
+    await checkMenu('ar', 375);
+    await checkNotFound('ar', 375);
     if (findings.size) {
         for (const [id, entry] of findings) {
             const message = `${entry.count} occurrences; ${entry.examples.join(' | ')}`.slice(0, 3700).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
@@ -102,7 +138,7 @@ try {
         }
         throw new Error(`Accessibility checks found ${findings.size} types of issue`);
     }
-    console.log(`Automated WCAG A/AA checks passed on ${paths.length} staff routes in French and Arabic, on desktop and mobile.`);
+    console.log(`Automated WCAG A/AA checks passed on ${paths.length} staff routes, ${validationPaths.length} validation-error states, the open mobile menu and the 404 page in French and Arabic, on desktop and mobile.`);
 } catch (error) {
     console.error(`::error title=Accessibility browser::${String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')}`);
     process.exitCode = 1;

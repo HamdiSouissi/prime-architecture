@@ -23,4 +23,6 @@ return [
     'back_project' => 'Retour au projet', 'back_documents' => 'Retour aux documents', 'no_preview' => 'Aucun aperçu pour ce format.',
     'file_help' => 'Formats et taille selon la configuration du serveur. Un seul point est accepté dans le nom du fichier.',
     'upload_progress' => 'Progression du téléversement',
+    'documents_intro' => 'Centralisez les pièces du projet, leurs versions et leur visibilité.',
+    'categories_intro' => 'Définissez les catégories proposées lors du dépôt d’un document.',
 ];

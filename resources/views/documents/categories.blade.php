@@ -1,7 +1,8 @@
 @extends('layouts.app')
 @section('title', __('phase4.manage_categories'))
 @section('content')
-<x-card><h1 class="text-2xl font-bold">{{ __('phase4.manage_categories') }}</h1>
+<x-page-header :title="__('phase4.manage_categories')" :description="__('phase4.categories_intro')" />
+<x-card>
 @if(session('status'))<x-alert variant="success" class="my-3">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="my-3" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 @foreach($categories as $category)<div class="my-4 border-b pb-3"><form method="POST" action="{{ route('document-categories.update', $category) }}" class="flex flex-wrap items-end gap-2">@csrf @method('PUT')

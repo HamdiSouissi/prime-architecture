@@ -115,4 +115,5 @@ return [
     'schedule_section' => 'Dates et charge de travail',
     'visibility_section' => 'Visibilité et affectation',
     'notifications_intro' => 'Retrouvez les mises à jour de vos projets et choisissez vos préférences.',
+    'planning_intro' => 'Suivez les tâches, jalons et dépendances du projet.',
 ];

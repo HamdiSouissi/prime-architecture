@@ -1,7 +1,8 @@
 @extends('layouts.app')
 @section('title', __('phase5.calendar_admin'))
 @section('content')
-<x-card><h1 class="text-2xl font-bold">{{ __('phase5.calendar_admin') }}</h1><p class="my-3">{{ __('phase5.religious_warning') }}</p>
+<x-page-header :title="__('phase5.calendar_admin')" :description="__('phase5.religious_warning')" />
+<x-card>
 @if(session('status'))<x-alert variant="success">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <form method="POST" action="{{ route('planning.calendar.days') }}" class="my-4">@csrf @method('PUT')<fieldset><legend class="font-bold">{{ __('phase5.working_days') }}</legend>@foreach(range(1, 7) as $day)<label class="me-4"><input type="checkbox" name="working_days[]" value="{{ $day }}" @checked(in_array($day, old('working_days', $workingDays)))> {{ __('phase5.weekday_'.$day) }}</label>@endforeach</fieldset><x-button type="submit">{{ __('common.save') }}</x-button></form>

@@ -115,4 +115,5 @@ return [
     'schedule_section' => 'المواعيد وعبء العمل',
     'visibility_section' => 'الظهور والتكليف',
     'notifications_intro' => 'تابع تحديثات مشاريعك واختر تفضيلات الإشعارات.',
+    'planning_intro' => 'تابع مهام المشروع ومعالمه وترابطاته.',
 ];
