@@ -77,3 +77,16 @@
     .detail-grid dt { @apply text-sm font-medium text-slate-600; }
     .detail-grid dd { @apply mt-1 font-semibold text-ink; overflow-wrap: anywhere; }
 }
+
+@layer components {
+    .form-layout label { @apply text-sm font-semibold text-slate-700; }
+    .form-layout label > input:not([type='checkbox']):not([type='radio']),
+    .form-layout label > select, .form-layout label > textarea { @apply mt-1.5 block w-full; }
+    .form-layout input:focus, .form-layout select:focus, .form-layout textarea:focus { @apply border-brand-600 outline-none ring-2 ring-brand-100; }
+    .form-layout textarea { @apply min-h-28; }
+}
+
+@layer base {
+    form label > input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+    form label > select, form label > textarea { @apply mt-1.5 block w-full; }
+}

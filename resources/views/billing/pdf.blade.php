@@ -7,12 +7,12 @@
 <style>
 @include('billing.pdf-fonts')
 * { box-sizing: border-box; } body { color: #172033; font-family: {{ $language === 'ar' ? 'Cairo, Inter' : 'Inter, Cairo' }}, sans-serif; font-size: 10pt; line-height: 1.6; }
-header { border-bottom: 3px solid #4338ca; padding-bottom: 14px; margin-bottom: 23px; display: flex; justify-content: space-between; gap: 20px; }
-h1 { font-size: 22pt; line-height: 1.25; margin: 0; color: #3730a3; } h2 { font-size: 11pt; margin: 0 0 8px; }
+@page { margin: 20mm 18mm; } header { border-bottom: 2px solid #c7d2fe; padding-bottom: 20px; margin-bottom: 26px; display: flex; justify-content: space-between; gap: 24px; }
+h1 { font-size: 25pt; line-height: 1.25; margin: 0 0 8px; color: #3730a3; letter-spacing: -.02em; } h2 { font-size: 11pt; margin: 0 0 8px; }
 p { margin: 2px 0; white-space: pre-wrap; overflow-wrap: anywhere; } .small { font-size: 9pt; color: #475569; }
-.meta { text-align: end; } .parties { display: flex; gap: 20px; margin-bottom: 24px; } .party { width: 50%; background: #f6f8fc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; }
-table { width: 100%; border-collapse: collapse; } thead { display: table-header-group; } tr { break-inside: avoid; } th { text-align: start; background: #eef2ff; color: #3730a3; } th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; overflow-wrap: anywhere; }
-.number { direction: ltr; unicode-bidi: isolate; text-align: end; white-space: nowrap; } .totals { margin-top: 18px; margin-inline-start: auto; width: 48%; } .totals td { padding: 5px; } .grand { font-weight: bold; color: #3730a3; }
+.meta { text-align: end; } .parties { display: flex; gap: 20px; margin-bottom: 24px; } .party { width: 50%; background: #f8faff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; } thead { display: table-header-group; } tr { break-inside: avoid; } th { text-align: start; background: #f1f4ff; color: #3730a3; } th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; overflow-wrap: anywhere; }
+.number { direction: ltr; unicode-bidi: isolate; text-align: end; white-space: nowrap; } .totals { margin-top: 18px; margin-inline-start: auto; width: 48%; } .totals td { padding: 5px; } .grand { font-weight: bold; color: #3730a3; background: #f1f4ff; font-size: 11pt; }
 footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px; } .note { font-size: 8pt; color: #475569; }
 </style>
 </head>

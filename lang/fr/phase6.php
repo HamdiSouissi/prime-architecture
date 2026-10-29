@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'pdf_view' => 'Voir le PDF',
+    'pdf_download' => 'Télécharger le PDF',
     'fiscal_not_ready' => 'Les paramètres fiscaux applicables doivent être validés avant émission.',
     'profile_missing' => 'Renseignez un profil de cabinet applicable avant émission.',
     'invalid_tax_rate' => 'Un taux de TVA ne figure pas dans la version fiscale applicable.',

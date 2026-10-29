@@ -65,6 +65,6 @@ class BillingPdfController extends Controller
 
     private function pdfResponse(string $pdf, string $language): Response
     {
-        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="document-'.$language.'.pdf"', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => (request()->boolean('download') ? 'attachment' : 'inline').'; filename="document-'.$language.'.pdf"', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 }

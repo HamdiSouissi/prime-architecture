@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'inactive' => 'Inactive',
+    'new_category' => 'Nouvelle catégorie',
     'documents' => 'Documents', 'new' => 'Nouveau document', 'title' => 'Titre', 'category' => 'Catégorie', 'description' => 'Description',
     'file' => 'Fichier', 'visible_to_client' => 'Visible par le client', 'current_version' => 'Version courante', 'version' => 'Version',
     'size' => 'Taille', 'author' => 'Auteur', 'type' => 'Type', 'download' => 'Télécharger', 'preview' => 'Aperçu',

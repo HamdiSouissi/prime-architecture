@@ -435,3 +435,27 @@ refusée : le serveur reste prioritaire et le brouillon est conservé en conflit
 réserves validées sont figées. Après synchronisation, préparez à nouveau la liste pour
 obtenir les données courantes. La consultation générale hors ligne reste **à réaliser**. Une recette humaine et une revue de sécurité
 dédiée restent nécessaires.
+
+## Espace de démonstration local
+
+Sur une base **neuve et isolée uniquement**, après les migrations et le seed habituel,
+lancer explicitement `DEMO_PASSWORD='choisir-un-mot-de-passe-local-unique' php artisan db:seed --class=DemoWorkspaceSeeder`.
+Le mot de passe (12 caractères minimum) est fourni par l'opérateur et n'est pas enregistré
+par l'application en clair. Ne pas utiliser cette base pour des données réelles ni exposer
+ces comptes sur Internet. Le seeder refuse la production et tout espace contenant déjà des
+utilisateurs, clients ou projets ; il ne modifie jamais les comptes existants. Il crée 15
+clients et 30 projets fictifs. Les comptes sont :
+
+| Compte | Accès |
+| --- | --- |
+| `demo-admin@example.test` | Administration et configuration |
+| `demo-architect@example.test` | Gestion métier des projets de démonstration |
+| `demo-collaborator@example.test` | Collaboration sur ces projets, sans accès financier |
+| `demo-client@example.test` | Portail des projets du premier client fictif, finances autorisées |
+| `demo-contractor@example.test` | Tableau de bord limité, selon les permissions existantes |
+
+Tous utilisent le mot de passe choisi dans `DEMO_PASSWORD`. Les taux initiaux restent
+indicatifs et non validés : aucun document fiscal émis n'est fabriqué. Pour les PDF,
+configurer le profil du cabinet (dont le logo) et faire valider les paramètres fiscaux ;
+seuls les documents émis sont exportables. L'identité et le logo sont figés à l'émission :
+changer le profil ne modifie pas les PDF des documents déjà émis.

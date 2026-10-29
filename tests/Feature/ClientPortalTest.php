@@ -51,11 +51,14 @@ class ClientPortalTest extends TestCase
         $this->post(route('portal.access.store', $client), ['user_id' => $otherUser->id, 'financial_access' => 0])->assertRedirect()->assertSessionHasNoErrors();
         $this->actingAs($clientUser)->get(route('portal.finance', $project))->assertOk()->assertSee($quote->number)->assertSee('FAC-ISSUED')->assertSee('4.000')->assertDontSee('DEV-DRAFT');
         $this->mock(PdfGenerator::class, function ($mock): void {
-            $mock->shouldReceive('generate')->once()->andReturn('%PDF-test');
+            $mock->shouldReceive('generate')->times(3)->andReturn('%PDF-test');
         });
         $this->get(route('portal.quotes.pdf', [$project, $quote, 'fr']))->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertHeader('Cache-Control', 'no-store, private');
+        $this->get(route('portal.quotes.pdf', [$project, $quote, 'fr', 'download' => 1]))->assertOk()->assertHeader('Content-Disposition', 'attachment; filename="document-fr.pdf"');
         $this->get(route('portal.quotes.pdf', [$project, $draft, 'fr']))->assertNotFound();
         $this->get(route('portal.quotes.pdf', [$otherProject, $quote, 'fr']))->assertForbidden();
+        $this->actingAs($admin)->get(route('billing.quotes.pdf', [$quote, 'fr', 'download' => 1]))->assertOk()->assertHeader('Content-Disposition', 'attachment; filename="document-fr.pdf"');
+        $this->get(route('billing.quotes.pdf', [$draft, 'fr', 'download' => 1]))->assertNotFound();
         $this->actingAs($otherUser)->get(route('projects.show', $project))->assertOk();
         $this->get(route('portal.finance', $project))->assertForbidden();
         $this->get(route('portal.finance', $otherProject))->assertForbidden();

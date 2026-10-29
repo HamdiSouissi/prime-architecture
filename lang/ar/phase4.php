@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'inactive' => 'غير نشطة',
+    'new_category' => 'فئة جديدة',
     'documents' => 'الوثائق', 'new' => 'وثيقة جديدة', 'title' => 'العنوان', 'category' => 'الفئة', 'description' => 'الوصف',
     'file' => 'الملف', 'visible_to_client' => 'مرئي للحريف', 'current_version' => 'النسخة الحالية', 'version' => 'النسخة',
     'size' => 'الحجم', 'author' => 'المؤلف', 'type' => 'النوع', 'download' => 'تنزيل', 'preview' => 'معاينة',

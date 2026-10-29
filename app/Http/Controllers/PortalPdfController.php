@@ -34,6 +34,6 @@ class PortalPdfController extends Controller
         }
         activity('portal')->causedBy($request->user())->performedOn($document)->event('portal.pdf_viewed')->log('portal.pdf_viewed');
 
-        return response($bytes, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="document-'.$language.'.pdf"', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+        return response($bytes, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => ($request->boolean('download') ? 'attachment' : 'inline').'; filename="document-'.$language.'.pdf"', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 }
