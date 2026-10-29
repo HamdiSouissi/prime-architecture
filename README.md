@@ -268,7 +268,7 @@ docker compose exec -u www-data app php artisan db:seed --class=TaxSettingsSeede
 
 `RolePermissionSeeder` synchronise les permissions des rôles suivant `config/access.php`. Les permissions financières sont attribuées aux administrateurs et architectes ; un collaborateur doit recevoir une permission dédiée et être membre du projet, avec `viewer` en lecture seule. Clients et entreprises sont exclus. Aucun écran financier n’est encore exposé.
 
-`DocumentNumberGenerator` exige une transaction et verrouille un compteur par type et année. L’application future devra attribuer le numéro uniquement lors de l’émission dans cette même transaction et conserver les documents annulés. La continuité ne couvre pas les modifications manuelles ni les restaurations de sauvegardes. La concurrence des numéros financiers n’a pas encore été validée.
+`DocumentNumberGenerator` exige une transaction et verrouille un compteur par type et année. L’application future devra attribuer le numéro uniquement lors de l’émission dans cette même transaction et conserver les documents annulés. La continuité ne couvre pas les modifications manuelles ni les restaurations de sauvegardes. La CI vérifie l’allocation concurrente du compteur MySQL et le rollback d’une transaction ; l’émission complète, la conservation des annulations et la continuité de bout en bout restent à tester avec les futurs services.
 
 ### Socle graphique
 
