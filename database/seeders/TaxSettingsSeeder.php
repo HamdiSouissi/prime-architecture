@@ -14,7 +14,7 @@ class TaxSettingsSeeder extends Seeder
             $inserted = DB::table('tax_settings')->insertOrIgnore([
                 'seed_key' => 'indicative-initial', 'effective_from' => now()->toDateString(),
                 'currency' => 'TND', 'currency_decimals' => 3, 'stamp_amount' => '1.000',
-                'is_verified' => false, 'created_at' => now(), 'updated_at' => now(),
+                'is_verified' => false, 'stamp_on_quote' => false, 'stamp_on_invoice' => false, 'created_at' => now(), 'updated_at' => now(),
             ]);
             if ($inserted) {
                 $id = DB::table('tax_settings')->where('seed_key', 'indicative-initial')->value('id');
