@@ -3,6 +3,7 @@
 use App\Models\Project;
 use App\Models\User;
 use App\Services\InvoiceService;
+use App\Services\PermitAdministration;
 use App\Services\QuoteService;
 use Illuminate\Contracts\Console\Kernel;
 
@@ -21,3 +22,6 @@ $data = [
 ];
 app(QuoteService::class)->create($project, $actor, $data);
 app(InvoiceService::class)->create($project, $actor, $data + ['due_date' => today()->addDays(30)->toDateString()]);
+
+$permit = app(PermitAdministration::class)->create($project, $actor, ['title' => 'Permis UI test', 'permit_type' => 'Test', 'status' => 'En cours']);
+app(PermitAdministration::class)->addStep($permit, $actor, ['label' => 'Pièce UI test', 'due_on' => today()->addDays(7)->toDateString()]);

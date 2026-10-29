@@ -391,3 +391,11 @@ cabinet et ne constituent pas des règles officielles préremplies. Les rappels
 automatiques et la recette humaine ne sont pas encore réalisés. Après migration,
 resynchroniser les rôles via `php artisan db:seed --class=RolePermissionSeeder` ;
 les droits sont `permits.view` et `permits.manage`.
+
+Les rappels des étapes de permis non terminées sont envoyés dans le centre de
+notifications une fois par jour et par utilisateur autorisé, y compris pour les
+échéances dépassées. Régler `PERMIT_REMINDER_DAYS`, `PERMIT_REMINDER_TIME` et
+`PERMIT_TIMEZONE` selon les pratiques du cabinet et faire fonctionner le scheduler
+Laravel. Ces rappels sont internes à l'application, sans envoi de courriel ; ils ne
+constituent pas un calcul de délai légal. Les dates d'échéance du dossier lui-même ne
+créent pas de rappel : saisir une étape pour être rappelé.
