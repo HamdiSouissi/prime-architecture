@@ -142,4 +142,7 @@ return [
     'users_intro' => 'Invitez votre équipe et gérez les accès du cabinet.',
     'activity_intro' => 'Retrouvez les actions enregistrées dans votre espace.',
     'account_section' => 'Votre compte',
+    'profile_intro' => 'Gérez vos informations et sécurisez votre accès.',
+    'security_intro' => 'Utilisez un mot de passe unique pour protéger votre compte.',
+    'sessions_intro' => 'Vérifiez les appareils connectés et déconnectez les autres sessions si nécessaire.',
 ];

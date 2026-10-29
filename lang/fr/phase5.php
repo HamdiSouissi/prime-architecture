@@ -111,4 +111,7 @@ return [
     'digest_task_line' => 'Tâche : :title — :date',
     'digest_milestone_line' => 'Jalon : :title — :date',
     'digest_email_limit' => 'Cet email montre au maximum 20 tâches et 20 jalons. Consultez le centre de notifications pour le détail.',
+    'task_details_section' => 'Détails de la tâche',
+    'schedule_section' => 'Dates et charge de travail',
+    'visibility_section' => 'Visibilité et affectation',
 ];

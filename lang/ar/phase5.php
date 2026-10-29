@@ -111,4 +111,7 @@ return [
     'digest_task_line' => 'مهمة: :title — :date',
     'digest_milestone_line' => 'معلم: :title — :date',
     'digest_email_limit' => 'يعرض البريد 20 مهمة و20 معلماً كحد أقصى. راجع مركز الإشعارات للتفاصيل.',
+    'task_details_section' => 'تفاصيل المهمة',
+    'schedule_section' => 'المواعيد وعبء العمل',
+    'visibility_section' => 'الظهور والتكليف',
 ];
