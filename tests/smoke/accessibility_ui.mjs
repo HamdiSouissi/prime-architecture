@@ -63,8 +63,10 @@ try {
     const projectHref = await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').first().getAttribute('href');
     const project = new URL(projectHref, base).pathname;
     await page.goto(`${base}/billing`);
-    const quoteHref = await page.locator('a[href*="/billing/quotes/"]').first().getAttribute('href');
-    const invoiceHref = await page.locator('a[href*="/billing/invoices/"]').first().getAttribute('href');
+    const quoteHref = await page.locator('tr').filter({ hasText: 'Accepté' }).locator('a[href*="/billing/quotes/"]').first().getAttribute('href');
+    const invoiceHref = await page.locator('tr').filter({ hasText: 'Payée' }).locator('a[href*="/billing/invoices/"]').first().getAttribute('href');
+    const draftQuote = new URL(await page.locator('tr').filter({ hasText: 'Brouillon' }).locator('a[href*="/billing/quotes/"]').first().getAttribute('href'), base).pathname;
+    const draftInvoice = new URL(await page.locator('tr').filter({ hasText: 'Brouillon' }).locator('a[href*="/billing/invoices/"]').first().getAttribute('href'), base).pathname;
     await page.goto(`${base}/clients`);
     const client = new URL(await page.getByRole('link', { name: 'Client UI Delegation', exact: true }).getAttribute('href'), base).pathname;
     await page.goto(`${base}${project}/documents`);
@@ -75,11 +77,12 @@ try {
     const userEdit = new URL(await page.locator('a[href*="/users/"][href$="/edit"]').first().getAttribute('href'), base).pathname;
     const paths = ['/', '/dashboard', '/clients', '/clients/create', client, `${client}/edit`,
         '/projects', '/projects/create', project, `${project}/edit`,
-        `${project}/documents`, `${project}/documents/create`, document, '/document-categories',
+        `${project}/documents`, `${project}/documents/create`, document, `${document}/edit`, '/document-categories',
         `${project}/planning`, `${project}/planning?view=kanban`, `${project}/planning?view=calendar`,
         `${project}/planning?view=gantt`, `${project}/planning/workload`, `${project}/planning/tasks/create`, task, `${task}/edit`,
         `${project}/billing/fees`, `${project}/billing/quotes/create`, `${project}/billing/invoices/create`,
         '/billing', '/billing/settings', new URL(quoteHref, base).pathname, new URL(invoiceHref, base).pathname,
+        draftQuote, `${draftQuote}/edit`, draftInvoice, `${draftInvoice}/edit`,
         '/profile', '/users', '/users/create', userEdit, '/activity',
         '/planning/templates', '/planning/calendar', '/planning/notifications', '/my-tasks'];
     for (const path of paths) await check(path, 'fr', 1440);
