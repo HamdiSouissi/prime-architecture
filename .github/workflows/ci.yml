@@ -144,6 +144,8 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php tests/smoke/prepare_billing_ui.php
           node tests/smoke/billing_ui.mjs
+      - name: Check French and Arabic accessibility in Chrome
+        run: node tests/smoke/accessibility_ui.mjs
       - name: Install PDF inspection tools
         run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
       - name: Build and start private PDF renderer

@@ -2,9 +2,9 @@
 @section('title', __('common.users'))
 @section('content')
 <x-card>
-    <div class="flex flex-wrap items-center justify-between gap-4"><h1 class="text-2xl font-bold">{{ __('common.users') }}</h1><a class="underline" href="{{ route('users.create') }}">{{ __('common.invite_user') }}</a></div>
-    @if (session('status')) <x-alert class="mt-4">{{ session('status') }}</x-alert> @endif
-    <form method="GET" class="my-4 flex flex-wrap items-end gap-3">
+    <div class="flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow">{{ __('common.manage_section') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ __('common.users') }}</h1><p class="mt-2 text-sm text-slate-600">{{ __('common.users_intro') }}</p></div><a class="action-link" href="{{ route('users.create') }}">{{ __('common.invite_user') }}</a></div>
+    @if (session('status')) <x-alert variant="success" class="mt-4">{{ session('status') }}</x-alert> @endif
+    <form method="GET" class="my-6 flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">
         <x-form-field name="search" :label="__('common.search')" value="{{ request('search') }}" />
         <label>{{ __('common.role') }} <select name="role"><option value="">{{ __('common.all') }}</option>@foreach ($roles as $role)<option value="{{ $role->name }}" @selected(request('role') === $role->name)>{{ __('common.'.$role->name) }}</option>@endforeach</select></label>
         <label>{{ __('common.status') }} <select name="status"><option value="">{{ __('common.all') }}</option><option value="active" @selected(request('status') === 'active')>{{ __('common.active') }}</option><option value="inactive" @selected(request('status') === 'inactive')>{{ __('common.inactive') }}</option></select></label>

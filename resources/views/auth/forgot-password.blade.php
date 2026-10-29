@@ -1,9 +1,10 @@
 @extends('layouts.app')
 @section('title', __('common.forgot_password'))
 @section('content')
-<x-card class="max-w-md">
-    <h1 class="mb-4 text-xl font-bold">{{ __('common.forgot_password') }}</h1>
-    @if (session('status')) <x-alert>{{ session('status') }}</x-alert> @endif
+<x-card class="mx-auto w-full max-w-md">
+    <p class="eyebrow mb-3">{{ __('common.account_section') }}</p>
+    <h1 class="mb-5 text-3xl font-bold tracking-tight">{{ __('common.forgot_password') }}</h1>
+    @if (session('status')) <x-alert variant="success" class="mb-4">{{ session('status') }}</x-alert> @endif
     <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
         @csrf
         <x-form-field name="email" type="email" :label="__('common.email')" value="{{ old('email') }}" required />

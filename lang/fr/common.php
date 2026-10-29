@@ -139,4 +139,7 @@ return [
     'login_intro' => 'Tous vos projets, documents et finances dans un seul espace.',
     'login_welcome' => 'Ravi de vous retrouver',
     'login_hint' => 'Connectez-vous pour accéder à votre espace cabinet.',
+    'users_intro' => 'Invitez votre équipe et gérez les accès du cabinet.',
+    'activity_intro' => 'Retrouvez les actions enregistrées dans votre espace.',
+    'account_section' => 'Votre compte',
 ];

@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @section('title', __('common.activity'))
 @section('content')
-<x-card><h1 class="mb-4 text-xl font-bold">{{ __('common.activity') }}</h1>
-    <form method="GET" class="mb-4 flex flex-wrap items-end gap-3">
+<x-card><p class="eyebrow">{{ __('common.manage_section') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ __('common.activity') }}</h1><p class="mt-2 text-sm text-slate-600">{{ __('common.activity_intro') }}</p>
+    <form method="GET" class="my-6 flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">
         <label>{{ __('common.actor') }} <select name="user_id"><option value="">{{ __('common.all') }}</option>@foreach($users as $user)<option value="{{ $user->id }}" @selected((string) request('user_id') === (string) $user->id)>{{ $user->name }}</option>@endforeach</select></label>
         <x-form-field name="action" :label="__('common.action')" value="{{ request('action') }}" />
         <x-form-field name="date_from" type="date" :label="__('common.date_from')" value="{{ request('date_from') }}" />
