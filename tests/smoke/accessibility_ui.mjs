@@ -30,6 +30,18 @@ async function scanState(state, path, locale, width) {
         }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
         add('horizontal-overflow', `${locale}/${width}/${state} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
     }
+    const structure = await page.evaluate(() => ({
+        main: document.querySelectorAll('main#main-content').length,
+        headings: document.querySelectorAll('main#main-content h1').length,
+        emptyHeadings: [...document.querySelectorAll('main#main-content h1')].filter(element => !element.textContent.trim()).length,
+        lang: document.documentElement.lang,
+        dir: document.documentElement.dir,
+    }));
+    if (structure.main !== 1) add('landmark-main', `${locale}/${width}/${state} ${path}: ${structure.main} main landmarks`);
+    if (structure.main === 1 && structure.headings !== 1) add('heading-structure', `${locale}/${width}/${state} ${path}: ${structure.headings} level-one headings`, path);
+    if (structure.emptyHeadings) add('empty-heading', `${locale}/${width}/${state} ${path}: ${structure.emptyHeadings} empty level-one heading`, path);
+    if (locale === 'ar' ? structure.dir !== 'rtl' : structure.dir !== 'ltr') add('document-direction', `${locale}/${width}/${state} ${path}: dir=${structure.dir}`, path);
+    if (structure.lang !== locale) add('document-language', `${locale}/${width}/${state} ${path}: lang=${structure.lang}`, path);
     const duplicateIds = await page.evaluate(() => {
         const seen = new Set();
         const duplicates = new Set();
