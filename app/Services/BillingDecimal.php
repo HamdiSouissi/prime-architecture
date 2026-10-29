@@ -11,7 +11,7 @@ class BillingDecimal
 
     public static function validate(mixed $value, int $scale, string $max): string
     {
-        if (! is_string($value) || ! preg_match('/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,'.$scale.'})?$/D', $value) || bccomp($value, $max, $scale) > 0) {
+        if (! is_string($value) || strlen($value) > 32 || ! preg_match('/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,'.$scale.'})?$/D', $value) || bccomp($value, $max, $scale) > 0) {
             throw new InvalidArgumentException('Invalid decimal value.');
         }
 

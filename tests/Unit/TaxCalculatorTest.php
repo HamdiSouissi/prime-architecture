@@ -64,6 +64,29 @@ class TaxCalculatorTest extends TestCase
         }
     }
 
+    public function test_tax_is_rounded_once_per_rate_group(): void
+    {
+        $line = ['quantity' => '1', 'unit_price' => '0.005', 'discount_percent' => '0', 'tax_rate' => '10'];
+        $result = (new TaxCalculator)->calculate([$line, $line], '0', '0', '0', 'ht', false);
+        $this->assertSame('0.010', $result['total_ht']);
+        $this->assertSame('0.001', $result['total_tax']);
+        $this->assertSame('0.011', $result['total_ttc']);
+    }
+
+    public function test_maximum_storage_amount_and_zero_fee_are_exact(): void
+    {
+        $line = ['quantity' => '1', 'unit_price' => '999999999999.999', 'discount_percent' => '0', 'tax_rate' => '0'];
+        $result = (new TaxCalculator)->calculate([$line], '0', '0', '0', 'ht', false);
+        $this->assertSame('999999999999.999', $result['total_ttc']);
+        $this->assertSame('0.000', (new FeeCalculator)->calculate('percentage', '0', '999999999999.999'));
+    }
+
+    public function test_rejects_excessive_input_lengths(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new FeeCalculator)->calculate('fixed', str_repeat('9', 10000), null);
+    }
+
     public function test_fees_support_fixed_and_percentage_modes(): void
     {
         $calculator = new FeeCalculator;
