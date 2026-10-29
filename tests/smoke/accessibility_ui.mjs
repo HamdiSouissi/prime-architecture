@@ -19,30 +19,38 @@ async function check(path, locale, width) {
     assert.equal(response.status(), 200, `${path} returned ${response.status()}`);
     await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
     await page.evaluate(() => document.fonts.ready);
-    const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
-    if (overflow.scroll > overflow.viewport + 1) {
-        const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
-            const r = element.getBoundingClientRect();
-            return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
-        }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
-        add('horizontal-overflow', `${locale}/${width} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
-    }
-    const duplicateIds = await page.evaluate(() => {
-        const seen = new Set();
-        const duplicates = new Set();
-        for (const element of document.querySelectorAll('[id]')) {
-            if (seen.has(element.id)) duplicates.add(element.id);
-            seen.add(element.id);
-        }
-        return [...duplicates];
-    });
-    for (const id of duplicateIds) add('duplicate-id', `${locale}/${width} ${path}: #${id}`, `${path}#${id}`);
     await page.addScriptTag({ content: axe.source });
-    const result = await page.evaluate(async () => window.axe.run(document, {
-        runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
-    }));
-    for (const violation of result.violations) {
-        for (const node of violation.nodes) add(violation.id, `${locale}/${width} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
+    const scan = async state => {
+        const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
+        if (overflow.scroll > overflow.viewport + 1) {
+            const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
+                const r = element.getBoundingClientRect();
+                return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
+            }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
+            add('horizontal-overflow', `${locale}/${width}/${state} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
+        }
+        const duplicateIds = await page.evaluate(() => {
+            const seen = new Set();
+            const duplicates = new Set();
+            for (const element of document.querySelectorAll('[id]')) {
+                if (seen.has(element.id)) duplicates.add(element.id);
+                seen.add(element.id);
+            }
+            return [...duplicates];
+        });
+        for (const id of duplicateIds) add('duplicate-id', `${locale}/${width}/${state} ${path}: #${id}`, `${path}#${id}`);
+        const result = await page.evaluate(async () => window.axe.run(document, {
+            runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+        }));
+        for (const violation of result.violations) {
+            for (const node of violation.nodes) add(violation.id, `${locale}/${width}/${state} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
+        }
+    };
+    await scan('initial');
+    const details = await page.locator('details').count();
+    if (details) {
+        await page.evaluate(() => document.querySelectorAll('details').forEach(element => { element.open = true; }));
+        await scan('expanded');
     }
 }
 try {
