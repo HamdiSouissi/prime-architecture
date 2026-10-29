@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientContactController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectActionsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -33,6 +37,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');
     Route::middleware('verified')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::post('/clients/{client}/restore', [ClientController::class, 'restore'])->withTrashed()->name('clients.restore');
+        Route::post('/clients/{client}/contacts/{contact}/restore', [ClientContactController::class, 'restore'])->withTrashed()->name('clients.contacts.restore');
+        Route::post('/clients/{client}/contacts', [ClientContactController::class, 'store'])->name('clients.contacts.store');
+        Route::put('/clients/{client}/contacts/{contact}', [ClientContactController::class, 'update'])->name('clients.contacts.update');
+        Route::delete('/clients/{client}/contacts/{contact}', [ClientContactController::class, 'destroy'])->name('clients.contacts.destroy');
+        Route::resource('clients', ClientController::class);
+        Route::post('/projects/{project}/restore', [ProjectController::class, 'restore'])->withTrashed()->name('projects.restore');
+        Route::post('/projects/{project}/status', [ProjectActionsController::class, 'status'])->name('projects.status');
+        Route::post('/projects/{project}/lead', [ProjectActionsController::class, 'lead'])->name('projects.lead');
+        Route::post('/projects/{project}/members', [ProjectActionsController::class, 'addMember'])->name('projects.members.store');
+        Route::delete('/projects/{project}/members/{member}', [ProjectActionsController::class, 'removeMember'])->name('projects.members.destroy');
+        Route::post('/projects/{project}/notes', [ProjectActionsController::class, 'addNote'])->name('projects.notes.store');
+        Route::delete('/projects/{project}/notes/{note}', [ProjectActionsController::class, 'removeNote'])->name('projects.notes.destroy');
+        Route::resource('projects', ProjectController::class);
+
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'password'])->name('profile.password');

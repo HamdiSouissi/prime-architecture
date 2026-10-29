@@ -36,6 +36,8 @@
             <a href="{{ route('home') }}" class="block rounded bg-slate-100 px-3 py-2 font-medium">{{ __('common.home') }}</a>
             @auth
                 @canany(['dashboard.internal.view', 'dashboard.client.view'])<a href="{{ route('dashboard') }}" class="block px-3 py-2">{{ __('common.dashboard') }}</a>@endcanany
+                @can('clients.view')<a href="{{ route('clients.index') }}" class="block px-3 py-2">{{ __('phase3.clients') }}</a>@endcan
+                @can('projects.view')<a href="{{ route('projects.index') }}" class="block px-3 py-2">{{ __('phase3.projects') }}</a>@endcan
                 <a href="{{ route('profile.edit') }}" class="block px-3 py-2">{{ __('common.profile') }}</a>
                 @can('users.manage')<a href="{{ route('users.index') }}" class="block px-3 py-2">{{ __('common.users') }}</a>@endcan
                 @can('activity.view')<a href="{{ route('activity.index') }}" class="block px-3 py-2">{{ __('common.activity') }}</a>@endcan

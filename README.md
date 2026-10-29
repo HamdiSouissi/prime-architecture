@@ -1,6 +1,6 @@
 # Archi TN
 
-Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette phase couvre l'authentification, les rôles, les utilisateurs, le profil et les premiers événements du journal ; elle ne comprend aucun module métier.
+Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette version comprend l’authentification, les rôles, les clients et les projets. Les documents, la planification et la facturation restent hors périmètre.
 
 > **Support et déploiement :** Laravel 12 reçoit des correctifs de sécurité jusqu’au 24 février 2027 ; ses correctifs fonctionnels se sont arrêtés le 13 août 2026. Prévoir la mise à niveau suivante avant la fin de support. Exécuter `composer audit` et traiter ses alertes ; Docker Compose est réservé au développement local.
 
@@ -44,15 +44,17 @@ Le seeder d'initialisation ne modifie pas un administrateur actif existant, refu
 
 ## Rôles et autorisations
 
-La configuration `config/access.php` sert de source à `RolePermissionSeeder`, qui synchronise les permissions des rôles à chaque exécution : modifier la configuration avant de relancer le seeder. Aucune permission métier n'est présumée avant les phases correspondantes.
+La configuration `config/access.php` sert de source à `RolePermissionSeeder`, qui synchronise les permissions des rôles à chaque exécution : modifier la configuration avant de relancer le seeder. Après une mise à niveau, relancer `RolePermissionSeeder` afin de synchroniser les permissions de la phase 3 ; cette commande remplace les permissions de chaque rôle par celles de `config/access.php`.
 
-| Rôle | Permissions | Accès actuel |
-|---|---|---|
-| `admin` | `dashboard.internal.view`, `users.manage`, `activity.view` | Tableau interne, utilisateurs, journal |
-| `architect` | `dashboard.internal.view` | Tableau interne et profil |
-| `collaborator` | `dashboard.internal.view` | Tableau interne et profil |
-| `client` | `dashboard.client.view` | Accueil externe et profil |
-| `contractor` | `dashboard.client.view` | Accueil externe et profil |
+| Rôle | Clients | Projets | Notes et équipe |
+|---|---|---|---|
+| `admin` | Tous : créer, modifier, archiver, restaurer | Tous : créer, modifier, changer de statut, archiver, restaurer | Voir/ajouter les notes, supprimer toute note ; gérer l’équipe |
+| `architect` | Tous : créer, modifier, archiver, restaurer | Tous : créer, modifier, changer de statut, archiver, restaurer | Voir/ajouter les notes, supprimer ses notes ; gérer l’équipe |
+| `collaborator` | Pas d’accès au module Clients | Uniquement projets affectés ; modification et changement de statut sauf affectation `viewer` | Voir les notes internes des projets affectés ; ajouter/supprimer ses notes si autorisé, pas de gestion d’équipe |
+| `client` | Pas d’accès au module Clients | Lecture seule des projets liés à ses fiches client | Pas de notes internes ni d’historique détaillé |
+| `contractor` | Aucun accès | Aucun accès | Aucun accès |
+
+Permissions granulaires : `clients.view`, `clients.create`, `clients.update`, `clients.archive`, `clients.restore`, `projects.view`, `projects.create`, `projects.update`, `projects.archive`, `projects.restore`, `projects.change_status`, `projects.manage_team`, `projects.notes`. Les policies et les requêtes filtrées complètent ces permissions. La navigation et le tableau de bord respectent la même portée d’accès.
 
 Les routes d'administration passent par la policy utilisateur ou par les permissions ; `role`, `permission` et `role_or_permission` sont aussi disponibles en middleware. Les pages protégées requièrent une connexion et un email vérifié. L'interface d'administration permet de rechercher, filtrer, inviter, modifier, désactiver et supprimer logiquement. Un changement d’email révoque les sessions, invalide les anciens jetons et demande une nouvelle vérification (ou une nouvelle invitation pour un compte en attente). Un administrateur ne peut pas se désactiver, se supprimer ou se retirer son rôle ; les modifications d'administrateur sont sérialisées et le dernier administrateur actif est protégé.
 
@@ -96,3 +98,44 @@ Les données MySQL sont dans `mysql_data`, la clé générée au premier démarr
 - `tests/Feature`, `tests/Unit` : tests automatisés ; `docker/` : configuration locale.
 
 Une fonctionnalité par branche, PR revue, commits Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`). Ne jamais committer `.env`, les secrets, `vendor` ou `node_modules`.
+
+
+## Phase 3 : clients, projets et données géographiques
+
+Appliquer les migrations et synchroniser les rôles sur une installation existante :
+
+```sh
+docker compose exec -u www-data app php artisan migrate --force
+docker compose exec -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=GeographySeeder --force
+```
+
+Sauvegarder la base avant la migration. Les 24 gouvernorats proviennent de `database/data/governorates.php`. **La liste des délégations est volontairement vide et doit être complétée et vérifiée** dans `database/data/delegations.php` : chaque ligne est `[clé_interne_unique, clé_gouvernorat, libellé_fr, libellé_ar]`. Les clés sont internes, pas des codes administratifs officiels. Ne pas changer une clé existante ; relancer le seeder après ajout ou correction des libellés. Les formulaires acceptent un gouvernorat sans délégation tant que ces données manquent. Les relations et la cohérence délégation/gouvernorat sont vérifiées côté serveur.
+
+Le seeder de démonstration est **facultatif**, interdit en production et exige un compte administrateur ou architecte actif. Il crée des noms fictifs et des adresses `example.test` :
+
+```sh
+docker compose exec -u www-data app php artisan db:seed --class=PhaseThreeDemoSeeder
+```
+
+### Schéma simplifié
+
+```text
+users (client, optionnel) <- clients -> governorates <- delegations
+                               |                                 |   +-- client_contacts (archivables)
+                               +------ projects -> users (responsable)
+                                           |  +-- project_user -> users (équipe)
+                                           |  +-- project_status_history -> users (auteur)
+                                           +----- project_notes -> users (auteur, archivables)
+project_reference_counters (une ligne par année)
+```
+
+Les clients, contacts, projets et notes sont supprimés logiquement. Archiver un client archive aussi ses projets actifs ; restaurer le client ne restaure pas ses projets. Pour restaurer un projet, il faut d’abord restaurer son client. L’historique et les événements du journal ne sont pas supprimables depuis l’interface. Le contact principal actif est unique par client. L’architecte responsable doit être un administrateur ou architecte actif ; les membres d’équipe sont des utilisateurs internes actifs. L’attribution `viewer` est en lecture seule.
+
+### Conventions et limites de validation
+
+Les références ont par défaut la forme `2026-001` : l’année est calculée en fuseau `Africa/Tunis`, le compteur est verrouillé en transaction et la référence reste unique même après archivage. `PROJECT_REFERENCE_FORMAT` doit contenir une fois chacun `{year}` et `{sequence}` ; `PROJECT_REFERENCE_PADDING` définit le nombre **minimum** de chiffres (1 à 12), sans limite à 999. `PROJECT_REFERENCE_TIMEZONE` permet de modifier le fuseau. Les modifications de format ne doivent pas produire de référence existante.
+
+La CIN est une chaîne de huit chiffres. Les téléphones tunisiens sont stockés sous `+216XXXXXXXX`, avec ou sans indicatif en entrée. Le matricule fiscal est contrôlé **syntaxiquement seulement** : par défaut sept chiffres, trois lettres et trois chiffres, par exemple `1234567/A/A/M/000`. La règle est configurable dans `config/projects.php` (`CLIENT_TAX_ID_PATTERN`). **Ce format et les catégories acceptées doivent être confirmés auprès de l’administration compétente** ; aucun contrôle de validité officiel ou d’existence n’est effectué. Les champs financiers sont indicatifs, en TND avec trois décimales ; aucune logique de facturation n’est incluse.
+
+Le tableau Kanban est en lecture seule et porte sur la page de résultats courante. Les états actifs du tableau de bord sont configurés dans `config/projects.php`. Pour protéger les données internes, les clients ne reçoivent ni notes ni historique détaillé, et les listes sont filtrées en base avant pagination.

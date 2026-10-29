@@ -1,0 +1,25 @@
+@extends('layouts.app')
+@section('title', __('phase3.projects'))
+@section('content')
+<x-card><div class="flex flex-wrap justify-between gap-3"><h1 class="text-2xl font-bold">{{ __('phase3.projects') }}</h1>@can('create', App\Models\Project::class)<a class="underline" href="{{ route('projects.create') }}">{{ __('phase3.new_project') }}</a>@endcan</div>
+@if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
+<form method="GET" class="my-4 flex flex-wrap items-end gap-3">
+<x-form-field name="search" :label="__('phase3.search_project')" value="{{ request('search') }}" />
+<label>{{ __('common.status') }} <select name="status"><option value="">{{ __('common.all') }}</option>@foreach($statuses as $status)<option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ __('phase3.'.$status->value) }}</option>@endforeach</select></label>
+<label>{{ __('phase3.project_type') }} <select name="project_type"><option value="">{{ __('common.all') }}</option>@foreach($types as $type)<option value="{{ $type->value }}" @selected(request('project_type') === $type->value)>{{ __('phase3.'.$type->value) }}</option>@endforeach</select></label>
+<label>{{ __('phase3.lead_architect') }} <select name="lead_architect_id"><option value="">{{ __('common.all') }}</option>@foreach($architects as $architect)<option value="{{ $architect->id }}" @selected(request('lead_architect_id') == $architect->id)>{{ $architect->name }}</option>@endforeach</select></label>
+<label>{{ __('phase3.governorate') }} <select name="governorate_id"><option value="">{{ __('common.all') }}</option>@foreach($governorates as $g)<option value="{{ $g->id }}" @selected(request('governorate_id') == $g->id)>{{ app()->getLocale() === 'ar' ? $g->name_ar : $g->name_fr }}</option>@endforeach</select></label>
+<x-form-field name="date_from" type="date" :label="__('common.date_from')" value="{{ request('date_from') }}" /><x-form-field name="date_to" type="date" :label="__('common.date_to')" value="{{ request('date_to') }}" />
+<label>{{ __('phase3.sort') }} <select name="sort">@foreach(['updated_at' => 'last_updated', 'reference' => 'reference', 'name' => 'name', 'status' => 'status', 'start_date' => 'start_date'] as $column => $label)<option value="{{ $column }}" @selected(request('sort', 'updated_at') === $column)>{{ __($label === 'name' || $label === 'status' ? 'common.'.$label : 'phase3.'.$label) }}</option>@endforeach</select></label>
+<label>{{ __('phase3.direction') }} <select name="direction"><option value="desc" @selected(request('direction', 'desc') === 'desc')>{{ __('phase3.descending') }}</option><option value="asc" @selected(request('direction') === 'asc')>{{ __('phase3.ascending') }}</option></select></label>
+<label>{{ __('phase3.table_view') }} <select name="view"><option value="table" @selected(!$kanban)>{{ __('phase3.table_view') }}</option><option value="kanban" @selected($kanban)>{{ __('phase3.kanban_view') }}</option></select></label>
+@can('projects.restore')<label><input type="checkbox" name="archived" value="1" @checked(request('archived'))> {{ __('phase3.archived_items') }}</label>@endcan
+<x-button type="submit">{{ __('common.filter') }}</x-button></form>
+@if($kanban)
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">@foreach($statuses as $status)<section class="rounded border border-slate-200 p-3"><h2 class="font-bold">{{ __('phase3.'.$status->value) }}</h2>@forelse($projects->where('status', $status) as $project)<div class="mt-2 rounded bg-slate-100 p-2">@if(!$project->trashed())<a class="underline" href="{{ route('projects.show', $project) }}">{{ $project->reference }} — {{ $project->name }}</a>@else{{ $project->reference }} — {{ $project->name }}@endif</div>@empty<p class="text-sm text-slate-600">{{ __('phase3.empty') }}</p>@endforelse</section>@endforeach</div>
+@else
+<div class="overflow-x-auto"><table class="w-full text-start"><thead><tr><th class="text-start">{{ __('phase3.reference') }}</th><th class="text-start">{{ __('common.name') }}</th><th class="text-start">{{ __('phase3.clients') }}</th><th class="text-start">{{ __('common.status') }}</th><th class="text-start">{{ __('phase3.lead_architect') }}</th><th></th></tr></thead><tbody>
+@forelse($projects as $project)<tr class="border-t"><td class="py-2">@if(!$project->trashed())<a class="underline" href="{{ route('projects.show', $project) }}">{{ $project->reference }}</a>@else{{ $project->reference }}@endif</td><td>{{ $project->name }}</td><td>{{ $project->client?->name }}</td><td>{{ __('phase3.'.$project->status->value) }}</td><td>{{ $project->leadArchitect?->name }}</td><td>@if($project->trashed() && !$project->client?->trashed())<form method="POST" action="{{ route('projects.restore', $project) }}">@csrf<x-button type="submit">{{ __('phase3.restore') }}</x-button></form>@elseif($project->trashed()){{ __('phase3.cannot_restore_project') }}@endif</td></tr>@empty<tr><td colspan="6">{{ __('phase3.empty') }}</td></tr>@endforelse
+</tbody></table></div>@endif
+<div class="mt-4">{{ $projects->links() }}</div></x-card>
+@endsection
