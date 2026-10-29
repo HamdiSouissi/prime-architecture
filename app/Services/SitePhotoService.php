@@ -170,10 +170,11 @@ class SitePhotoService
         return $snag->id;
     }
 
-    /** Stored for display only; control characters and bidi overrides are removed. */
+    /** Stored for display only; control and bidi formatting characters are removed. */
     private function originalName(string $name): string
     {
-        $clean = trim((string) preg_replace('/[\x00-\x1F\x7F\x{202A}-\x{202E}\x{2066}-\x2069}]/u', '', basename(str_replace('\\', '/', $name))));
+        $base = basename(str_replace('\\', '/', $name));
+        $clean = trim((string) preg_replace('/\p{Cc}|\p{Cf}/u', '', $base));
 
         return mb_substr($clean === '' ? 'photo.jpg' : $clean, 0, 200);
     }

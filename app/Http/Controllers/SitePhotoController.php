@@ -8,8 +8,10 @@ use App\Models\SitePhoto;
 use App\Services\SitePhotoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SitePhotoController extends Controller
@@ -17,7 +19,13 @@ class SitePhotoController extends Controller
     public function store(SitePhotoRequest $request, Project $project, SitePhotoService $service): RedirectResponse
     {
         Gate::authorize('create', [SitePhoto::class, $project]);
-        $service->store($project, $request->user(), $request->file('photo'), $request->safe()->except('photo'));
+        $file = $request->file('photo');
+        if (! $file instanceof UploadedFile) {
+            throw ValidationException::withMessages(['photo' => __('phase8.invalid_photo')]);
+        }
+        $data = $request->validated();
+        unset($data['photo']);
+        $service->store($project, $request->user(), $file, $data);
 
         return back()->with('status', __('phase8.photo_uploaded'));
     }

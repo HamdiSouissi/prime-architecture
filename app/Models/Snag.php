@@ -55,7 +55,7 @@ class Snag extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): void
     {
-        if (! $user->can('site.view')) {
+        if (! $user->can('site.view') && ! $user->can('site.client.view')) {
             $query->whereRaw('1 = 0');
 
             return;

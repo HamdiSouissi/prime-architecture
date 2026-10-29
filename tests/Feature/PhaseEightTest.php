@@ -13,11 +13,13 @@ use App\Models\Snag;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\SiteProgressService;
+use App\Services\SiteSupervisionService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class PhaseEightTest extends TestCase
@@ -167,9 +169,12 @@ class PhaseEightTest extends TestCase
         ])->assertForbidden();
         $this->actingAs($architect)->delete(route('site.snags.destroy', [$project, $snag]))->assertForbidden();
 
-        // Invalid transition is rejected by the service.
+        // The policy refuses any change on a validated snag, and the service
+        // refuses an impossible transition even if it were called directly.
         $this->actingAs($architect)->post(route('site.snags.status', [$project, $snag]), ['status' => 'fixed'])
-            ->assertSessionHasErrors('snag');
+            ->assertForbidden();
+        $this->expectException(ValidationException::class);
+        app(SiteSupervisionService::class)->transition($snag->fresh() ?? $snag, $architect, SnagStatus::Fixed);
     }
 
     public function test_progress_is_declared_and_compared_with_the_planning(): void
@@ -222,7 +227,7 @@ class PhaseEightTest extends TestCase
             'caption' => 'Ferraillage dalle R+1',
             'taken_on' => today()->toDateString(),
             'site_report_id' => $report->id,
-        ])->assertSessionHasNoErrors();
+        ])->assertSessionHasNoErrors()->assertRedirect();
 
         $photo = SitePhoto::query()->firstOrFail();
         $this->assertSame('image/jpeg', $photo->mime_type);
@@ -273,9 +278,10 @@ class PhaseEightTest extends TestCase
         $contractor = $this->userWithRole('contractor');
         $outsider = $this->member($this->project());
 
+        // Checked first: actingAs() persists on the test instance for later calls.
+        $this->get(route('site.index', $project))->assertRedirect(route('login'));
         $this->actingAs($contractor)->get(route('site.index', $project))->assertForbidden();
         $this->actingAs($outsider)->get(route('site.index', $project))->assertForbidden();
-        $this->get(route('site.index', $project))->assertRedirect(route('login'));
     }
 
     public function test_site_pages_render_in_both_languages(): void
