@@ -46,6 +46,16 @@ class PdfGenerator
         return $this->render('billing.receipt-pdf', ['document' => $invoice, 'snapshot' => $invoice->snapshot, 'payment' => $payment], $language);
     }
 
+    /**
+     * Generic report rendering, reusing the isolated Chromium renderer.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function report(array $data, string $language): string
+    {
+        return $this->render('reports.pdf', $data, $language);
+    }
+
     /** @param array<string, mixed> $data */
     private function render(string $template, array $data, string $language): string
     {

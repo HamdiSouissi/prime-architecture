@@ -50,6 +50,8 @@
                     @can('manage', \App\Models\Holiday::class)<a href="{{ route('planning.calendar-admin') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('planning.calendar*')])><x-icon name="calendar-days" />{{ __('phase5.calendar_admin') }}</a>@endcan
                     @can('tasks.view')<a href="{{ route('planning.notifications') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('planning.notifications*')])><x-icon name="bell" />{{ __('phase5.notifications') }}</a>@endcan
                     @hasanyrole('admin|architect|collaborator')@can('tasks.view')<a href="{{ route('planning.my-tasks') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('planning.my-tasks')])><x-icon name="calendar-days" />{{ __('phase5.my_tasks') }}</a>@endcan @endhasanyrole
+                    @can('time.log')<a href="{{ route('time.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('time.*')])><x-icon name="clock" />{{ __('phase7.time') }}</a>@endcan
+                    @can('reports.view')<a href="{{ route('reports.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('reports.*')])><x-icon name="squares-2x2" />{{ __('phase7.reports') }}</a>@endcan
                     @can('activity.view')<a href="{{ route('activity.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('activity.*')])><x-icon name="clock" />{{ __('common.activity') }}</a>@endcan
                 @endauth
             </div>

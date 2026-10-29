@@ -13,6 +13,9 @@ use App\Http\Controllers\BillingSettingsController;
 use App\Http\Controllers\ClientContactController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportSettingsController;
+use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\DocumentCommentController;
 use App\Http\Controllers\DocumentController;
@@ -169,6 +172,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/billing/invoices/{invoice}/withholding', [BillingController::class, 'withholding'])->name('billing.invoices.withholding');
         Route::post('/billing/invoices/{invoice}/cancel', [BillingController::class, 'cancel'])->name('billing.invoices.cancel');
 
+        Route::get('/time', [TimeEntryController::class, 'index'])->name('time.index');
+        Route::post('/time', [TimeEntryController::class, 'store'])->name('time.store');
+        Route::post('/time/start', [TimeEntryController::class, 'start'])->name('time.start');
+        Route::post('/time/{entry}/stop', [TimeEntryController::class, 'stop'])->whereNumber('entry')->name('time.stop');
+        Route::put('/time/{entry}', [TimeEntryController::class, 'update'])->whereNumber('entry')->name('time.update');
+        Route::delete('/time/{entry}', [TimeEntryController::class, 'destroy'])->whereNumber('entry')->name('time.destroy');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export.xlsx', [ReportController::class, 'exportXlsx'])->name('reports.export.xlsx');
+        Route::get('/reports/export.pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+        Route::get('/reports/settings', [ReportSettingsController::class, 'index'])->name('reports.settings.index');
+        Route::post('/reports/settings/cost', [ReportSettingsController::class, 'store'])->name('reports.settings.store');
+        Route::post('/reports/settings/rates', [ReportSettingsController::class, 'storeRate'])->name('reports.settings.rate');
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
