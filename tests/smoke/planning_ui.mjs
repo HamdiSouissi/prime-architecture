@@ -7,6 +7,8 @@ try {
     const context = await browser.newContext();
     const page = await context.newPage();
     const errors = [];
+    const remoteFonts = [];
+    page.on('request', (request) => { if (request.url().includes('fonts.gstatic.com')) remoteFonts.push(request.url()); });
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${base}/login`);
     await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
@@ -21,9 +23,25 @@ try {
     await page.locator('#due_date').fill('2026-11-03');
     await Promise.all([page.waitForURL(/\/planning\/tasks\/\d+$/), page.locator('form button[type="submit"]').last().click()]);
     await page.getByRole('link', { name: 'Planning', exact: true }).last().click();
+    await page.getByRole('link', { name: 'Nouvelle tâche' }).click();
+    await page.locator('#title').fill('Planning UI successor');
+    await page.locator('#start_date').fill('2026-11-04');
+    await page.locator('#due_date').fill('2026-11-05');
+    await Promise.all([page.waitForURL(/\/planning\/tasks\/\d+$/), page.locator('form button[type="submit"]').last().click()]);
+    await page.locator('select[name="predecessor_id"]').selectOption({ label: 'Planning UI test' });
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/dependencies"] button').click()]);
+    await page.getByRole('link', { name: 'Planning', exact: true }).last().click();
+    await page.getByText('Ajouter un jalon', { exact: true }).first().click();
+    const milestone = page.locator('form[action$="/milestones"]');
+    await milestone.locator('input[name="title"]').fill('Milestone UI');
+    await milestone.locator('input[name="due_date"]').fill('2026-11-06');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), milestone.locator('button[type="submit"]').click()]);
     await page.getByRole('link', { name: 'Gantt', exact: true }).click();
     await page.locator('.gantt_task_line').first().waitFor();
+    await page.locator('.gantt_task_link').first().waitFor();
+    await page.locator('.gantt_milestone').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), false);
+    assert.match(await page.locator('.gantt_scale_line').first().innerText(), /Novembre/);
     await page.locator('[data-gantt-zoom="week"]').click();
     await page.locator('[data-gantt-zoom="month"]').click();
     const ganttUrl = page.url();
@@ -33,7 +51,11 @@ try {
     await page.goto(ganttUrl);
     await page.locator('.gantt_task_line').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), true);
+    assert.equal(await page.locator('.gantt_grid').first().evaluate((element) => getComputedStyle(element).textAlign), 'right');
+    assert.equal(await page.locator('.gantt_row').first().evaluate((element) => getComputedStyle(element).flexDirection), 'row-reverse');
+    assert.match(await page.locator('.gantt_scale_line').first().innerText(), /نوفمبر/);
     assert.deepEqual(errors, []);
+    assert.deepEqual(remoteFonts, []);
     console.log('Planning browser smoke: task, Gantt zoom and RTL passed.');
 } catch (error) {
     const message = String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');

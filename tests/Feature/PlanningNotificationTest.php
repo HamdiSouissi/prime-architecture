@@ -13,6 +13,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WorkingCalendarSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PlanningNotificationTest extends TestCase
@@ -45,5 +46,30 @@ class PlanningNotificationTest extends TestCase
         $collaborator->forceFill(['planning_email_enabled' => false])->save();
         $notification = new PlanningDigestNotification(now()->toDateString(), [], []);
         $this->assertSame(['database'], $notification->via($collaborator));
+    }
+
+    public function test_notification_centre_is_private_and_respects_current_task_access(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class]);
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $member = User::factory()->create();
+        $member->assignRole('collaborator');
+        $other = User::factory()->create();
+        $other->assignRole('collaborator');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        $project->members()->attach($member->id, ['project_role' => 'collaborator']);
+        $task = Task::factory()->create(['project_id' => $project->id, 'title' => 'Private title']);
+        $id = (string) Str::uuid();
+        $member->notifications()->create(['id' => $id, 'type' => PlanningEventNotification::class, 'data' => ['kind' => 'assigned', 'project_id' => $project->id, 'task_id' => $task->id]]);
+        $this->actingAs($other)->post(route('planning.notifications.read', $id))->assertNotFound();
+        $this->actingAs($member)->get(route('planning.notifications'))->assertOk()->assertSee('Private title');
+        $this->post(route('planning.notifications.preference'), ['planning_email_enabled' => '0'])->assertSessionHasNoErrors();
+        $this->assertFalse($member->fresh()->planning_email_enabled);
+        $project->members()->detach($member->id);
+        $this->get(route('planning.notifications'))->assertOk()->assertDontSee('Private title');
+        $this->post(route('planning.notifications.read', $id))->assertRedirect();
+        $this->assertNotNull($member->notifications()->findOrFail($id)->read_at);
     }
 }

@@ -133,6 +133,10 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php artisan db:seed --class=WorkingCalendarSeeder --force
           npm run test:planning-ui
+      - name: Verify development scheduler container
+        run: |
+          docker compose --profile scheduler up -d scheduler
+          docker compose exec -T -u www-data scheduler php artisan schedule:list
       - name: Verify invitation through Mailpit
         run: |
           if ! python3 tests/smoke/docker_phase2.py > smoke-result.txt 2>&1; then
