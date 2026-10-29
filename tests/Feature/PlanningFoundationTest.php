@@ -51,6 +51,15 @@ class PlanningFoundationTest extends TestCase
         $this->assertSame('2026-10-31', (new WorkingCalendar)->addWorkingDays($start, 1)->toDateString());
     }
 
+    public function test_calendar_seeding_is_idempotent_and_preserves_working_days(): void
+    {
+        DB::table('working_calendar_days')->where('iso_weekday', 6)->update(['is_working' => true]);
+        $revision = DB::table('planning_calendar_state')->where('id', 1)->value('revision');
+        $this->seed(WorkingCalendarSeeder::class);
+        $this->assertTrue((bool) DB::table('working_calendar_days')->where('iso_weekday', 6)->value('is_working'));
+        $this->assertEquals($revision, DB::table('planning_calendar_state')->where('id', 1)->value('revision'));
+    }
+
     public function test_direct_and_indirect_cycles_are_rejected(): void
     {
         [$a, $b, $c] = Task::factory()->count(3)->create(['project_id' => $this->project->id])->all();
