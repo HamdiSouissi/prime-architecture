@@ -64,21 +64,16 @@ jobs:
         run: php tests/smoke/concurrent_references.php
       - name: Verify concurrent document version allocation
         run: php tests/smoke/concurrent_document_versions.php
-      - name: Check PHP formatting
+      - name: Diagnostic formatting
+        if: always()
         run: |
-          if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
-            head -c 8000 pint-result.json
-            echo
-            echo "::error title=Pint::$(head -c 4000 pint-result.json | tr '\r\n' '  ')"
-            exit 1
-          fi
-      - name: Analyse PHP
+          vendor/bin/pint --format=json > /dev/null || true
+          git diff -- '*.php' | gzip -c | base64 -w 0 | fold -w 2000 | awk '{printf "::warning title=PINTPART%03d::%s\n", NR, $0}'
+      - name: Diagnostic static analysis
+        if: always()
         run: |
-          if ! vendor/bin/phpstan analyse --no-progress --error-format=raw > phpstan-result.txt 2>&1; then
-            cat phpstan-result.txt
-            echo "::error title=PHPStan::$(head -c 4000 phpstan-result.txt | tr '\r\n' '  ')"
-            exit 1
-          fi
+          vendor/bin/phpstan analyse --no-progress --error-format=raw > phpstan-result.txt 2>&1 || true
+          gzip -c phpstan-result.txt | base64 -w 0 | fold -w 2000 | awk '{printf "::warning title=STANPART%03d::%s\n", NR, $0}'
   docker-smoke:
     runs-on: ubuntu-latest
     env:

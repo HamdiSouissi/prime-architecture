@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'notification_subject' => 'Actualité de votre tâche',
+    'notification_assigned' => 'Une tâche vous a été attribuée.',
+    'notification_status' => 'Le statut d’une tâche suivie a changé.',
+    'notification_comment' => 'Un commentaire a été ajouté à une tâche suivie.',
+    'digest_subject' => 'Récapitulatif quotidien du planning',
+    'digest_counts' => ':tasks tâche(s) à échéance ou en retard et :milestones jalon(s) proche(s).',
     'planning' => 'Planning', 'tasks' => 'Tâches', 'task' => 'Tâche', 'new_task' => 'Nouvelle tâche', 'milestones' => 'Jalons', 'milestone' => 'Jalon',
     'title' => 'Titre', 'description' => 'Description', 'priority' => 'Priorité', 'start_date' => 'Début', 'due_date' => 'Échéance',
     'estimated_hours' => 'Heures estimées', 'spent_hours' => 'Heures réelles', 'assignees' => 'Responsables', 'parent' => 'Tâche parente',

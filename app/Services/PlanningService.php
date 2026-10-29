@@ -13,10 +13,12 @@ use Illuminate\Validation\ValidationException;
 
 class PlanningService
 {
+    public function __construct(private readonly PlanningNotifier $notifier) {}
+
     /** @param array<string, mixed> $data @param list<int> $assignees */
     public function createTask(Project $project, User $actor, array $data, array $assignees): Task
     {
-        return DB::transaction(function () use ($project, $actor, $data, $assignees) {
+        $task = DB::transaction(function () use ($project, $actor, $data, $assignees) {
             $project = Project::query()->lockForUpdate()->findOrFail($project->id);
             Gate::forUser($actor)->authorize('create', [Task::class, $project]);
             $this->validateParent($project, $data['parent_id'] ?? null, null);
@@ -26,16 +28,20 @@ class PlanningService
             $data['completed_at'] = ($data['status'] ?? '') === TaskStatus::Done->value ? now() : null;
             $task = Task::create($data);
             $task->assignees()->syncWithPivotValues($assignees, ['project_id' => $project->id]);
+            $task->followers()->syncWithoutDetaching(array_fill_keys($assignees, ['project_id' => $project->id]));
             activity('planning')->causedBy($actor)->performedOn($task)->event('task.created')->log('task.created');
 
             return $task;
         }, 3);
+        $this->notifier->send($task, $actor, $task->assignees, 'assigned');
+
+        return $task;
     }
 
     /** @param array<string, mixed> $data @param list<int>|null $assignees */
     public function updateTask(Task $task, User $actor, array $data, ?array $assignees): Task
     {
-        return DB::transaction(function () use ($task, $actor, $data, $assignees) {
+        [$task, $newIds, $statusChanged] = DB::transaction(function () use ($task, $actor, $data, $assignees) {
             $project = Project::query()->lockForUpdate()->findOrFail($task->project_id);
             $task = Task::query()->lockForUpdate()->findOrFail($task->id);
             Gate::forUser($actor)->authorize('update', $task);
@@ -46,10 +52,14 @@ class PlanningService
                 }
                 unset($data[$field]);
             }
+            $newIds = [];
             if ($assignees !== null) {
                 Gate::forUser($actor)->authorize('assign', $task);
                 $this->validateAssignees($project, $actor, $assignees);
+                $oldIds = $task->assignees()->pluck('users.id')->all();
+                $newIds = array_values(array_diff($assignees, $oldIds));
                 $task->assignees()->syncWithPivotValues($assignees, ['project_id' => $project->id]);
+                $task->followers()->syncWithoutDetaching(array_fill_keys($assignees, ['project_id' => $project->id]));
                 activity('planning')->causedBy($actor)->performedOn($task)->event('task.assignees_changed')->log('task.assignees_changed');
             }
             $oldStatus = $task->status;
@@ -62,8 +72,14 @@ class PlanningService
                 activity('planning')->causedBy($actor)->performedOn($task)->event('task.status_changed')->withProperties(['from' => $oldStatus->value, 'to' => $task->status->value])->log('task.status_changed');
             }
 
-            return $task;
+            return [$task, $newIds, $task->status !== $oldStatus];
         }, 3);
+        $this->notifier->send($task, $actor, $task->assignees()->whereIn('users.id', $newIds)->get(), 'assigned');
+        if ($statusChanged) {
+            $this->notifier->send($task, $actor, $task->followers, 'status');
+        }
+
+        return $task;
     }
 
     /** @param list<int> $ids */

@@ -55,10 +55,10 @@ class ProjectActionsController extends Controller
             Gate::authorize('manageTeam', $project);
             abort_if($member->id === $project->lead_architect_id, 422);
             $assigned = DB::table('task_assignees')->where('project_id', $project->id)->where('user_id', $member->id)->exists();
-            $following = DB::table('task_followers')->where('project_id', $project->id)->where('user_id', $member->id)->exists();
-            if ($assigned || $following) {
+            if ($assigned) {
                 throw ValidationException::withMessages(['member' => __('phase5.member_has_tasks')]);
             }
+            DB::table('task_followers')->where('project_id', $project->id)->where('user_id', $member->id)->delete();
             $project->members()->detach($member->id);
             activity('projects')->performedOn($project)->withProperties(['member_id' => $member->id])->event('project.team_changed')->log('project.team_changed');
         }, 3);

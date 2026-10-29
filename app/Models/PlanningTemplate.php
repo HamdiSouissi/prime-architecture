@@ -10,7 +10,7 @@ class PlanningTemplate extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name_fr', 'name_ar', 'description', 'is_active'];
+    protected $fillable = ['key', 'name_fr', 'name_ar', 'description', 'is_active'];
 
     protected function casts(): array
     {

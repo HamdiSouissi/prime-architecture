@@ -8,10 +8,13 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\PlanningService;
+use App\Services\PlanningTemplateService;
+use App\Models\PlanningTemplate;
 use App\Services\ProjectAdministration;
 use App\Services\WorkingCalendar;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\PlanningTemplateSeeder;
 use Database\Seeders\WorkingCalendarSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +92,26 @@ class PlanningFoundationTest extends TestCase
         $service->confirmMove($a, $this->architect, '2026-11-03', '2026-11-05', $preview['token']);
         $this->assertSame('2026-11-03', $a->fresh()->start_date->toDateString());
         $this->assertSame('2026-11-10', $b->fresh()->due_date->toDateString());
+    }
+
+    public function test_applying_template_respects_calendar_and_dependencies(): void
+    {
+        $this->seed(PlanningTemplateSeeder::class);
+        $this->seed(PlanningTemplateSeeder::class);
+        $template = PlanningTemplate::where('key', 'demo-villa')->firstOrFail();
+        $this->assertCount(5, $template->items);
+        DB::table('holidays')->insert(['date' => '2026-11-02', 'name_fr' => 'Test', 'name_ar' => 'اختبار', 'is_recurring_yearly' => false]);
+        $service = app(PlanningTemplateService::class);
+        $preview = $service->preview($this->project, $template, $this->architect, '2026-10-30', 'fr');
+        $this->assertSame(0, $this->project->tasks()->count());
+        $rows = array_values($preview['items']);
+        $this->assertSame('2026-10-30', $rows[0]['start_date']);
+        $this->assertSame('2026-11-06', $rows[0]['due_date']);
+        $this->assertSame('2026-11-09', $rows[1]['start_date']);
+        $service->apply($this->project, $template, $this->architect, '2026-10-30', 'fr', $preview['token']);
+        $this->assertSame(4, $this->project->tasks()->count());
+        $this->assertSame(1, $this->project->milestones()->count());
+        $this->assertSame(3, DB::table('task_dependencies')->where('project_id', $this->project->id)->count());
     }
 
     public function test_status_completion_and_assignment_membership(): void

@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'notification_subject' => 'مستجدات مهمتك',
+    'notification_assigned' => 'تم إسناد مهمة إليك.',
+    'notification_status' => 'تغيرت حالة مهمة تتابعها.',
+    'notification_comment' => 'أضيف تعليق إلى مهمة تتابعها.',
+    'digest_subject' => 'الملخص اليومي للتخطيط',
+    'digest_counts' => ':tasks مهمة مستحقة أو متأخرة و:milestones معلم قريب.',
     'planning' => 'التخطيط', 'tasks' => 'المهام', 'task' => 'المهمة', 'new_task' => 'مهمة جديدة', 'milestones' => 'المعالم', 'milestone' => 'معلم',
     'title' => 'العنوان', 'description' => 'الوصف', 'priority' => 'الأولوية', 'start_date' => 'البداية', 'due_date' => 'تاريخ الاستحقاق',
     'estimated_hours' => 'الساعات المقدرة', 'spent_hours' => 'الساعات الفعلية', 'assignees' => 'المسؤولون', 'parent' => 'المهمة الأصلية',
