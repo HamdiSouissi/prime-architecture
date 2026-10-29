@@ -34,7 +34,7 @@ class ClientContactController extends Controller
         DB::transaction(function () use ($client, $contact) {
             $client = Client::query()->lockForUpdate()->findOrFail($client->id);
             Gate::authorize('update', $client);
-            $contact = $client->contacts()->withTrashed()->lockForUpdate()->findOrFail($contact->id);
+            $contact = ClientContact::withTrashed()->where('client_id', $client->id)->lockForUpdate()->findOrFail($contact->id);
             if ($contact->is_primary && $client->contacts()->where('is_primary', true)->exists()) {
                 $contact->is_primary = false;
             }

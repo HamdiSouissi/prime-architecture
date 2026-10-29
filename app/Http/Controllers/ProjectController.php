@@ -11,6 +11,7 @@ use App\Models\Governorate;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectAdministration;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class ProjectController extends Controller
         $query = Project::query()->visibleTo($request->user())->with(['client', 'leadArchitect', 'governorate']);
         if (! empty($data['archived'])) {
             abort_unless($request->user()->can('projects.restore') && $request->user()->hasAnyRole(['admin', 'architect']), 403);
-            $query->onlyTrashed()->with(['client' => fn ($q) => $q->withTrashed()]);
+            $query->onlyTrashed()->with(['client' => fn ($q) => $q->getQuery()->withoutGlobalScope(SoftDeletingScope::class)]);
         }
         if (! empty($data['search'])) {
             $search = '%'.$data['search'].'%';

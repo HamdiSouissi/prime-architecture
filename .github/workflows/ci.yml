@@ -60,6 +60,8 @@ jobs:
             echo "::error title=Tests::$(tail -c 4000 test-result.txt | tr '\r\n' '  ')"
             exit 1
           fi
+      - name: Verify concurrent project reference allocation
+        run: php tests/smoke/concurrent_references.php
       - name: Check PHP formatting
         run: |
           if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then

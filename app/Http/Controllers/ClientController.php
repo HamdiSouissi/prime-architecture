@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Governorate;
 use App\Models\User;
 use App\Services\ClientAdministration;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +61,7 @@ class ClientController extends Controller
     public function show(Client $client): View
     {
         Gate::authorize('view', $client);
-        $client->load(['governorate', 'delegation', 'user', 'contacts' => fn ($query) => $query->withTrashed(), 'projects.leadArchitect']);
+        $client->load(['governorate', 'delegation', 'user', 'contacts' => fn ($query) => $query->getQuery()->withoutGlobalScope(SoftDeletingScope::class), 'projects.leadArchitect']);
 
         return view('clients.show', compact('client'));
     }
