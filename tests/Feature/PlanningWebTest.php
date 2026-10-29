@@ -16,6 +16,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WorkingCalendarSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class PlanningWebTest extends TestCase
@@ -159,5 +160,23 @@ class PlanningWebTest extends TestCase
         app(PlanningService::class)->updateTask($task->fresh(), $architect, [], []);
         $this->delete(route('projects.members.destroy', [$project, $member]))->assertSessionHasNoErrors();
         $this->assertDatabaseMissing('project_user', ['project_id' => $project->id, 'user_id' => $member->id]);
+    }
+
+    public function test_template_application_requires_permissions_for_each_created_kind(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class, PlanningTemplateSeeder::class]);
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        $template = PlanningTemplate::where('key', 'demo-villa')->firstOrFail();
+        $role = Role::findByName('architect');
+        $role->revokePermissionTo('tasks.create');
+        $this->actingAs($architect->fresh())->post(route('planning.templates.preview', [$project, $template]), ['start' => '2026-11-02', 'locale' => 'fr'])->assertForbidden();
+        $role->givePermissionTo('tasks.create');
+        $role->revokePermissionTo('milestones.manage');
+        $this->actingAs($architect->fresh())->post(route('planning.templates.preview', [$project, $template]), ['start' => '2026-11-02', 'locale' => 'fr'])->assertForbidden();
+        $this->assertSame(0, $project->tasks()->count());
+        $this->assertSame(0, $project->milestones()->count());
     }
 }

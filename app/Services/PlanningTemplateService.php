@@ -60,6 +60,12 @@ class PlanningTemplateService
         Gate::forUser($actor)->authorize('manage', PlanningTemplate::class);
         Gate::forUser($actor)->authorize('update', $project);
         abort_if($project->trashed() || ! $template->is_active, 403);
+        if ($template->items()->where('type', 'task')->exists()) {
+            Gate::forUser($actor)->authorize('create', [Task::class, $project]);
+        }
+        if ($template->items()->where('type', 'milestone')->exists()) {
+            Gate::forUser($actor)->authorize('manage', [Milestone::class, $project]);
+        }
     }
 
     /** @return array{items: array<int, array<string, mixed>>, token: string} */

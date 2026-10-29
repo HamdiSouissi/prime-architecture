@@ -40,7 +40,7 @@ try {
     await page.locator('.gantt_task_line').first().waitFor();
     await page.locator('.gantt_task_link').first().waitFor({ state: 'attached' });
     await page.locator('.gantt_link_arrow').first().waitFor();
-    await page.locator('.gantt_milestone').first().waitFor();
+    await page.locator('.gantt_milestone .gantt_task_content').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), false);
     assert.match(await page.locator('.gantt_scale_line').first().innerText(), /Novembre/);
     await page.locator('[data-gantt-zoom="week"]').click();
