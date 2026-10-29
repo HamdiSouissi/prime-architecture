@@ -105,6 +105,17 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
           docker compose exec -T -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
+      - name: Set up Node for browser smoke test
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install browser test dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Seed geography and test location forms in Chrome
+        run: |
+          docker compose exec -T -u www-data app php artisan db:seed --class=GeographySeeder --force
+          npm run test:location-ui
       - name: Verify invitation through Mailpit
         run: |
           if ! python3 tests/smoke/docker_phase2.py > smoke-result.txt 2>&1; then

@@ -23,6 +23,9 @@ class ProjectRequest extends FormRequest
         $creating = ! $this->route('project');
         $canMove = $creating || $this->user()->hasAnyRole(['admin', 'architect']);
 
+        $governorateId = $this->input('governorate_id');
+        $governorateId = is_string($governorateId) || is_int($governorateId) ? $governorateId : null;
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'client_id' => [$canMove ? 'required' : 'prohibited', 'integer', Rule::exists('clients', 'id')->whereNull('deleted_at')],
@@ -35,7 +38,7 @@ class ProjectRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:20000'],
             'address' => ['nullable', 'string', 'max:5000'],
             'governorate_id' => ['nullable', 'integer', Rule::exists('governorates', 'id')],
-            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $this->input('governorate_id')), function ($attribute, $value, $fail) {
+            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $governorateId), function ($attribute, $value, $fail) {
                 if ($value && ! $this->input('governorate_id')) {
                     $fail(__('phase3.invalid_location'));
                 }

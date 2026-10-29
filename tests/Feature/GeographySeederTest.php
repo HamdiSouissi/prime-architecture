@@ -87,9 +87,9 @@ class GeographySeederTest extends TestCase
         $ariana = Governorate::where('key', 'ariana')->firstOrFail();
         $carthage = Delegation::where('key', 'tn-01-carthage')->firstOrFail();
         $response = $this->actingAs($architect)->withSession(['locale' => 'fr'])->get(route('clients.create'));
-        $response->assertOk()->assertSee('Carthage')->assertSee('items[governorate]', false);
+        $response->assertOk()->assertSee('Carthage')->assertSee('data-governorate-id=', false);
         $response->assertViewHas('governorates', fn ($governorates) => $governorates->firstWhere('key', 'tunis')->delegations->contains('name_ar', 'قرطاج'));
-        $this->withSession(['locale' => 'ar'])->get(route('projects.create'))->assertOk()->assertSee('lang="ar" dir="rtl"', false)->assertSee('items[governorate]', false);
+        $this->withSession(['locale' => 'ar'])->get(route('projects.create'))->assertOk()->assertSee('lang="ar" dir="rtl"', false)->assertSee('data-governorate-id=', false);
         $this->post(route('clients.store'), ['type' => 'individual', 'name' => 'Test', 'governorate_id' => $ariana->id, 'delegation_id' => $carthage->id])->assertSessionHasErrors('delegation_id');
         $this->post(route('clients.store'), ['type' => 'individual', 'name' => 'Test valide', 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id])->assertRedirect();
         $this->assertDatabaseHas('clients', ['name' => 'Test valide', 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id]);

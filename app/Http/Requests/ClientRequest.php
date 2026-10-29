@@ -35,6 +35,9 @@ class ClientRequest extends FormRequest
 
     public function rules(): array
     {
+        $governorateId = $this->input('governorate_id');
+        $governorateId = is_string($governorateId) || is_int($governorateId) ? $governorateId : null;
+
         return [
             'type' => ['required', Rule::in(['individual', 'company'])],
             'name' => ['required', 'string', 'max:255'],
@@ -46,7 +49,7 @@ class ClientRequest extends FormRequest
             'whatsapp_phone' => ['nullable', 'string', new TunisianPhoneRule],
             'address' => ['nullable', 'string', 'max:5000'],
             'governorate_id' => ['nullable', 'integer', Rule::exists('governorates', 'id')],
-            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $this->input('governorate_id')), function ($attribute, $value, $fail) {
+            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $governorateId), function ($attribute, $value, $fail) {
                 if ($value && ! $this->input('governorate_id')) {
                     $fail(__('phase3.invalid_location'));
                 }

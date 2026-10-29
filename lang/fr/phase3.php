@@ -96,6 +96,8 @@ return [
     'save_contact' => 'Enregistrer le contact',
     'active_projects' => 'Projets actifs par statut',
     'recent_projects' => 'Derniers projets modifiés',
+    'choose_governorate_first' => 'Choisissez d’abord un gouvernorat pour filtrer les délégations.',
+    'delegation_without_javascript' => 'Sans JavaScript, toutes les délégations sont affichées ; choisissez-en une correspondant au gouvernorat.',
     'no_delegations' => 'Aucune délégation disponible pour ce gouvernorat.',
     'cannot_restore_project' => 'Restaurez le client avant de restaurer ce projet.',
     'project_client_fixed' => 'Le client ne peut pas être changé après la création du projet.',

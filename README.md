@@ -132,6 +132,10 @@ Sauvegarder la base avant la migration ou l'actualisation du référentiel. Les 
 
 Chaque ligne est `[clé_interne_unique, clé_gouvernorat, libellé_fr, libellé_ar]`. Les clés ne sont pas des codes officiels : ne pas les modifier après utilisation. Relancer `GeographySeeder` après ajout ou correction des libellés : il met à jour les noms des clés connues, conserve les identifiants en base et ne supprime aucune délégation existante. Il refuse de déplacer une clé déjà associée à un autre gouvernorat ; en cas de conflit, vérifier et résoudre manuellement avant de relancer. Des délégations ajoutées auparavant sous d'autres clés restent présentes et peuvent nécessiter une déduplication manuelle après vérification, sans casser les liens existants. La cohérence délégation/gouvernorat est vérifiée côté serveur.
 
+Dans les formulaires Clients et Projets, choisissez d'abord un gouvernorat : la liste des délégations est filtrée automatiquement et le changement de gouvernorat efface la sélection précédente. En modification ou après une erreur de validation, la sélection est conservée. Si JavaScript est désactivé, toutes les délégations restent accessibles et le serveur refuse une combinaison incohérente. Si les listes sont vides, exécuter `GeographySeeder` comme indiqué ci-dessus, puis vérifier la base utilisée par le conteneur.
+
+La CI teste ces formulaires dans Chrome avec `playwright-core` (dépendance **de développement uniquement**, sans navigateur téléchargé avec le paquet). Le test `npm run test:location-ui` nécessite une instance Compose locale préalablement migrée et initialisée avec un administrateur et le référentiel géographique ; il crée des données de test et ne doit pas être lancé sur une base réelle.
+
 Le seeder de démonstration est **facultatif**, interdit en production et exige un compte administrateur ou architecte actif. Il crée des noms fictifs et des adresses `example.test` :
 
 ```sh

@@ -96,6 +96,8 @@ return [
     'save_contact' => 'حفظ جهة الاتصال',
     'active_projects' => 'المشاريع النشطة حسب الحالة',
     'recent_projects' => 'آخر المشاريع تحديثاً',
+    'choose_governorate_first' => 'اختر الولاية أولاً لتصفية المعتمديات.',
+    'delegation_without_javascript' => 'بدون جافاسكريبت تظهر جميع المعتمديات؛ اختر معتمدية تابعة للولاية.',
     'no_delegations' => 'لا توجد معتمديات متاحة لهذه الولاية.',
     'cannot_restore_project' => 'استعد الحريف قبل استعادة هذا المشروع.',
     'project_client_fixed' => 'لا يمكن تغيير الحريف بعد إنشاء المشروع.',
