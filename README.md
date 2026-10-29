@@ -290,6 +290,9 @@ Si le service est arrêté ou le secret absent, les liens PDF renvoient une indi
 
 ### Interface et vérifications
 
-Les tokens Tailwind définissent un fond clair `#F6F8FC`, le texte `#172033`, l’indigo `#4338CA` et les couleurs sémantiques. Inter et Cairo sont distribuées localement sous SIL OFL et les icônes Heroicons sous MIT ; leurs licences sont dans `resources/licenses`. Le layout, les pages d’accueil, les composants de base et les écrans financiers ont été retravaillés ; les anciens écrans ne sont pas tous refondus. Le responsive et la conformité AA de l’ensemble des pages ne sont pas encore certifiés.
+Les tokens Tailwind définissent un fond clair `#F6F8FC`, le texte `#172033`, l’indigo `#4338CA` et les couleurs sémantiques. Inter et Cairo sont distribuées localement sous SIL OFL et les icônes Heroicons sous MIT ; leurs licences sont dans `resources/licenses`. Le layout, les pages d’accueil, les composants de base, les écrans financiers et plusieurs écrans clients/projets ont été retravaillés ; les anciens écrans ne sont pas tous refondus. Le responsive et la conformité AA de l’ensemble des pages ne sont pas encore certifiés.
 
 Commandes : `npm ci && npm run build`, `php artisan test`, `vendor/bin/pint --test`, `vendor/bin/phpstan analyse`. La CI utilise MySQL, vérifie notamment calculs, autorisations et concurrence, et exécute les smoke tests Chrome et les rendus PDF. Ces tests n’établissent pas une conformité comptable ou réglementaire. Les exemples de test contiennent des données fictives et ne doivent pas être utilisés comme documents réels.
+
+
+L’audit navigateur `tests/smoke/accessibility_ui.mjs` utilise axe-core sur les règles automatisables WCAG 2/2.1 A/AA et détecte le débordement horizontal sur 24 routes staff, en français desktop et arabe mobile, avec des données fictives. Il ne couvre pas toutes les combinaisons de langue et de largeur, ni tous les rôles et états interactifs (erreurs, dialogues, menus). Il ne remplace pas une revue humaine des contrastes et du clavier, des tests avec lecteurs d’écran ou un audit de conformité ; les PDF ne sont pas inclus dans ce contrôle.
