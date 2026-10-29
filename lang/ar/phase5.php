@@ -108,4 +108,7 @@ return [
     'event_task_dependency_added' => 'تمت إضافة التبعية',
     'event_task_dependency_removed' => 'تم حذف التبعية',
     'event_task_comment_removed' => 'تم حذف التعليق',
+    'digest_task_line' => 'مهمة: :title — :date',
+    'digest_milestone_line' => 'معلم: :title — :date',
+    'digest_email_limit' => 'يعرض البريد 20 مهمة و20 معلماً كحد أقصى. راجع مركز الإشعارات للتفاصيل.',
 ];

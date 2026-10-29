@@ -38,7 +38,8 @@ try {
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), milestone.locator('button[type="submit"]').click()]);
     await page.getByRole('link', { name: 'Gantt', exact: true }).click();
     await page.locator('.gantt_task_line').first().waitFor();
-    await page.locator('.gantt_task_link').first().waitFor();
+    await page.locator('.gantt_task_link').first().waitFor({ state: 'attached' });
+    await page.locator('.gantt_link_arrow').first().waitFor();
     await page.locator('.gantt_milestone').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), false);
     assert.match(await page.locator('.gantt_scale_line').first().innerText(), /Novembre/);

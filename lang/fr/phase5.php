@@ -108,4 +108,7 @@ return [
     'event_task_dependency_added' => 'Dépendance ajoutée',
     'event_task_dependency_removed' => 'Dépendance supprimée',
     'event_task_comment_removed' => 'Commentaire supprimé',
+    'digest_task_line' => 'Tâche : :title — :date',
+    'digest_milestone_line' => 'Jalon : :title — :date',
+    'digest_email_limit' => 'Cet email montre au maximum 20 tâches et 20 jalons. Consultez le centre de notifications pour le détail.',
 ];
