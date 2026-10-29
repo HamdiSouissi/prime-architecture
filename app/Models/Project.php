@@ -98,4 +98,28 @@ class Project extends Model
     {
         return $this->hasMany(ProjectNote::class)->orderByDesc('id');
     }
+
+    /** @return HasMany<SiteReport, $this> */
+    public function siteReports(): HasMany
+    {
+        return $this->hasMany(SiteReport::class)->orderByDesc('meeting_date')->orderByDesc('id');
+    }
+
+    /** @return HasMany<Snag, $this> */
+    public function snags(): HasMany
+    {
+        return $this->hasMany(Snag::class);
+    }
+
+    /** @return HasMany<SiteProgressUpdate, $this> */
+    public function siteProgressUpdates(): HasMany
+    {
+        return $this->hasMany(SiteProgressUpdate::class)->orderByDesc('recorded_on')->orderByDesc('id');
+    }
+
+    /** @return HasMany<SitePhoto, $this> */
+    public function sitePhotos(): HasMany
+    {
+        return $this->hasMany(SitePhoto::class);
+    }
 }

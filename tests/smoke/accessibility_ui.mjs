@@ -148,14 +148,14 @@ try {
         draftQuote, `${draftQuote}/edit`, draftInvoice, `${draftInvoice}/edit`,
         '/profile', '/users', '/users/create', userEdit, '/activity',
         '/planning/templates', '/planning/calendar', '/planning/notifications', '/my-tasks',
-        '/time', '/reports', '/reports/settings'];
+        '/time', '/reports', '/reports/settings', `${project}/site`];
     const validationPaths = ['/clients/create', '/projects/create', '/users/create', `${project}/planning/tasks/create`, `${project}/documents/create`, `${project}/billing/quotes/create`];
     for (const path of paths) await check(path, 'fr', 1440);
     for (const path of validationPaths) await checkValidation(path, 'fr', 1440);
     await checkNotFound('fr', 1440);
     await checkKeyboard('fr', 1440);
     await page.setViewportSize({ width: 320, height: 720 });
-    for (const path of ['/dashboard', '/billing', '/time', '/reports', client, `${project}/documents`, `${project}/planning`]) await check(path, 'fr', 320);
+    for (const path of ['/dashboard', '/billing', '/time', '/reports', client, `${project}/documents`, `${project}/planning`, `${project}/site`]) await check(path, 'fr', 320);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.setViewportSize({ width: 375, height: 812 });
     for (const path of paths) await check(path, 'fr', 375);

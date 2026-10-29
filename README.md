@@ -339,3 +339,34 @@ Permissions ajoutées dans `config/access.php` :
 | `time.rates.manage` | oui | non | non |
 
 Les agrégats sont calculés par requêtes agrégées bornées par période, jamais par chargement de collections complètes. Le bilan du MVP et la liste des corrections à traiter avant la phase 8 sont tenus dans [`docs/phase7-mvp-review.md`](docs/phase7-mvp-review.md), et l'état inter-sessions dans [`docs/PROGRESS.md`](docs/PROGRESS.md).
+
+## Phase 8 — suivi de chantier
+
+Le module **Chantier** d'un projet (lien depuis la fiche projet) réunit trois objets complémentaires :
+
+- **Comptes rendus de réunion** : numérotés par projet et par année (`CR-2026-0001`), avec ordre du jour, décisions, date de la prochaine réunion et rattachement des réserves et photos. Un brouillon est modifiable ; la finalisation fige le contenu (le modèle refuse toute écriture ultérieure) et le rend visible au client. Seuls `site.reports.finalize` (administrateur, architecte) peuvent finaliser ; `site.reports.manage` (y compris collaborateurs) permet de rédiger.
+- **Réserves et observations** : cycle `ouverte → levée → validée`, gravité (mineure, majeure, critique), localisation, responsable, échéance et retard signalé par un libellé explicite. Une réserve validée est figée et ne peut plus être supprimée ; la levée est validée par `site.snags.validate` (administrateur, architecte).
+- **Photos** : stockées sur le disque privé, jamais accessibles en statique. Chaque fichier est **ré-encodé avec GD** (JPEG, 1 600 px au plus, vignette 400 px), ce qui normalise le format et supprime les métadonnées EXIF, dont la géolocalisation. Elles sont servies par une route authentifiée (`Cache-Control: private`, `nosniff`). Une photo rattachée à un compte rendu finalisé fait partie de l'archive et ne peut plus être supprimée.
+
+### Avancement
+
+Deux pourcentages coexistent : la **valeur déclarée** par l'architecte (relevés datés et historisés, `site.progress.record`) qui fait foi, et une **valeur calculée** depuis le planning, indicative, pondérée par les heures estimées ou, à défaut, par la durée planifiée des tâches ; elle applique des facteurs par statut définis dans `config/site.php` (`done` 1, `in_review` 0,75, `in_progress` 0,5, `blocked` 0,25, `todo` 0). Chaque relevé conserve la valeur calculée du moment : modifier le planning plus tard ne réécrit pas l'historique. Un écart de 10 points ou plus déclenche un avertissement explicite invitant à justifier l'écart ou à mettre à jour les tâches. Ces règles sont des conventions internes, sans portée contractuelle.
+
+### Export et périmètre client
+
+Un compte rendu peut être exporté en PDF français ou arabe via le rendu privé décrit plus haut, avec le même avertissement sur l'extraction du texte arabe. Le client voit, en lecture seule, la fiche chantier, les comptes rendus **finalisés**, les réserves, l'avancement déclaré et les photos publiées (rattachées à un compte rendu finalisé ou à une réserve) ; il ne voit ni les brouillons, ni les notes de suivi, ni les photos de travail. Les entreprises (`contractor`) n'ont aucun accès. La permission `site.client.view` est la seule ajoutée au rôle client.
+
+Permissions de la phase 8 :
+
+| Permission | admin | architect | collaborator | client |
+|---|---|---|---|---|
+| `site.view` | oui | oui | oui | — |
+| `site.reports.manage` | oui | oui | oui | — |
+| `site.reports.finalize` | oui | oui | — | — |
+| `site.snags.manage` | oui | oui | oui | — |
+| `site.snags.validate` | oui | oui | — | — |
+| `site.progress.record` | oui | oui | — | — |
+| `site.photos.manage` | oui | oui | oui | — |
+| `site.client.view` | — | — | — | oui |
+
+Le module requiert l'extension **GD** (JPEG, WebP) : elle est ajoutée à l'image Docker et aux extensions de la CI. Sans GD, un téléversement échoue explicitement plutôt que d'enregistrer un fichier non vérifié. Les fichiers restent soumis aux limites `SITE_PHOTO_MAX_KB` (8 Mo par défaut) et ne sont pas analysés par un antivirus ; l'isolation du stockage et une politique de sauvegarde restent nécessaires.

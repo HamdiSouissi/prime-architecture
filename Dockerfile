@@ -8,8 +8,10 @@ COPY vite.config.js tailwind.config.js postcss.config.js ./
 RUN npm run build
 
 FROM php:8.2-fpm-bookworm AS app
-RUN apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libicu-dev \
-    && docker-php-ext-install pdo_mysql intl zip bcmath \
+# GD is required to re-encode site photos and generate their thumbnails.
+RUN apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libwebp-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql intl zip bcmath gd \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer-bin /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html

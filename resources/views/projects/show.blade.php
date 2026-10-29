@@ -10,6 +10,7 @@
 @can('viewAny', \App\Models\Quote::class)<a href="{{ route('billing.index', ['project' => $project->id]) }}" class="secondary-action-link">{{ __('phase6.billing') }}</a> @can('create', [\App\Models\Quote::class, $project])<a href="{{ route('billing.quotes.create', $project) }}" class="secondary-action-link">{{ __('phase6.new_quote') }}</a>@endcan @can('create', [\App\Models\Invoice::class, $project])<a href="{{ route('billing.invoices.create', $project) }}" class="secondary-action-link">{{ __('phase6.new_invoice') }}</a>@endcan @endcan
 @can('viewAny', [\App\Models\Task::class, $project])<a href="{{ route('planning.index', $project) }}" class="secondary-action-link">{{ __('phase5.planning') }}</a>@endcan
 @can('viewAny', [\App\Models\Document::class, $project])<a href="{{ route('documents.index', $project) }}" class="secondary-action-link">{{ __('phase4.documents') }}</a>@endcan
+@can('viewAny', [\App\Models\SiteReport::class, $project])<a href="{{ route('site.index', $project) }}" class="secondary-action-link">{{ __('phase8.site') }}</a>@endcan
 </div>
 <div class="my-4 flex flex-wrap gap-1 border-b border-slate-200" role="tablist" aria-label="{{ __('phase3.projects') }}" @keydown.arrow-right.prevent="moveTab($event)" @keydown.arrow-left.prevent="moveTab($event)">
 <button type="button" id="project-tab-overview" role="tab" aria-controls="project-panel-overview" :aria-selected="tab === 'overview'" :tabindex="tab === 'overview' ? 0 : -1" @click="tab = 'overview'" class="app-tab">{{ __('phase3.overview') }}</button>

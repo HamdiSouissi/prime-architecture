@@ -57,6 +57,12 @@ class PdfGenerator
     }
 
     /** @param array<string, mixed> $data */
+    public function siteReport(array $data, string $language): string
+    {
+        return $this->render('site.pdf', $data, $language);
+    }
+
+    /** @param array<string, mixed> $data */
     private function render(string $template, array $data, string $language): string
     {
         if (! in_array($language, ['fr', 'ar'], true)) {

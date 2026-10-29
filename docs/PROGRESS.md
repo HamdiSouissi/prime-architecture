@@ -4,7 +4,7 @@ Fichier de reprise. Il résume l'état réel du dépôt à la fin de la dernièr
 validée, les conventions à ne pas casser et les points ouverts. Mettre à jour à la fin de
 chaque phase, en même temps que le README.
 
-Dernière mise à jour : fin de la phase 7 (tableau de bord, temps, rentabilité).
+Dernière mise à jour : phase 8 (suivi de chantier), avant validation.
 
 ## Méthode de travail
 
@@ -26,7 +26,8 @@ Dernière mise à jour : fin de la phase 7 (tableau de bord, temps, rentabilité
 | 5 | Planning, tâches, dépendances, charge, calendrier ouvré, notifications | Livré |
 | 6 | Devis, factures, avoirs, paiements, retenues, PDF FR/AR, interface | Livré avec réserves (PDF arabe, fiscalité, revue humaine) |
 | 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
-| 8 et suivantes | Non commencées | — |
+| 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Développé, validation en cours |
+| 9 et suivantes | Non commencées | — |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
@@ -51,6 +52,7 @@ Le détail des réserves et la liste de corrections sont dans
   1 440 minutes par jour sous `lockForUpdate`, coût horaire figé à la création.
 - **Exports** : `ReportController` construit les lignes, `XlsxWriter` écrit le classeur
   (inlineStr, format devise `#,##0.000`), `PdfGenerator::report()` réutilise le rendu privé.
+- **Chantier** : `SiteSupervisionService` (numérotation `CR-`/`R-` par projet et année sous verrou, gel des comptes rendus finalisés, cycle des réserves), `SiteProgressService` (pourcentage déclaré + calcul indicatif pondéré depuis le planning, instantané conservé à chaque relevé), `SitePhotoService` (ré-encodage GD, vignette, EXIF supprimé, disque privé).
 - **Vues** : composants Blade `x-page-header`, `x-card`, `x-alert`, `x-button`, `x-form-field`,
   `x-icon` ; tokens `resources/css/app.css` et `tailwind.config.js` ; utilitaires logiques
   `ms-`, `me-`, `ps-`, `pe-`. Chart.js servi localement, chargé à la demande.
@@ -75,6 +77,14 @@ Le détail des réserves et la liste de corrections sont dans
 - Le rendu PDF nécessite le profil Compose `pdf` et `BILLING_PDF_TOKEN` (32 caractères
   minimum) ; les polices doivent être présentes dans `public/build/assets`.
 
+## Phase 8 — repères
+
+- Migration `2026_10_31_000012_create_site_supervision_tables.php` : `site_reports`, `site_progress_updates`, `snags`, `site_photos`.
+- Permissions `site.*` dans `config/access.php` ; `site.client.view` uniquement pour le rôle client.
+- Extension **GD** ajoutée au `Dockerfile` et à la CI ; sans elle, le téléversement de photos échoue volontairement.
+- `PdfGenerator::siteReport()` réutilise le rendu privé existant (`site/pdf.blade.php`).
+- Facteurs d'avancement par statut dans `config/site.php` (`progress_factors`), limites photo dans le même fichier.
+
 ## Points ouverts
 
 1. PDF arabe : extraction et copier-coller non résolus (phase 6).
@@ -83,8 +93,10 @@ Le détail des réserves et la liste de corrections sont dans
 4. Writer XLSX maison à éprouver, à remplacer par `openspout` dès que Composer est disponible.
 5. Audits navigateur de la phase 7 et recette manuelle FR/AR encore à consigner.
 6. Confirmer que seul l'administrateur gère les coûts horaires et le format des nombres.
+7. Chantier : faire valider par le cabinet les facteurs d'avancement, la numérotation des comptes rendus et la durée de conservation des photos ; prévoir l'orientation EXIF (extension non installée) et une politique de sauvegarde des images.
 
 ## Prochaine étape
 
-Attendre la validation de la phase 7, fusionner sur `develop` selon le processus prévu,
-puis ouvrir la phase 8 avec un plan court et les questions associées.
+Attendre la validation de la phase 8, puis ouvrir la phase 9 (base de prix et métré) avec un
+plan court et les questions associées. Les phases 1 à 7 restent à fusionner selon le
+processus prévu ; aucune branche `develop` n'est touchée par cette session.
