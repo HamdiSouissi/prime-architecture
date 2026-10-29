@@ -114,4 +114,5 @@ return [
     'task_details_section' => 'تفاصيل المهمة',
     'schedule_section' => 'المواعيد وعبء العمل',
     'visibility_section' => 'الظهور والتكليف',
+    'notifications_intro' => 'تابع تحديثات مشاريعك واختر تفضيلات الإشعارات.',
 ];
