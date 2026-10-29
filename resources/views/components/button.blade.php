@@ -1,2 +1,3 @@
-@props(['type' => 'button'])
-<button type="{{ $type }}" {{ $attributes->class(['rounded bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500']) }}>{{ $slot }}</button>
+@props(['type' => 'button', 'variant' => 'primary', 'icon' => null])
+@php($variants = ['primary' => 'bg-brand-600 text-white hover:bg-brand-700', 'secondary' => 'border border-slate-300 bg-white text-ink hover:bg-slate-50', 'danger' => 'bg-danger text-white hover:bg-red-800', 'ghost' => 'text-brand-700 hover:bg-brand-50'])
+<button type="{{ $type }}" {{ $attributes->class(['inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-60', $variants[$variant] ?? $variants['primary']]) }}>@if($icon)<x-icon :name="$icon" />@endif{{ $slot }}</button>

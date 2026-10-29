@@ -1,8 +1,36 @@
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+@import '@fontsource/inter/latin-ext-400.css';
+@import '@fontsource/inter/latin-ext-600.css';
+@import '@fontsource/inter/latin-ext-700.css';
+@import '@fontsource/cairo/arabic-400.css';
+@import '@fontsource/cairo/arabic-600.css';
+@import '@fontsource/cairo/arabic-700.css';
+@import '@fontsource/cairo/latin-400.css';
+@import '@fontsource/cairo/latin-600.css';
+@import '@fontsource/cairo/latin-700.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    body { @apply bg-canvas text-ink antialiased; }
+    :focus-visible { @apply outline outline-2 outline-offset-2 outline-brand-600; }
+    input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']), select, textarea {
+        @apply min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-ink;
+    }
+    input[type='checkbox'], input[type='radio'] { @apply h-5 w-5 rounded border-slate-400 text-brand-600; }
+    table { @apply w-full border-separate border-spacing-0 text-start text-sm; }
+    th { @apply bg-slate-50 px-3 py-3 text-start font-semibold text-slate-700; }
+    td { @apply border-t border-slate-100 px-3 py-3 align-middle; }
+    tbody tr:hover { @apply bg-brand-50/30; }
+    a.underline { @apply text-brand-700 decoration-brand-500/50 underline-offset-4 hover:decoration-brand-700; }
+}
+@layer components {
+    .app-nav-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-brand-50 hover:text-brand-700; }
+    .app-nav-link-active { @apply bg-brand-50 font-semibold text-brand-700; }
+}
 [x-cloak] { display: none !important; }
-
-/* Local today indicator: Community Gantt has no marker plugin. */
 .gantt_container .gantt_task_cell.planning-today { background-color: #fef3c7; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

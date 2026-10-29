@@ -120,4 +120,8 @@ return [
     'error_404_text' => 'La page demandée est introuvable.',
     'error_500_title' => 'Erreur du serveur',
     'error_500_text' => 'Une erreur est survenue. Veuillez réessayer plus tard.',
+    'skip_content' => 'Aller au contenu',
+    'navigation' => 'Navigation principale',
+    'breadcrumb' => 'Fil d’Ariane',
+    'close' => 'Fermer',
 ];

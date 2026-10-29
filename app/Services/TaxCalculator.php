@@ -11,7 +11,7 @@ class TaxCalculator
      * proportional document discount; each line and each VAT-rate group is
      * rounded half-up to 0.001 TND. Totals are exact decimal strings.
      *
-     * @param list<array{quantity: string, unit_price: string, discount_percent: string, tax_rate: string}> $lines
+     * @param  list<array<string, mixed>>  $lines
      * @return array<string, mixed>
      */
     public function calculate(array $lines, string $discountPercent, string $stamp, string $withholdingRate, string $withholdingBase, bool $includeStamp): array
