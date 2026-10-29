@@ -40,23 +40,7 @@ services:
       - app_runtime:/var/www/runtime
       - app_storage:/var/www/html/storage
     depends_on:
-      pdf:
-    profiles: ["pdf"]
-    build:
-      context: .
-      dockerfile: docker/pdf/Dockerfile
-    environment:
-      BILLING_PDF_TOKEN: ${BILLING_PDF_TOKEN:-}
-    networks: [pdf_private]
-    read_only: true
-    tmpfs:
-      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
-    cap_drop: ["ALL"]
-    security_opt: ["no-new-privileges:true"]
-    mem_limit: 768m
-    pids_limit: 128
-    init: true
-  db:
+      db:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "test -s /var/www/runtime/.env && grep -q '^APP_KEY=base64:' /var/www/runtime/.env && php-fpm -t >/dev/null 2>&1"]
@@ -84,6 +68,22 @@ services:
       - "${APP_PORT:-8080}:80"
     depends_on:
       - app
+  pdf:
+    profiles: ["pdf"]
+    build:
+      context: .
+      dockerfile: docker/pdf/Dockerfile
+    environment:
+      BILLING_PDF_TOKEN: ${BILLING_PDF_TOKEN:-}
+    networks: [pdf_private]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+    init: true
   db:
     image: mysql:8.0
     environment:
