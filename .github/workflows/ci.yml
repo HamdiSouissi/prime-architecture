@@ -42,7 +42,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: cp .env.example .env
+      - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer audit --locked --no-interaction
       - run: npm ci && npm run build
       - name: Migrate database
         run: |

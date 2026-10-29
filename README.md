@@ -1,8 +1,8 @@
 # Archi TN
 
-Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 11 / PHP 8.2, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette phase couvre l'authentification, les rôles, les utilisateurs, le profil et les premiers événements du journal ; elle ne comprend aucun module métier.
+Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette phase couvre l'authentification, les rôles, les utilisateurs, le profil et les premiers événements du journal ; elle ne comprend aucun module métier.
 
-> **Avertissement sécurité : Laravel 11 est hors support depuis mars 2026.** Ce projet ne doit pas être déployé en production en l'état. `composer.json` autorise explicitement la résolution de paquets signalés vulnérables (`audit.block-insecure=false`) pour pouvoir conserver cette version. Planifier une mise à niveau vers une version maintenue, exécuter `composer audit` et traiter les alertes avant tout déploiement. Docker Compose est réservé au développement local.
+> **Support et déploiement :** Laravel 12 reçoit des correctifs de sécurité jusqu’au 24 février 2027 ; ses correctifs fonctionnels se sont arrêtés le 13 août 2026. Prévoir la mise à niveau suivante avant la fin de support. Exécuter `composer audit` et traiter ses alertes ; Docker Compose est réservé au développement local.
 
 ## Prérequis et installation
 
@@ -17,6 +17,18 @@ docker compose exec -u www-data app php artisan migrate --force
 ```
 
 Les sessions utilisent MySQL : la migration est indispensable avant la première requête. Exécuter les commandes Artisan et Composer avec `-u www-data` pour éviter de créer des fichiers de cache appartenant à root, que PHP-FPM ne pourrait pas modifier. Accéder à <http://localhost:8080>. Le code est intégré aux images : après une modification, reconstruire avec `docker compose up -d --build`.
+
+### Mise à niveau depuis Laravel 11
+
+Avant toute mise à niveau, sauvegarder et tester la restauration de MySQL, du volume `app_runtime` (notamment la clé d’application) et des fichiers persistants. Mettre le service en maintenance pendant la mise à niveau. Après récupération de la version Laravel 12, reconstruire l’image puis appliquer les migrations et vider les caches :
+
+```sh
+docker compose up -d --build
+docker compose exec -u www-data app php artisan migrate --force
+docker compose exec -u www-data app php artisan optimize:clear
+```
+
+Ne pas utiliser `docker compose down -v` lors d’une mise à niveau : cela détruit les volumes et la clé. Les rôles et comptes existants ne nécessitent pas de réexécution des seeders. Le disque local conserve explicitement `storage/app/private` et la durée des jetons de réinitialisation reste configurée en minutes dans `config/auth.php`.
 
 ### Premier administrateur
 
@@ -71,7 +83,7 @@ docker compose exec -u www-data app vendor/bin/phpstan analyse --no-progress
 docker compose exec -u www-data app composer audit
 ```
 
-La CI exécute les migrations MySQL, PHPUnit, Pint, Larastan niveau 5, la compilation Vite et des vérifications Docker/Mailpit à chaque push et pull request. Le contrôle des mots de passe compromis est désactivé dans les tests automatisés, avec un test du vérificateur utilisant des réponses HTTP simulées. `composer.lock` et `package-lock.json` sont versionnés. Les traductions Laravel FR/AR utilisent les catalogues [Laravel-Lang](https://github.com/Laravel-Lang/lang).
+La CI vérifie les dépendances Composer et leur audit, puis exécute les migrations MySQL, PHPUnit, Pint, Larastan niveau 5, la compilation Vite et des vérifications Docker/Mailpit à chaque push et pull request. Le contrôle des mots de passe compromis est désactivé dans les tests automatisés, avec un test du vérificateur utilisant des réponses HTTP simulées. `composer.lock` et `package-lock.json` sont versionnés. Les traductions Laravel FR/AR utilisent les catalogues [Laravel-Lang](https://github.com/Laravel-Lang/lang).
 
 Les données MySQL sont dans `mysql_data`, la clé générée au premier démarrage dans `app_runtime`, les journaux applicatifs dans `app_storage`. `docker compose down` les conserve ; `docker compose down -v` les détruit, y compris la clé. Laravel journalise dans `storage/logs` avec rotation quotidienne. Attention : modifier les identifiants MySQL dans `.env` ne reconfigure pas une base déjà initialisée.
 

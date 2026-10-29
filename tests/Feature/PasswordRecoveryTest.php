@@ -34,6 +34,30 @@ class PasswordRecoveryTest extends TestCase
         $this->assertDatabaseHas('activity_log', ['event' => 'password.changed', 'causer_id' => $user->id]);
     }
 
+    public function test_reset_token_is_valid_before_the_configured_expiration(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+        $this->post('/forgot-password', ['email' => $user->email]);
+        $token = Notification::sent($user, ResetPassword::class)->first()->token;
+
+        $this->travel(59)->minutes();
+        $this->post('/reset-password', ['token' => $token, 'email' => $user->email, 'password' => 'A-long-new-password', 'password_confirmation' => 'A-long-new-password'])->assertRedirect(route('login'));
+        $this->assertTrue(Hash::check('A-long-new-password', $user->fresh()->password));
+    }
+
+    public function test_reset_token_expires_after_the_configured_duration(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+        $this->post('/forgot-password', ['email' => $user->email]);
+        $token = Notification::sent($user, ResetPassword::class)->first()->token;
+
+        $this->travel(61)->minutes();
+        $this->post('/reset-password', ['token' => $token, 'email' => $user->email, 'password' => 'A-long-new-password', 'password_confirmation' => 'A-long-new-password'])->assertSessionHasErrors('email');
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
+    }
+
     public function test_email_verification_requires_signed_link_and_unlocks_dashboard(): void
     {
         $user = User::factory()->unverified()->create();
