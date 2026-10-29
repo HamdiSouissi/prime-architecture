@@ -21,6 +21,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 use Tests\TestCase;
 
 class PhaseEightTest extends TestCase
@@ -98,10 +99,14 @@ class PhaseEightTest extends TestCase
         $this->actingAs($architect)->put(route('site.reports.update', [$project, $first]), [
             'meeting_date' => today()->toDateString(),
             'decisions' => 'Réécriture après finalisation',
-        ])->assertSessionHasErrors('report');
+        ])->assertForbidden();
         $this->assertSame('Décision corrigée', $first->fresh()?->decisions);
 
         $this->actingAs($architect)->delete(route('site.reports.destroy', [$project, $first]))->assertForbidden();
+
+        // Defence in depth: even a direct model write is refused.
+        $this->expectException(LogicException::class);
+        $first->fresh()?->update(['decisions' => 'Écriture directe']);
     }
 
     public function test_clients_only_read_finalised_reports(): void
