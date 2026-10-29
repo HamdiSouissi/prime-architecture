@@ -40,7 +40,7 @@ async function check(path, locale, width) {
     }
 }
 try {
-    await check('/login', 'fr', 1440);
+    for (const path of ['/login', '/forgot-password', '/reset-password/example?email=test@example.com']) await check(path, 'fr', 1440);
     await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
     await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
     await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
@@ -50,15 +50,31 @@ try {
     await page.goto(`${base}/billing`);
     const quoteHref = await page.locator('a[href*="/billing/quotes/"]').first().getAttribute('href');
     const invoiceHref = await page.locator('a[href*="/billing/invoices/"]').first().getAttribute('href');
-    const paths = ['/', '/dashboard', '/clients', '/clients/create', '/projects', '/projects/create', project,
-        `${project}/documents`, `${project}/documents/create`, `${project}/planning`, `${project}/billing/fees`,
-        `${project}/billing/quotes/create`, '/billing', '/billing/settings', new URL(quoteHref, base).pathname,
-        new URL(invoiceHref, base).pathname, '/profile', '/users', '/users/create', '/activity',
+    await page.goto(`${base}/clients`);
+    const client = new URL(await page.getByRole('link', { name: 'Client UI Delegation', exact: true }).getAttribute('href'), base).pathname;
+    await page.goto(`${base}${project}/documents`);
+    const document = new URL(await page.getByRole('link', { name: 'Document UI', exact: true }).getAttribute('href'), base).pathname;
+    await page.goto(`${base}${project}/planning`);
+    const task = new URL(await page.getByRole('link', { name: 'Planning UI test', exact: true }).first().getAttribute('href'), base).pathname;
+    await page.goto(`${base}/users`);
+    const userEdit = new URL(await page.locator('a[href*="/users/"][href$="/edit"]').first().getAttribute('href'), base).pathname;
+    const paths = ['/', '/dashboard', '/clients', '/clients/create', client, `${client}/edit`,
+        '/projects', '/projects/create', project, `${project}/edit`,
+        `${project}/documents`, `${project}/documents/create`, document, '/document-categories',
+        `${project}/planning`, `${project}/planning?view=kanban`, `${project}/planning?view=calendar`,
+        `${project}/planning?view=gantt`, `${project}/planning/workload`, `${project}/planning/tasks/create`, task, `${task}/edit`,
+        `${project}/billing/fees`, `${project}/billing/quotes/create`, `${project}/billing/invoices/create`,
+        '/billing', '/billing/settings', new URL(quoteHref, base).pathname, new URL(invoiceHref, base).pathname,
+        '/profile', '/users', '/users/create', userEdit, '/activity',
         '/planning/templates', '/planning/calendar', '/planning/notifications', '/my-tasks'];
     for (const path of paths) await check(path, 'fr', 1440);
+    await page.setViewportSize({ width: 375, height: 812 });
+    for (const path of paths) await check(path, 'fr', 375);
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('#locale').selectOption('ar');
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    for (const path of paths) await check(path, 'ar', 1440);
     await page.setViewportSize({ width: 375, height: 812 });
     for (const path of paths) await check(path, 'ar', 375);
     if (findings.size) {
@@ -68,7 +84,7 @@ try {
         }
         throw new Error(`Accessibility checks found ${findings.size} types of issue`);
     }
-    console.log(`Automated WCAG A/AA checks passed on ${paths.length} staff routes in French desktop and Arabic mobile.`);
+    console.log(`Automated WCAG A/AA checks passed on ${paths.length} staff routes in French and Arabic, on desktop and mobile.`);
 } catch (error) {
     console.error(`::error title=Accessibility browser::${String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')}`);
     process.exitCode = 1;
