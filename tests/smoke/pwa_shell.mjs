@@ -24,7 +24,7 @@ try {
     await context.setOffline(true);
     await page.goto(`${base}/dashboard`);
     await page.getByRole('heading', { name: 'Connexion indisponible' }).waitFor();
-    assert.equal(await page.locator('text=لا يوجد اتصال').count(), 1);
+    assert.equal(await page.locator('text=الخزنة المشفرة').count(), 1);
     console.log('PWA offline shell available without caching authenticated pages.');
 } finally {
     await browser.close();
