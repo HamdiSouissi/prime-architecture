@@ -426,6 +426,6 @@ conservée et le brouillon local marqué en conflit. Un seul relevé en attente 
 La phrase secrète n'est pas transmise ni récupérable ; sa perte ou l'effacement des
 données du navigateur rend les brouillons irrécupérables. Les données sont déchiffrées
 pendant l'utilisation sur l'appareil ; éviter les appareils partagés ou compromis et
-purger le coffre après usage. Les réserves, photos et la consultation générale hors
+purger le coffre après usage. La modification de réserves existantes, les photos et la consultation générale hors
 ligne ne sont **pas encore disponibles**. Une recette humaine et une revue de sécurité
 dédiée restent nécessaires.
