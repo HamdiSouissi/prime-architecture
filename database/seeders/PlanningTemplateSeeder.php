@@ -9,7 +9,7 @@ class PlanningTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        $template = PlanningTemplate::firstOrCreate(['key' => 'demo-villa'], ['name_fr' => 'Villa — démonstration', 'name_ar' => 'فيلا — نموذج تجريبي', 'is_active' => true]);
+        $template = PlanningTemplate::withTrashed()->firstOrCreate(['key' => 'demo-villa'], ['name_fr' => 'Villa — démonstration', 'name_ar' => 'فيلا — نموذج تجريبي', 'is_active' => true]);
         if (! $template->wasRecentlyCreated) {
             return;
         }

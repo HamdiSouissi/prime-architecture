@@ -175,8 +175,15 @@ class PlanningTaskController extends Controller
 
     public function addComment(PlanningCommentRequest $request, Project $project, Task $task, PlanningNotifier $notifier): RedirectResponse
     {
-        $comment = $task->comments()->create(['user_id' => $request->user()->id, 'body' => $request->validated('body')]);
-        activity('planning')->performedOn($task)->event('task.comment_added')->withProperties(['comment_id' => $comment->id])->log('task.comment_added');
+        $task = DB::transaction(function () use ($project, $task, $request) {
+            Project::query()->lockForUpdate()->findOrFail($project->id);
+            $task = Task::query()->lockForUpdate()->findOrFail($task->id);
+            Gate::authorize('update', $task);
+            $comment = $task->comments()->create(['user_id' => $request->user()->id, 'body' => $request->validated('body')]);
+            activity('planning')->performedOn($task)->event('task.comment_added')->withProperties(['comment_id' => $comment->id])->log('task.comment_added');
+
+            return $task;
+        }, 3);
         $notifier->send($task, $request->user(), $task->followers, 'comment');
 
         return redirect()->route('planning.tasks.show', [$project, $task])->with('status', __('common.saved'));
@@ -185,10 +192,16 @@ class PlanningTaskController extends Controller
     public function removeComment(Project $project, Task $task, TaskComment $comment): RedirectResponse
     {
         $this->check($project, $task);
-        Gate::authorize('view', $task);
-        abort_if(request()->user()->hasRole('client') && ! request()->user()->hasAnyRole(['admin', 'architect', 'collaborator']), 403);
-        abort_unless($comment->task_id === $task->id && ($comment->user_id === request()->user()->id || request()->user()->hasRole('admin')), 403);
-        $comment->delete();
+        DB::transaction(function () use ($project, $task, $comment) {
+            Project::query()->lockForUpdate()->findOrFail($project->id);
+            $task = Task::query()->lockForUpdate()->findOrFail($task->id);
+            Gate::authorize('view', $task);
+            abort_if(request()->user()->hasRole('client') && ! request()->user()->hasAnyRole(['admin', 'architect', 'collaborator']), 403);
+            $comment = TaskComment::query()->lockForUpdate()->findOrFail($comment->id);
+            abort_unless($comment->task_id === $task->id && ($comment->user_id === request()->user()->id || request()->user()->hasRole('admin')), 403);
+            $comment->delete();
+            activity('planning')->performedOn($task)->event('task.comment_removed')->withProperties(['comment_id' => $comment->id])->log('task.comment_removed');
+        }, 3);
 
         return redirect()->route('planning.tasks.show', [$project, $task])->with('status', __('common.saved'));
     }

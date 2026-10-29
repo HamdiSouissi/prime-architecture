@@ -4,6 +4,7 @@ import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 const element = document.getElementById('planning-gantt');
 if (element) {
     const message = document.getElementById('gantt-message');
+    gantt.i18n.setLocale(element.dataset.locale === 'ar' ? 'ar' : 'fr');
     gantt.config.readonly = true;
     gantt.config.rtl = element.dataset.locale === 'ar';
     gantt.config.date_format = '%Y-%m-%d';
@@ -19,7 +20,8 @@ if (element) {
     let zoom = 'day';
     gantt.config.scales = scales[zoom];
     gantt.templates.timeline_cell_class = (task, date) => {
-        const now = new Date();
+        const [year, month, day] = element.dataset.today.split('-').map(Number);
+        const now = new Date(year, month - 1, day);
         const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         const end = new Date(start);
         if (zoom === 'day') end.setDate(end.getDate() + 1);

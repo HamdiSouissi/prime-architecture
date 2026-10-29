@@ -107,4 +107,5 @@ return [
     'event_task_restored' => 'Tâche restaurée',
     'event_task_dependency_added' => 'Dépendance ajoutée',
     'event_task_dependency_removed' => 'Dépendance supprimée',
+    'event_task_comment_removed' => 'Commentaire supprimé',
 ];

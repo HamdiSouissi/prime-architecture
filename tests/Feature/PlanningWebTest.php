@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Milestone;
+use App\Models\PlanningTemplate;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\PlanningService;
 use App\Services\ProjectAdministration;
 use Carbon\CarbonImmutable;
+use Database\Seeders\PlanningTemplateSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WorkingCalendarSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,6 +96,7 @@ class PlanningWebTest extends TestCase
         $this->assertSame('Week', $groups['this_week']->first()->title);
         $this->assertSame('Later', $groups['later']->first()->title);
     }
+
     public function test_calendar_permissions_and_workload_allocation(): void
     {
         $this->withoutVite();
@@ -119,14 +122,15 @@ class PlanningWebTest extends TestCase
         $this->actingAs($collaborator)->get(route('planning.workload', $project))->assertForbidden();
         $this->assertSame('Hours', $task->title);
     }
+
     public function test_template_preview_is_invalidated_when_an_item_changes(): void
     {
         $this->withoutVite();
-        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class, \Database\Seeders\PlanningTemplateSeeder::class]);
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class, PlanningTemplateSeeder::class]);
         $architect = User::factory()->create();
         $architect->assignRole('architect');
         $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
-        $template = \App\Models\PlanningTemplate::where('key', 'demo-villa')->firstOrFail();
+        $template = PlanningTemplate::where('key', 'demo-villa')->firstOrFail();
         $item = $template->items()->firstOrFail();
         $response = $this->actingAs($architect)->post(route('planning.templates.preview', [$project, $template]), ['start' => '2026-11-02', 'locale' => 'fr'])->assertOk();
         $token = $response->viewData('preview')['token'];

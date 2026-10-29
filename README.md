@@ -202,3 +202,51 @@ docker compose exec -u www-data app php artisan documents:reconcile --delete
 La seconde commande supprime les fichiers non référencés des intentions périmées : **arrêter les dépôts actifs et inspecter la liste avant son exécution**. Ne pas la lancer pendant un dépôt de longue durée. Les erreurs de stockage doivent être surveillées et les sauvegardes testées ; le journal ne remplace pas ces mesures.
 
 Pour une démo locale uniquement, sur une base de test avec des projets et un architecte existants : `docker compose exec -u www-data app php artisan db:seed --class=DocumentDemoSeeder`. Ce seeder ne doit pas être utilisé en production.
+
+## Phase 5 — Planning et tâches
+
+Le planning est un module de projet : tâches, sous-tâches (une profondeur), responsables multiples, statuts, priorités, commentaires internes, historique, jalons, dépendances fin→début, calendriers, Kanban, Gantt, modèles, charge et rappels. L'archivage est logique ; la restauration d'une tâche permet notamment de la réaffecter avant de retirer un membre. Les dépendances et sous-tâches doivent être retirées avant l'archivage d'une tâche. Les tâches archivées les plus récentes sont accessibles depuis le planning aux administrateurs et architectes.
+
+### Schéma et règles
+
+- `tasks`, `task_assignees`, `task_followers`, `task_dependencies`, `task_comments`, `milestones` : les clés composites imposent un même projet et des responsables/abonnés membres du projet. Les clients ne voient que les tâches marquées visibles et les jalons, sans heures, responsables, historique, commentaires ni notes internes ; les listes et le JSON sont filtrés côté SQL. Les entrepreneurs sont exclus.
+- `planning_templates`, `planning_template_items`, `planning_template_dependencies` : titres FR/AR, durée et décalage en jours ouvrés, dépendances intra-modèle. Le modèle « Villa — démonstration » est indicatif et doit être adapté ; les jalons ne participent pas aux dépendances. L'application exige un aperçu puis une confirmation ; tout changement de modèle ou de calendrier invalide l'aperçu.
+- `working_calendar_days`, `holidays`, `planning_calendar_state` : calendrier commun stocké en base ; lundi à vendredi par défaut. Dates inclusives et fuseau `PLANNING_TIMEZONE` (par défaut `Africa/Tunis`). Un déplacement recalcule l'aperçu en transaction sous verrous ; si une tâche déplacée n'est pas modifiable par l'acteur, la cascade est refusée. Les dates des tâches liées doivent respecter le prochain jour ouvré.
+- `notifications`, `planning_daily_digests` : notifications propres à l'utilisateur, choix d'email et clé unique utilisateur/jour. Les événements sont notifiés après transaction ; le suivi est automatique à l'affectation et peut être activé/désactivé par un membre. Les rappels couvrent les tâches assignées en retard, aujourd'hui ou demain et les jalons non atteints dans la fenêtre configurée. Une entrée quotidienne est créée au maximum par utilisateur, même en cas de relance concurrente.
+
+Matrice : `tasks.view` autorise la lecture des projets accessibles, avec filtre client ; `tasks.create` la création pour les membres collaborateur (pas les `viewer`) et les architectes/admins ; `tasks.update` la modification des tâches assignées au collaborateur ou de toutes celles de l'architecte/admin ; `tasks.assign` l'affectation de membres actifs ; `tasks.delete` l'archivage/restauration par architecte/admin ; `milestones.manage` la gestion des jalons par architecte/admin ; `planning.manage_templates` les modèles par architecte/admin ; `planning.manage_calendar` le calendrier par admin ; `planning.view_workload` la charge par architecte/admin. Toutes les mutations utilisent une validation serveur, CSRF et contrôles de droits ; les IDs imbriqués sont vérifiés.
+
+La charge attribue **l'intégralité** des heures estimées à chacun des responsables et la répartit entre les jours ouvrés de la tâche. Le seuil est `PLANNING_WEEKLY_CAPACITY_HOURS` (40 h par défaut). Les tâches terminées/annulées, sans estimation ou dates, et sans jour ouvré exploitable sont exclues. La charge est bornée à 2 000 tâches et 12 semaines, avec signalement en cas de troncature. Les listes/Kanban/calendriers et Mes tâches sont paginés ; les regroupements portent sur la page courante.
+
+DHTMLX Gantt Community 10.0.3 est distribué sous licence **MIT** (`node_modules/dhtmlx-gantt/LICENSE.md`). Il est chargé uniquement sur la vue Gantt, en lecture seule ; les modifications passent par les formulaires et l'aperçu de cascade. Le fond coloré indique la cellule contenant la date courante, plutôt que le plugin de marqueur réservé à l'édition commerciale. Le JSON est limité par `PLANNING_GANTT_MAX_ITEMS` (500, plafonné à 1 000), avec signalement des éléments omis. La liste et le Kanban à boutons offrent une alternative clavier au Gantt. Le chargement JS génère un avertissement Vite de taille pour ce paquet.
+
+### Installation et jours fériés
+
+Après récupération du code et reconstruction des images, appliquer les migrations puis initialiser les permissions et données du planning :
+
+```bash
+docker compose up -d --build
+docker compose exec -u www-data app php artisan migrate --force
+docker compose exec -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=WorkingCalendarSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=PlanningTemplateSeeder --force
+```
+
+Les seeders ajoutent les données absentes sans écraser les modifications existantes. Supprimer un férié issu du fichier puis relancer le seeder le recrée. `database/data/planning_holidays.php` ne préremplit que le 20 mars et le 25 juillet comme dates civiles annuelles ; leur applicabilité doit être vérifiée selon l'organisation. `database/data/planning_holidays_extra.php` est prévu pour les compléments. **Aucune date religieuse n'est codée en dur** : vérifier chaque année les annonces officielles tunisiennes et saisir les dates applicables dans l'administration du calendrier. Le samedi et les autres jours ouvrés sont configurables ; conserver au moins un jour ouvré.
+
+### Ordonnanceur et emails
+
+En développement, après migrations et seeders, démarrer le conteneur optionnel, qui partage les volumes et l'environnement applicatifs :
+
+```bash
+docker compose --profile scheduler up -d scheduler
+docker compose exec -u www-data app php artisan planning:remind
+```
+
+En production, exécuter `schedule:run` chaque minute sous l'utilisateur applicatif et utiliser une seule configuration de base/horloge pour tous les serveurs :
+
+```cron
+* * * * * cd /chemin/vers/prime-architecture && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Le rappel est programmé à `PLANNING_REMINDER_TIME` (08:00 par défaut), dans `PLANNING_TIMEZONE`, avec une fenêtre de jalon `PLANNING_MILESTONE_REMINDER_DAYS` (7 par défaut). En environnement multisite, utiliser un cache partagé pour le verrou du scheduler. Une entrée `processing`, `sent` ou `failed` interdit une seconde tentative automatique le même jour ; consulter les journaux Laravel et `planning_daily_digests` après un échec. Les emails utilisent le transport configuré (Mailpit en développement). Une panne SMTP ambiguë peut avoir livré un message avant l'erreur : l'exactement-une-fois n'est pas garanti et une relance manuelle doit être examinée avant intervention. Les emails restent optionnels par utilisateur ; la base reste la source du centre de notifications.

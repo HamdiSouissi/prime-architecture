@@ -107,4 +107,5 @@ return [
     'event_task_restored' => 'تمت استعادة المهمة',
     'event_task_dependency_added' => 'تمت إضافة التبعية',
     'event_task_dependency_removed' => 'تم حذف التبعية',
+    'event_task_comment_removed' => 'تم حذف التعليق',
 ];

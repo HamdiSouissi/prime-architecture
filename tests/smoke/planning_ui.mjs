@@ -26,9 +26,11 @@ try {
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), false);
     await page.locator('[data-gantt-zoom="week"]').click();
     await page.locator('[data-gantt-zoom="month"]').click();
+    const ganttUrl = page.url();
     await page.locator('#locale').selectOption('ar');
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    await page.goto(ganttUrl);
     await page.locator('.gantt_task_line').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), true);
     assert.deepEqual(errors, []);
