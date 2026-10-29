@@ -122,7 +122,7 @@ class DashboardService
 
     /**
      * @param  Builder<Project>  $projectIds
-     * @return Builder<\Illuminate\Database\Query\Builder>
+     * @return \Illuminate\Database\Query\Builder
      */
     private function balanceQuery(Builder $projectIds): \Illuminate\Database\Query\Builder
     {

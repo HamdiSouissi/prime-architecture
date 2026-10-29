@@ -316,3 +316,26 @@ python3 tests/manual/check_pdf_text.py chemin/vers/devis-exemple-ar.pdf \
 ```
 
 La commande échoue actuellement sur l’exemple arabe connu : elle vérifie des phrases exactes, sans inverser les caractères ni masquer les problèmes de ligatures et de texte mixte. Utiliser uniquement des données fictives pour partager les diagnostics.
+
+## Phase 7 — tableau de bord, temps et rentabilité
+
+Le tableau de bord est calculé côté serveur par `DashboardService` et adapté au rôle : projets actifs par statut, chiffre d'affaires facturé et encaissé sur le mois, le trimestre et l'année, impayés et retards, devis en attente, tâches en retard et échéances, charge par collaborateur. Les rôles sans `reports.financial` (collaborateurs) reçoivent les indicateurs d'activité et de temps, jamais les montants ; clients et entreprises ne voient que leurs projets. Les graphiques utilisent Chart.js servi localement, chargé à la demande et désactivé si `prefers-reduced-motion` est actif ; chaque graphique possède un équivalent textuel dans un tableau repliable.
+
+Les temps se saisissent depuis **Temps** : chronomètre serveur (une seule entrée en cours par utilisateur) ou saisie manuelle, avec projet, tâche facultative, date, durée et note. La durée journalière est plafonnée à 1 440 minutes, contrôlée dans une transaction avec verrou de ligne ; un chronomètre oublié est ramené aux heures restantes. Chaque entrée fige le coût horaire applicable au moment de la saisie, de sorte qu'une modification ultérieure des taux ne réécrit pas l'historique. Seul l'auteur corrige ses entrées ; `time.view_all` permet de les consulter toutes.
+
+**Rapports** présente la rentabilité par projet sur une période, avec filtres client et projet : heures, coût du temps, honoraires facturés HT, encaissements, marge, taux horaire effectif et taux de marge. Les montants sont calculés en BCMath, arrondis une fois par projet ; l'indicateur de marge est vide lorsque rien n'est facturé. Les exports `XLSX` et `PDF` respectent la langue et le sens de lecture de la session. L'export XLSX utilise un writer interne fondé sur `ext-zip` (`app/Services/XlsxWriter.php`) : la dépendance `openspout` n'a pas pu être installée dans l'environnement de construction, le writer reste isolé derrière `XlsxWriter::write()` pour être remplacé sans toucher aux contrôleurs. L'export PDF réutilise le rendu privé décrit plus haut, avec les mêmes réserves sur l'extraction du texte arabe.
+
+Les coûts sont paramétrables dans **Rapports → Paramètres de rentabilité**, réservé à `time.rates.manage` (administrateur) : versions datées du coût horaire par défaut et surcharges par utilisateur. Aucun taux n'est écrit en dur ; sans configuration, le coût vaut `0,000` et la marge est donc égale aux honoraires. Ces coûts sont des hypothèses de gestion internes, sans incidence fiscale.
+
+Permissions ajoutées dans `config/access.php` :
+
+| Permission | admin | architect | collaborator |
+|---|---|---|---|
+| `reports.view` | oui | oui | oui |
+| `reports.financial` | oui | oui | non |
+| `reports.export` | oui | oui | non |
+| `time.log` | oui | oui | oui |
+| `time.view_all` | oui | oui | non |
+| `time.rates.manage` | oui | non | non |
+
+Les agrégats sont calculés par requêtes agrégées bornées par période, jamais par chargement de collections complètes. Le bilan du MVP et la liste des corrections à traiter avant la phase 8 sont tenus dans [`docs/phase7-mvp-review.md`](docs/phase7-mvp-review.md), et l'état inter-sessions dans [`docs/PROGRESS.md`](docs/PROGRESS.md).

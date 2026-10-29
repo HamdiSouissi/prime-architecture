@@ -48,7 +48,7 @@ class XlsxWriter
             $zip->addFromString('xl/workbook.xml', $this->workbook($sheets));
             $zip->addFromString('xl/_rels/workbook.xml.rels', $this->workbookRelationships(count($sheets)));
             $zip->addFromString('xl/styles.xml', $this->styles());
-            foreach (array_values($sheets) as $index => $sheet) {
+            foreach ($sheets as $index => $sheet) {
                 $zip->addFromString('xl/worksheets/sheet'.($index + 1).'.xml', $this->worksheet($sheet));
             }
         } finally {
@@ -93,7 +93,7 @@ class XlsxWriter
     private function workbook(array $sheets): string
     {
         $entries = '';
-        foreach (array_values($sheets) as $index => $sheet) {
+        foreach ($sheets as $index => $sheet) {
             $id = $index + 1;
             $entries .= '<sheet name="'.$this->escape($this->sheetName((string) $sheet['name'])).'" sheetId="'.$id.'" r:id="rId'.$id.'"/>';
         }
@@ -138,14 +138,14 @@ class XlsxWriter
         $rows = [];
         $rowNumber = 1;
         $headerCells = '';
-        foreach (array_values($sheet['headers']) as $column => $header) {
+        foreach ($sheet['headers'] as $column => $header) {
             $headerCells .= $this->cell($column, $rowNumber, $header, 1);
         }
         $rows[] = '<row r="'.$rowNumber.'">'.$headerCells.'</row>';
         foreach ($sheet['rows'] as $row) {
             $rowNumber++;
             $cells = '';
-            foreach (array_values($row) as $column => $value) {
+            foreach ($row as $column => $value) {
                 if ($value === null || $value === '') {
                     continue;
                 }

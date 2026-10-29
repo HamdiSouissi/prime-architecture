@@ -85,7 +85,7 @@ class TimeEntryService
         }
 
         return DB::transaction(function () use ($actor, $entry, $now): TimeEntry {
-            $seconds = max(60, (int) $entry->started_at?->diffInSeconds($now, true));
+            $seconds = max(60, (int) $entry->started_at->diffInSeconds($now, true));
             $minutes = min(self::MAX_MINUTES_PER_DAY, max(1, (int) ceil($seconds / 60)));
             $used = $this->dailyTotal($actor, CarbonImmutable::parse($entry->worked_on->toDateString()), $entry->id);
             $minutes = max(1, min($minutes, self::MAX_MINUTES_PER_DAY - $used));
