@@ -56,6 +56,10 @@ class BillingWebTest extends TestCase
         $this->post(route('billing.quotes.convert', $quote), ['due_date' => '2026-11-30'])->assertSessionHasNoErrors();
         $invoice = Invoice::firstOrFail();
         $this->get(route('billing.invoices.show', $invoice))->assertOk();
+        $this->delete(route('billing.invoices.destroy', $invoice))->assertRedirect(route('billing.index'));
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+        $this->post(route('billing.quotes.convert', $quote), ['due_date' => '2026-11-30'])->assertSessionHasNoErrors();
+        $invoice = Invoice::firstOrFail();
         $this->post(route('billing.invoices.issue', $invoice))->assertSessionHasNoErrors();
         $this->delete(route('billing.invoices.destroy', $invoice))->assertForbidden();
         $this->post(route('billing.invoices.pay', $invoice), ['amount' => '119.000', 'payment_date' => '2026-11-02', 'method' => 'cash'])->assertSessionHasNoErrors();

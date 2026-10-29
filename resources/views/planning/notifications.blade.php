@@ -2,7 +2,7 @@
 @section('title', __('phase5.notifications'))
 @section('content')
 <x-card><h1 class="text-2xl font-bold">{{ __('phase5.notifications') }}</h1>
-@if(session('status'))<x-alert>{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success">{{ session('status') }}</x-alert>@endif
 <form method="POST" action="{{ route('planning.notifications.preference') }}" class="my-4">@csrf<input type="hidden" name="planning_email_enabled" value="0"><label><input type="checkbox" name="planning_email_enabled" value="1" @checked(auth()->user()->planning_email_enabled)> {{ __('phase5.email_notifications') }}</label> <x-button type="submit">{{ __('common.save') }}</x-button></form>
 <ul>@forelse($notifications as $notification)<li class="border-b py-3">@php($kind = $notification->data['kind'] ?? '')
 @if(in_array($kind, ['assigned', 'comment', 'status'], true)){{ __('phase5.notification_'.$kind) }} @php($task = $tasks->get($notification->data['task_id'] ?? 0)) @if($task)<a href="{{ route('planning.tasks.show', [$task->project_id, $task->id]) }}" class="underline">{{ $task->title }}</a>@endif

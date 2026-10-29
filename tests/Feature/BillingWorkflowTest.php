@@ -124,4 +124,28 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame(QuoteStatus::Expired, $quote->fresh()->status);
         $this->assertSame(1, DB::table('activity_log')->where('event', 'invoice.overdue')->count());
     }
+    public function test_expected_withholding_is_not_treated_as_paid_until_justified(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));
+        $this->seed([RolePermissionSeeder::class, TaxSettingsSeeder::class]);
+        $actor = User::factory()->create();
+        $actor->assignRole('architect');
+        $project = Project::factory()->create();
+        DB::table('billing_profiles')->insert(['effective_from' => '2026-01-01', 'name' => 'Cabinet']);
+        DB::table('tax_settings')->update(['is_verified' => true]);
+        $settingId = DB::table('tax_settings')->value('id');
+        $withholdingId = DB::table('withholding_rates')->insertGetId(['tax_setting_id' => $settingId, 'label_fr' => 'Retenue exemple', 'label_ar' => 'اقتطاع استرشادي', 'rate' => '1.0000', 'base' => 'ht', 'includes_stamp' => false]);
+        $input = ['document_date' => '2026-11-02', 'due_date' => '2026-11-30', 'discount_percent' => '0', 'withholding_rate_id' => $withholdingId, 'lines' => [['description' => 'Design', 'quantity' => '1', 'unit_price' => '100.000', 'discount_percent' => '0', 'tax_rate' => '19.0000']]];
+        $invoice = app(InvoiceService::class)->create($project, $actor, $input);
+        $invoice = app(InvoiceService::class)->issue($invoice, $actor);
+        $this->assertSame('1.000', $invoice->withholding_amount);
+        $this->assertSame('118.000', $invoice->net_due);
+        $invoice = app(InvoiceService::class)->pay($invoice, $actor, ['amount' => '118.000', 'payment_date' => '2026-11-02', 'method' => 'bank_transfer']);
+        $this->assertSame(InvoiceStatus::PartiallyPaid, $invoice->status);
+        $this->assertSame('1.000', app(InvoiceService::class)->balance($invoice));
+        $invoice = app(InvoiceService::class)->recordWithholding($invoice, $actor, ['amount' => '1.000', 'recorded_date' => '2026-11-02', 'certificate_reference' => 'CERT-1']);
+        $this->assertSame(InvoiceStatus::Paid, $invoice->status);
+        $this->assertSame('0.000', app(InvoiceService::class)->balance($invoice));
+    }
+
 }

@@ -3,7 +3,7 @@
 @section('content')
 <x-card x-data="{ tab: 'overview', moveTab(event) { const tabs = [...event.currentTarget.querySelectorAll('[role=tab]')]; const current = tabs.indexOf(document.activeElement); const step = (event.key === 'ArrowRight' ? 1 : -1) * (document.dir === 'rtl' ? -1 : 1); const next = tabs[(current + step + tabs.length) % tabs.length]; next.click(); next.focus(); } }"><div class="flex flex-wrap justify-between gap-3"><div><h1 class="text-2xl font-bold">{{ $project->reference }} — {{ $project->name }}</h1><p>{{ $project->client?->name }} · {{ __('phase3.'.$project->status->value) }} · {{ $project->leadArchitect?->name }}</p></div>
 @can('update', $project)<a class="underline" href="{{ route('projects.edit', $project) }}">{{ __('common.edit') }}</a>@endcan</div>
-@if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="my-3"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="my-4 flex flex-wrap gap-3">
 @can('viewAny', [\App\Models\FeeSchedule::class, $project])<a href="{{ route('billing.fees.index', $project) }}" class="underline">{{ __('phase6.fees') }}</a>@endcan

@@ -3,7 +3,7 @@
 @section('content')
 <x-card>
     <div class="flex flex-wrap justify-between gap-3"><div><h1 class="text-2xl font-bold">{{ $document->title }}</h1><a class="underline" href="{{ route('documents.index', $project) }}">{{ __('phase4.back_documents') }}</a></div>@if($canUpdate)<a class="underline" href="{{ route('documents.edit', [$project, $document]) }}">{{ __('common.edit') }}</a>@endif</div>
-    @if(session('status'))<x-alert class="my-3">{{ session('status') }}</x-alert>@endif
+    @if(session('status'))<x-alert variant="success" class="my-3">{{ session('status') }}</x-alert>@endif
     @if($errors->any())<x-alert class="my-3" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
     <dl class="my-4 grid gap-2 sm:grid-cols-2"><div><dt class="font-semibold">{{ __('phase4.category') }}</dt><dd>{{ app()->getLocale() === 'ar' ? $document->category->name_ar : $document->category->name_fr }}</dd></div><div><dt class="font-semibold">{{ __('phase4.visible_to_client') }}</dt><dd>{{ $document->visible_to_client ? '✓' : '—' }}</dd></div><div><dt class="font-semibold">{{ __('phase4.description') }}</dt><dd>{{ $document->description ?: '—' }}</dd></div><div><dt class="font-semibold">{{ __('phase4.current_version') }}</dt><dd>{{ $document->currentVersion?->version_number ?: '—' }}</dd></div></dl>
     @if($canDelete)<form method="POST" action="{{ route('documents.destroy', [$project, $document]) }}" data-confirm="{{ __('common.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm)">@csrf @method('DELETE')<x-button type="submit">{{ __('phase4.archive_document') }}</x-button></form>@endif

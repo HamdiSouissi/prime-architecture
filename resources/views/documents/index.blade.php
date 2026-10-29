@@ -5,7 +5,7 @@
     <div class="flex flex-wrap justify-between gap-3"><div><h1 class="text-2xl font-bold">{{ __('phase4.documents') }} — {{ $project->name }}</h1><a class="underline" href="{{ route('projects.show', $project) }}">{{ __('phase4.back_project') }}</a></div>
         @if($canCreate)<a class="action-link" href="{{ route('documents.create', $project) }}">{{ __('phase4.new') }}</a>@endif
     </div>
-    @if(session('status'))<x-alert class="my-3">{{ session('status') }}</x-alert>@endif
+    @if(session('status'))<x-alert variant="success" class="my-3">{{ session('status') }}</x-alert>@endif
     @if($errors->any())<x-alert class="my-3" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
     <form method="GET" action="{{ route('documents.index', $project) }}" class="my-6 flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">
         <label>{{ __('common.search') }} <input name="search" value="{{ request('search') }}"></label>

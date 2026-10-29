@@ -168,12 +168,18 @@ jobs:
       - name: Export Arabic PDF visual diagnostic
         run: |
           base64 -w 0 ci-quote-ar.jpg | fold -w 10000 | awk '{printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
-      - name: Export French PDF sample
+      - name: Export French PDF sample part one
         run: |
-          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk '{printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
-      - name: Export Arabic PDF sample
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk 'NR <= 10 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF sample part two
         run: |
-          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk '{printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample part one
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk 'NR <= 10 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample part two
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
       - name: Verify development scheduler container
         run: |
           docker compose --profile scheduler up -d scheduler

@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BillingSettingsRequest;
 use App\Services\BillingDecimal;
 use App\Services\DocumentFileInspector;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use InvalidArgumentException;
@@ -20,10 +21,12 @@ class BillingSettingsController extends Controller
     {
         abort_unless($request->user()->hasRole('admin') && $request->user()->can('billing.configure'), 403);
         $settings = DB::table('tax_settings')->orderByDesc('effective_from')->orderByDesc('id')->limit(20)->get();
+        $taxRates = DB::table('tax_rates')->whereIn('tax_setting_id', $settings->pluck('id'))->orderBy('id')->get()->groupBy('tax_setting_id');
+        $withholdingRates = DB::table('withholding_rates')->whereIn('tax_setting_id', $settings->pluck('id'))->orderBy('id')->get()->groupBy('tax_setting_id');
         $profiles = DB::table('billing_profiles')->orderByDesc('effective_from')->orderByDesc('id')->limit(20)->get();
         $formats = DB::table('billing_number_formats')->orderByDesc('effective_from')->orderByDesc('id')->limit(60)->get();
 
-        return view('billing.settings', compact('settings', 'profiles', 'formats'));
+        return view('billing.settings', compact('settings', 'taxRates', 'withholdingRates', 'profiles', 'formats'));
     }
 
     public function tax(BillingSettingsRequest $request): RedirectResponse
@@ -66,7 +69,14 @@ class BillingSettingsController extends Controller
         unset($data['logo']);
         if ($request->hasFile('logo')) {
             $file = $request->file('logo');
-            $info = app(DocumentFileInspector::class)->inspect($file);
+            if (! $file instanceof UploadedFile) {
+                throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
+            }
+            try {
+                $info = app(DocumentFileInspector::class)->inspect($file);
+            } catch (ValidationException) {
+                throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
+            }
             if (! in_array($info['extension'], ['jpg', 'jpeg', 'png'], true)) {
                 throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
             }

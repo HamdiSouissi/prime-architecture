@@ -2,7 +2,7 @@
 @section('title', $task->title)
 @section('content')
 <x-card><a class="underline" href="{{ route('planning.index', $project) }}">{{ __('phase5.planning') }}</a><h1 class="mt-3 text-2xl font-bold">{{ $task->title }}</h1>
-@if(session('status'))<x-alert>{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <p>{{ $task->description }}</p><dl class="my-4 grid gap-2 sm:grid-cols-2"><div><dt>{{ __('common.status') }}</dt><dd>{{ __('phase5.'.$task->status->value) }}</dd></div><div><dt>{{ __('phase5.priority') }}</dt><dd>{{ __('phase5.'.$task->priority->value) }}</dd></div><div><dt>{{ __('phase5.start_date') }}</dt><dd>{{ $task->start_date?->format('Y-m-d') ?: '—' }}</dd></div><div><dt>{{ __('phase5.due_date') }}</dt><dd>{{ $task->due_date?->format('Y-m-d') ?: '—' }}</dd></div>
 @if($internal)<div><dt>{{ __('phase5.estimated_hours') }}</dt><dd>{{ $task->estimated_hours ?? '—' }}</dd></div><div><dt>{{ __('phase5.spent_hours') }}</dt><dd>{{ $task->spent_hours ?? '—' }}</dd></div><div><dt>{{ __('phase5.assignees') }}</dt><dd>{{ $task->assignees->pluck('name')->join(', ') ?: '—' }}</dd></div>@endif</dl>

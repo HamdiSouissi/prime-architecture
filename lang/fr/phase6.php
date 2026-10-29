@@ -146,4 +146,5 @@ return [
     'total_discount' => 'Remises totales',
     'logo' => 'Logo PNG ou JPEG (256 Ko maximum)',
     'logo_unavailable' => 'Le logo du cabinet est indisponible ou invalide.',
+    'cancel_confirm' => 'Un avoir intégral sera émis et cette facture sera annulée. Continuer ?',
 ];

@@ -6,9 +6,9 @@ use App\Models\Project;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Throwable;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Throwable;
 
 /** Builds a calculation from the effective fiscal version, never from browser totals. */
 class BillingCalculation
@@ -43,7 +43,7 @@ class BillingCalculation
             throw ValidationException::withMessages(['lines' => __('phase6.invalid_amount')]);
         }
         $logo = null;
-        if ($requireVerified && $profile && $profile->logo_path) {
+        if ($requireVerified && $profile->logo_path) {
             if (! preg_match('/^billing-logos\/[0-9a-f-]{36}\.(png|jpg|jpeg)$/D', $profile->logo_path, $match)) {
                 throw ValidationException::withMessages(['tax_settings' => __('phase6.logo_unavailable')]);
             }

@@ -2,7 +2,7 @@
 @section('title', $client->name)
 @section('content')
 <x-card><div class="flex flex-wrap justify-between gap-3"><h1 class="text-2xl font-bold">{{ $client->name }}</h1><a class="underline" href="{{ route('clients.edit', $client) }}">{{ __('common.edit') }}</a></div>
-@if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
 <dl class="my-4 grid gap-2 sm:grid-cols-2">
 @foreach(['type' => __('phase3.'.$client->type), 'legal_name' => $client->legal_name, 'tax_id' => $client->tax_id, 'national_id' => $client->national_id, 'email' => $client->email, 'phone' => $client->phone, 'whatsapp_phone' => $client->whatsapp_phone, 'address' => $client->address, 'notes' => $client->notes] as $field => $value)<div><dt class="font-semibold">{{ __(in_array($field, ['email', 'phone']) ? 'common.'.$field : 'phase3.'.$field) }}</dt><dd>{{ $value ?: '—' }}</dd></div>@endforeach
 <div><dt class="font-semibold">{{ __('phase3.governorate') }}</dt><dd>{{ app()->getLocale() === 'ar' ? $client->governorate?->name_ar : $client->governorate?->name_fr }}</dd></div><div><dt class="font-semibold">{{ __('phase3.delegation') }}</dt><dd>{{ app()->getLocale() === 'ar' ? $client->delegation?->name_ar : $client->delegation?->name_fr }}</dd></div></dl>

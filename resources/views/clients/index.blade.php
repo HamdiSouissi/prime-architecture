@@ -2,7 +2,7 @@
 @section('title', __('phase3.clients'))
 @section('content')
 <x-card><div class="flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow">{{ __('common.workspace_section') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ __('phase3.clients') }}</h1><p class="mt-2 text-sm text-slate-600">{{ __('phase3.clients_intro') }}</p></div><a class="action-link" href="{{ route('clients.create') }}"><span aria-hidden="true">+</span> {{ __('phase3.new_client') }}</a></div>
-@if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
 <form method="GET" class="my-6 flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">
 <x-form-field name="search" :label="__('phase3.search_client')" value="{{ request('search') }}" />
 <label>{{ __('phase3.type') }} <select name="type"><option value="">{{ __('common.all') }}</option>@foreach(['individual', 'company'] as $type)<option value="{{ $type }}" @selected(request('type') === $type)>{{ __('phase3.'.$type) }}</option>@endforeach</select></label>

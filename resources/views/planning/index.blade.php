@@ -2,7 +2,7 @@
 @section('title', __('phase5.planning'))
 @section('content')
 <x-card><a class="underline" href="{{ route('projects.show', $project) }}">{{ $project->reference }} — {{ $project->name }}</a><h1 class="my-3 text-2xl font-bold">{{ __('phase5.planning') }}</h1>
-@if(session('status'))<x-alert>{{ session('status') }}</x-alert>@endif
+@if(session('status'))<x-alert variant="success">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <nav aria-label="{{ __('phase5.views') }}" class="my-3 flex flex-wrap gap-4">@foreach(['list', 'kanban', 'calendar', 'gantt'] as $mode)<a class="underline" @if($view === $mode) aria-current="page" @endif href="{{ route('planning.index', [$project, 'view' => $mode]) }}">{{ __('phase5.'.$mode) }}</a>@endforeach</nav>
 @can('viewWorkload', [\App\Models\Task::class, $project])<a class="me-3 underline" href="{{ route('planning.workload', $project) }}">{{ __('phase5.workload') }}</a>@endcan
