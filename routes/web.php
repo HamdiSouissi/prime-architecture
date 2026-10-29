@@ -23,6 +23,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\MilestoneController;
+use App\Http\Controllers\PermitController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PlanningNotificationController;
 use App\Http\Controllers\PlanningTaskController;
@@ -158,6 +159,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/planning/milestones', [MilestoneController::class, 'store'])->name('planning.milestones.store');
         Route::put('/projects/{project}/planning/milestones/{milestone}', [MilestoneController::class, 'update'])->name('planning.milestones.update');
         Route::delete('/projects/{project}/planning/milestones/{milestone}', [MilestoneController::class, 'destroy'])->name('planning.milestones.destroy');
+
+        Route::get('/projects/{project}/permits', [PermitController::class, 'index'])->name('permits.index');
+        Route::post('/projects/{project}/permits', [PermitController::class, 'store'])->name('permits.store');
+        Route::get('/projects/{project}/permits/{dossier}', [PermitController::class, 'show'])->name('permits.show');
+        Route::put('/projects/{project}/permits/{dossier}', [PermitController::class, 'update'])->name('permits.update');
+        Route::post('/projects/{project}/permits/{dossier}/steps', [PermitController::class, 'step'])->name('permits.steps.store');
+        Route::put('/projects/{project}/permits/{dossier}/steps/{step}', [PermitController::class, 'updateStep'])->name('permits.steps.update');
+        Route::post('/projects/{project}/permits/{dossier}/documents', [PermitController::class, 'attach'])->name('permits.documents.store');
 
         Route::get('/prices', [PriceCatalogController::class, 'index'])->name('prices.index');
         Route::post('/prices', [PriceCatalogController::class, 'store'])->name('prices.store');

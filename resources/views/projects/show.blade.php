@@ -6,6 +6,7 @@
 @if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="my-3"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="my-6 flex flex-wrap gap-2">
+@can('viewAny', [\App\Models\PermitDossier::class, $project])<a href="{{ route('permits.index', $project) }}" class="secondary-action-link">{{ __('phase10.permits') }}</a>@endcan
 @can('viewProject', [\App\Models\PriceItem::class, $project])<a href="{{ route('measurement.index', $project) }}" class="secondary-action-link">{{ __('phase9.measurement') }}</a>@endcan
 @can('viewAny', [\App\Models\FeeSchedule::class, $project])<a href="{{ route('billing.fees.index', $project) }}" class="secondary-action-link">{{ __('phase6.fees') }}</a>@endcan
 @can('viewAny', \App\Models\Quote::class)<a href="{{ route('billing.index', ['project' => $project->id]) }}" class="secondary-action-link">{{ __('phase6.billing') }}</a> @can('create', [\App\Models\Quote::class, $project])<a href="{{ route('billing.quotes.create', $project) }}" class="secondary-action-link">{{ __('phase6.new_quote') }}</a>@endcan @can('create', [\App\Models\Invoice::class, $project])<a href="{{ route('billing.invoices.create', $project) }}" class="secondary-action-link">{{ __('phase6.new_invoice') }}</a>@endcan @endcan
