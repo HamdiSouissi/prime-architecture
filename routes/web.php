@@ -29,6 +29,10 @@ use App\Http\Controllers\PlanningNotificationController;
 use App\Http\Controllers\PlanningTaskController;
 use App\Http\Controllers\PlanningTemplateController;
 use App\Http\Controllers\PlanningWorkloadController;
+use App\Http\Controllers\PortalAccessController;
+use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PortalPdfController;
+use App\Http\Controllers\PortalUploadController;
 use App\Http\Controllers\PriceCatalogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectActionsController;
@@ -167,6 +171,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/permits/{dossier}/steps', [PermitController::class, 'step'])->name('permits.steps.store');
         Route::put('/projects/{project}/permits/{dossier}/steps/{step}', [PermitController::class, 'updateStep'])->name('permits.steps.update');
         Route::post('/projects/{project}/permits/{dossier}/documents', [PermitController::class, 'attach'])->name('permits.documents.store');
+
+        Route::get('/portal', [PortalController::class, 'index'])->name('portal.index');
+        Route::get('/portal/projects/{project}/finance', [PortalController::class, 'finance'])->name('portal.finance');
+        Route::get('/portal/projects/{project}/quotes/{quote}/pdf/{language}', [PortalPdfController::class, 'quote'])->whereIn('language', ['fr', 'ar'])->name('portal.quotes.pdf');
+        Route::get('/portal/projects/{project}/invoices/{invoice}/pdf/{language}', [PortalPdfController::class, 'invoice'])->whereIn('language', ['fr', 'ar'])->name('portal.invoices.pdf');
+        Route::get('/portal/projects/{project}/upload', [PortalUploadController::class, 'create'])->name('portal.upload.create');
+        Route::post('/portal/projects/{project}/upload', [PortalUploadController::class, 'store'])->name('portal.upload.store');
+        Route::get('/clients/{client}/portal-access', [PortalAccessController::class, 'index'])->name('portal.access.index');
+        Route::post('/clients/{client}/portal-access', [PortalAccessController::class, 'store'])->name('portal.access.store');
+        Route::delete('/clients/{client}/portal-access/{user}', [PortalAccessController::class, 'destroy'])->name('portal.access.destroy');
 
         Route::get('/prices', [PriceCatalogController::class, 'index'])->name('prices.index');
         Route::post('/prices', [PriceCatalogController::class, 'store'])->name('prices.store');

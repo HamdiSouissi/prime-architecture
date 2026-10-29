@@ -2,6 +2,7 @@
 @section('title', $client->name)
 @section('content')
 <x-card><div class="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-slate-50 p-5 sm:p-6"><div><p class="eyebrow">{{ __('phase3.clients') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ $client->name }}</h1></div><a class="secondary-action-link" href="{{ route('clients.edit', $client) }}">{{ __('common.edit') }}</a></div>
+@can('portal.manage')<a class="secondary-action-link mt-4" href="{{ route('portal.access.index', $client) }}">{{ __('phase11.access') }}</a>@endcan
 @if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
 <dl class="detail-grid my-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 @foreach(['type' => __('phase3.'.$client->type), 'legal_name' => $client->legal_name, 'tax_id' => $client->tax_id, 'national_id' => $client->national_id, 'email' => $client->email, 'phone' => $client->phone, 'whatsapp_phone' => $client->whatsapp_phone, 'address' => $client->address, 'notes' => $client->notes] as $field => $value)<div><dt class="font-semibold">{{ __(in_array($field, ['email', 'phone']) ? 'common.'.$field : 'phase3.'.$field) }}</dt><dd>{{ $value ?: '—' }}</dd></div>@endforeach

@@ -39,7 +39,11 @@ class Project extends Model
         } elseif ($user->hasRole('collaborator')) {
             $query->whereHas('members', fn (Builder $members) => $members->where('users.id', $user->id));
         } elseif ($user->hasRole('client')) {
-            $query->whereHas('client', fn (Builder $clients) => $clients->where('user_id', $user->id));
+            $query->whereHas('client', fn (Builder $clients) => $clients->where(function (Builder $access) use ($user): void {
+                $access->where('user_id', $user->id)->orWhereExists(function ($grants) use ($user): void {
+                    $grants->selectRaw('1')->from('client_portal_access')->whereColumn('client_portal_access.client_id', 'clients.id')->where('client_portal_access.user_id', $user->id);
+                });
+            }));
         } else {
             $query->whereRaw('1 = 0');
         }

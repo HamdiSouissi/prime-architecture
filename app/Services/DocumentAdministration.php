@@ -21,15 +21,32 @@ class DocumentAdministration
 
     public function create(Project $project, User $actor, array $data, UploadedFile $file): Document
     {
+        return $this->createAuthorized($project, $actor, $data, $file, 'create');
+    }
+
+    /** @param array{title: string, category_id: int, description?: string|null} $data */
+    public function createForClient(Project $project, User $actor, array $data, UploadedFile $file): Document
+    {
+        $data = [
+            'title' => $data['title'], 'category_id' => $data['category_id'],
+            'description' => $data['description'] ?? null, 'visible_to_client' => true,
+        ];
+
+        return $this->createAuthorized($project, $actor, $data, $file, 'clientUpload');
+    }
+
+    /** @param array<string, mixed> $data */
+    private function createAuthorized(Project $project, User $actor, array $data, UploadedFile $file, string $ability): Document
+    {
         $meta = $this->inspector->inspect($file);
         $stream = fopen($file->getRealPath(), 'rb');
         if ($stream === false) {
             throw new RuntimeException('Unable to read uploaded document.');
         }
         try {
-            return $this->stage($stream, $meta, function (array $stored) use ($project, $actor, $data) {
+            return $this->stage($stream, $meta, function (array $stored) use ($project, $actor, $data, $ability) {
                 $project = Project::query()->lockForUpdate()->findOrFail($project->id);
-                Gate::forUser($actor)->authorize('create', [Document::class, $project]);
+                Gate::forUser($actor)->authorize($ability, [Document::class, $project]);
                 $document = Document::create(['project_id' => $project->id, 'created_by' => $actor->id] + $data);
                 $version = $this->append($document, $actor, $stored, null);
                 activity('documents')->causedBy($actor)->performedOn($document)->event('document.created')->withProperties(['version' => $version->version_number])->log('document.created');

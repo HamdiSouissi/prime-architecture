@@ -28,6 +28,12 @@ class DocumentPolicy
         return $user->can('documents.upload') && ! $project->trashed() && $user->can('update', $project);
     }
 
+    public function clientUpload(User $user, Project $project): bool
+    {
+        return $user->hasRole('client') && ! $user->hasAnyRole(['admin', 'architect', 'collaborator', 'contractor'])
+            && $user->can('portal.upload') && ! $project->trashed() && $user->can('view', $project);
+    }
+
     public function update(User $user, Document $document): bool
     {
         return $user->can('documents.update') && $this->view($user, $document) && $user->can('update', $document->project);

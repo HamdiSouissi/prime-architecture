@@ -3,6 +3,7 @@
 @section('content')
 @if(! $internal)
     <x-page-header :title="__('common.dashboard')" :description="__('common.welcome_client')" />
+    @can('portal.view')<a class="action-link mb-5" href="{{ route('portal.index') }}">{{ __('phase11.portal') }}</a>@endcan
     <x-card>
         <p class="text-sm leading-6 text-slate-600">{{ __('phase7.client_dashboard_intro') }}</p>
         <h2 class="section-title mt-4">{{ __('phase3.projects') }}</h2>
