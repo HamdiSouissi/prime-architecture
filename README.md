@@ -381,3 +381,13 @@ copiées vers un nouveau devis ou ajoutées à un devis brouillon, avec un taux 
 choisi parmi les taux configurés. Les prix copiés restent indépendants du catalogue
 et les devis émis restent immuables. Permissions : `prices.view`, `prices.manage`
 (administrateur et architecte). Aucune recette visuelle humaine n'est revendiquée.
+
+## Phase 10 — permis et urbanisme (en cours)
+
+Des dossiers par projet permettent de saisir le type, la commune, l'état, les dates,
+les observations et des étapes ou pièces à fournir. Il est possible de lier des
+documents existants du même projet. Les règles et échéances sont saisies par le
+cabinet et ne constituent pas des règles officielles préremplies. Les rappels
+automatiques et la recette humaine ne sont pas encore réalisés. Après migration,
+resynchroniser les rôles via `php artisan db:seed --class=RolePermissionSeeder` ;
+les droits sont `permits.view` et `permits.manage`.

@@ -28,7 +28,8 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
 | 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Livré, CI verte (`aadee8c`), en attente de validation |
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
-| 10–14 | Urbanisme, portail, PWA, sauvegardes, recette | Non commencées |
+| 10 | Permis et urbanisme | Dossiers, étapes et documents développés ; rappels et recette à réaliser |
+| 11–14 | Portail, PWA, sauvegardes, recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
@@ -106,3 +107,12 @@ processus prévu ; aucune branche `develop` n'est touchée par cette session.
 ## Reprise phase 9
 
 Le catalogue et son historique sont exposés aux administrateurs et architectes ; les métrés utilisent les prix courants et se transfèrent vers des devis brouillon via les services de facturation. Les tests et l’analyse PHP ont réussi en CI sur `98aa667` ; une correction Pint est en cours. La recette humaine FR/AR reste à effectuer. Les notes internes des réserves sont séparées et masquées au client ; des tests de non-divulgation couvrent la page chantier et la sérialisation.
+
+## Reprise phase 10
+
+Dossiers par projet, informations saisies par le cabinet, étapes modifiables et liens
+vers documents du projet : `PermitAdministration`, `PermitDossierPolicy`, écrans FR/AR
+`permits.*`. Les administrateurs et architectes modifient, les collaborateurs membres
+consultent. La CI est verte sur `585c454`. **Les rappels automatiques ne sont pas encore
+implémentés** ; la recette humaine et des tests supplémentaires, notamment sur les liens
+de documents entre projets, restent à faire. Les phases 11 à 14 restent à développer.
