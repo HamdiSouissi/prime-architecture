@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\QuoteStatus;
 use App\Http\Requests\BillingActionRequest;
 use App\Http\Requests\BillingDocumentRequest;
@@ -17,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BillingController extends Controller
@@ -24,11 +26,24 @@ class BillingController extends Controller
     public function index(Request $request): View
     {
         Gate::authorize('viewAny', Quote::class);
-        $search = $request->validate(['search' => ['nullable', 'string', 'max:100']])['search'] ?? null;
-        $quotes = Quote::query()->visibleTo($request->user())->with('project')->when($search, fn ($q) => $q->where(fn ($q) => $q->where('number', 'like', '%'.$search.'%')->orWhereHas('project', fn ($p) => $p->where('name', 'like', '%'.$search.'%'))))->orderByDesc('id')->paginate(15, ['*'], 'quotes_page')->withQueryString();
-        $invoices = Invoice::query()->visibleTo($request->user())->with('project')->when($search, fn ($q) => $q->where(fn ($q) => $q->where('number', 'like', '%'.$search.'%')->orWhereHas('project', fn ($p) => $p->where('name', 'like', '%'.$search.'%'))))->orderByDesc('id')->paginate(15, ['*'], 'invoices_page')->withQueryString();
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'], 'project' => ['nullable', 'integer', 'min:1'],
+            'quote_status' => ['nullable', Rule::in(array_column(QuoteStatus::cases(), 'value'))],
+            'invoice_status' => ['nullable', Rule::in(array_column(InvoiceStatus::cases(), 'value'))],
+        ]);
+        $search = $filters['search'] ?? null;
+        $quotes = Quote::query()->visibleTo($request->user())->with('project')
+            ->when($filters['project'] ?? null, fn ($q, $id) => $q->where('project_id', $id))
+            ->when($filters['quote_status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($search, fn ($q) => $q->where(fn ($q) => $q->where('number', 'like', '%'.$search.'%')->orWhereHas('project', fn ($p) => $p->where('name', 'like', '%'.$search.'%'))))
+            ->orderByDesc('id')->paginate(15, ['*'], 'quotes_page')->withQueryString();
+        $invoices = Invoice::query()->visibleTo($request->user())->with('project')
+            ->when($filters['project'] ?? null, fn ($q, $id) => $q->where('project_id', $id))
+            ->when($filters['invoice_status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($search, fn ($q) => $q->where(fn ($q) => $q->where('number', 'like', '%'.$search.'%')->orWhereHas('project', fn ($p) => $p->where('name', 'like', '%'.$search.'%'))))
+            ->orderByDesc('id')->paginate(15, ['*'], 'invoices_page')->withQueryString();
 
-        return view('billing.index', compact('quotes', 'invoices', 'search'));
+        return view('billing.index', compact('quotes', 'invoices', 'search', 'filters'));
     }
 
     public function createQuote(Project $project): View
@@ -161,6 +176,13 @@ class BillingController extends Controller
         app(QuoteService::class)->delete($quote, $request->user());
 
         return redirect()->route('billing.index')->with('status', __('phase6.saved'));
+    }
+
+    public function duplicateQuote(BillingActionRequest $request, Quote $quote): RedirectResponse
+    {
+        $copy = app(QuoteService::class)->duplicate($quote, $request->user());
+
+        return redirect()->route('billing.quotes.show', $copy)->with('status', __('phase6.saved'));
     }
 
     public function convertQuote(BillingActionRequest $request, Quote $quote): RedirectResponse

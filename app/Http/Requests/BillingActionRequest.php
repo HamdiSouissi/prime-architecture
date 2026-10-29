@@ -13,7 +13,7 @@ class BillingActionRequest extends FormRequest
         $ability = match (true) {
             $this->routeIs('billing.quotes.issue') => 'issue',
             $this->routeIs('billing.quotes.decide') => 'decide',
-            $this->routeIs('billing.quotes.convert') => 'view',
+            $this->routeIs('billing.quotes.convert', 'billing.quotes.duplicate') => 'view',
             $this->routeIs('billing.quotes.destroy') => 'update',
             $this->routeIs('billing.invoices.issue') => 'issue',
             $this->routeIs('billing.invoices.pay', 'billing.invoices.withholding') => 'pay',

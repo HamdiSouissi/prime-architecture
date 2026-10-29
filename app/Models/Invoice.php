@@ -18,6 +18,7 @@ use LogicException;
  * @property numeric-string $total_ttc
  * @property numeric-string $withholding_amount
  * @property int|null $withholding_rate_id
+ * @property array<string, mixed>|null $snapshot
  */
 class Invoice extends Model
 {

@@ -68,6 +68,25 @@ class QuoteService
         }, 3);
     }
 
+    public function duplicate(Quote $quote, User $actor): Quote
+    {
+        return DB::transaction(function () use ($quote, $actor) {
+            $quote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
+            Gate::forUser($actor)->authorize('view', $quote);
+            $project = $quote->project;
+            Gate::forUser($actor)->authorize('create', [Quote::class, $project]);
+            $data = [
+                'document_date' => today()->toDateString(), 'valid_until' => null, 'discount_percent' => $quote->discount_percent,
+                'withholding_rate_id' => $quote->withholding_rate_id,
+                'lines' => $quote->lines->map(fn ($line) => ['description' => $line->description, 'unit' => $line->unit, 'quantity' => $line->quantity, 'unit_price' => $line->unit_price, 'discount_percent' => $line->discount_percent, 'tax_rate' => $line->tax_rate])->all(),
+            ];
+            $copy = $this->create($project, $actor, $data);
+            activity('billing')->causedBy($actor)->performedOn($copy)->withProperties(['source_quote_id' => $quote->id])->event('quote.duplicated')->log('quote.duplicated');
+
+            return $copy;
+        }, 3);
+    }
+
     public function delete(Quote $quote, User $actor): void
     {
         DB::transaction(function () use ($quote, $actor) {

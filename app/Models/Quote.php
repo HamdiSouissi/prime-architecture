@@ -17,6 +17,7 @@ use LogicException;
  * @property CarbonImmutable|null $valid_until
  * @property numeric-string $discount_percent
  * @property int|null $withholding_rate_id
+ * @property array<string, mixed>|null $snapshot
  */
 class Quote extends Model
 {

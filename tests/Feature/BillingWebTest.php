@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\QuoteStatus;
+use App\Models\FeeSchedule;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
@@ -82,4 +83,25 @@ class BillingWebTest extends TestCase
         unset($data['verified']);
         $this->post(route('billing.settings.tax'), $data)->assertSessionHasErrors('verified');
     }
+    public function test_fee_schedules_are_project_scoped_and_exact(): void
+    {
+        $this->withoutVite();
+        $this->seed(RolePermissionSeeder::class);
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $project = Project::factory()->create();
+        $other = Project::factory()->create();
+        $this->actingAs($architect)->get(route('billing.fees.index', $project))->assertOk();
+        $data = ['phase' => 'Étude', 'mode' => 'percentage', 'value' => '2.5', 'works_amount' => '1000.000'];
+        $this->post(route('billing.fees.store', $project), $data)->assertSessionHasNoErrors();
+        $fee = FeeSchedule::firstOrFail();
+        $this->get(route('billing.fees.index', $project))->assertSee('25.000');
+        $this->put(route('billing.fees.update', [$other, $fee->id]), $data)->assertNotFound();
+        $this->post(route('billing.fees.store', $project), [...$data, 'value' => '101'])->assertSessionHasErrors('value');
+        $client = User::factory()->create();
+        $client->assignRole('client');
+        $this->actingAs($client)->get(route('billing.fees.index', $project))->assertForbidden();
+        $this->post(route('billing.fees.store', $project), $data)->assertForbidden();
+    }
+
 }

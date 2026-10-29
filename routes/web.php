@@ -18,6 +18,7 @@ use App\Http\Controllers\DocumentCommentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentVersionController;
 use App\Http\Controllers\DocumentZipController;
+use App\Http\Controllers\FeeScheduleController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MilestoneController;
@@ -135,6 +136,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/billing/settings/tax', [BillingSettingsController::class, 'tax'])->name('billing.settings.tax');
         Route::post('/billing/settings/profile', [BillingSettingsController::class, 'profile'])->name('billing.settings.profile');
         Route::post('/billing/settings/format', [BillingSettingsController::class, 'format'])->name('billing.settings.format');
+        Route::get('/projects/{project}/billing/fees', [FeeScheduleController::class, 'index'])->name('billing.fees.index');
+        Route::post('/projects/{project}/billing/fees', [FeeScheduleController::class, 'store'])->name('billing.fees.store');
+        Route::put('/projects/{project}/billing/fees/{fee}', [FeeScheduleController::class, 'update'])->whereNumber('fee')->name('billing.fees.update');
+        Route::delete('/projects/{project}/billing/fees/{fee}', [FeeScheduleController::class, 'destroy'])->whereNumber('fee')->name('billing.fees.destroy');
         Route::get('/projects/{project}/billing/quotes/create', [BillingController::class, 'createQuote'])->name('billing.quotes.create');
         Route::post('/projects/{project}/billing/quotes', [BillingController::class, 'storeQuote'])->name('billing.quotes.store');
         Route::get('/projects/{project}/billing/invoices/create', [BillingController::class, 'createInvoice'])->name('billing.invoices.create');
@@ -151,6 +156,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/billing/quotes/{quote}', [BillingController::class, 'destroyQuote'])->name('billing.quotes.destroy');
         Route::post('/billing/quotes/{quote}/issue', [BillingController::class, 'issueQuote'])->name('billing.quotes.issue');
         Route::post('/billing/quotes/{quote}/decision', [BillingController::class, 'decideQuote'])->name('billing.quotes.decide');
+        Route::post('/billing/quotes/{quote}/duplicate', [BillingController::class, 'duplicateQuote'])->name('billing.quotes.duplicate');
         Route::post('/billing/quotes/{quote}/convert', [BillingController::class, 'convertQuote'])->name('billing.quotes.convert');
         Route::get('/billing/invoices/{invoice}', [BillingController::class, 'showInvoice'])->name('billing.invoices.show');
         Route::get('/billing/invoices/{invoice}/edit', [BillingController::class, 'editInvoice'])->name('billing.invoices.edit');
