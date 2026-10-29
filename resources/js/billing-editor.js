@@ -3,6 +3,7 @@ export default (initialLines, defaultRate, previewUrl) => ({
     lines: initialLines.map((line, key) => ({ ...line, key })),
     sequence: initialLines.length,
     totals: null,
+    busy: false,
     requestId: 0,
     add() {
         if (this.lines.length < 500) this.lines.push({ key: this.sequence++, description: '', unit: '', quantity: '1', unit_price: '0.000', discount_percent: '0', tax_rate: defaultRate });
@@ -13,6 +14,7 @@ export default (initialLines, defaultRate, previewUrl) => ({
     async preview(form) {
         if (!form) return;
         const requestId = ++this.requestId;
+        this.busy = true;
         const data = new FormData(form);
         data.delete('_method');
         try {
@@ -21,6 +23,8 @@ export default (initialLines, defaultRate, previewUrl) => ({
             if (requestId === this.requestId) this.totals = result;
         } catch {
             if (requestId === this.requestId) this.totals = null;
+        } finally {
+            if (requestId === this.requestId) this.busy = false;
         }
     },
 });

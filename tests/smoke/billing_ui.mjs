@@ -16,7 +16,12 @@ try {
     await page.screenshot({ path: 'ui-workspace-fr.jpg', type: 'jpeg', quality: 50 });
     await page.goto(`${base}/projects`);
     await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').click();
+    await page.route('**/billing/quotes/preview', async route => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await route.continue();
+    });
     await page.getByRole('link', { name: 'Nouveau devis', exact: true }).click();
+    await page.locator('[aria-busy="true"]').waitFor({ state: 'visible', timeout: 5000 });
     await page.locator('input[name="lines[0][description]"]').fill('Étude architecturale');
     await page.locator('input[name="lines[0][unit_price]"]').fill('100.000');
     await page.waitForFunction(() => document.querySelector('#preview-total_ttc')?.textContent === '119.000', null, { timeout: 15000 });

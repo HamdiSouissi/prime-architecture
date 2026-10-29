@@ -148,4 +148,5 @@ return [
     'logo_unavailable' => 'Le logo du cabinet est indisponible ou invalide.',
     'cancel_confirm' => 'Un avoir intégral sera émis et cette facture sera annulée. Continuer ?',
     'cancelled_pdf' => 'Facture annulée — un avoir intégral a été émis.',
+    'loading' => 'Calcul en cours…',
 ];
