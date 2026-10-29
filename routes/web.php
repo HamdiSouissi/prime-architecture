@@ -163,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/prices/{item}', [PriceCatalogController::class, 'update'])->name('prices.update');
         Route::get('/projects/{project}/measurement', [MeasurementController::class, 'index'])->name('measurement.index');
         Route::post('/projects/{project}/measurement', [MeasurementController::class, 'store'])->name('measurement.store');
+        Route::post('/projects/{project}/measurement/transfer', [MeasurementController::class, 'transfer'])->name('measurement.transfer');
         Route::delete('/projects/{project}/measurement/{line}', [MeasurementController::class, 'destroy'])->name('measurement.destroy');
 
         Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
