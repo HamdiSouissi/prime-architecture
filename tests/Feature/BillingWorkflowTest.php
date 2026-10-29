@@ -124,6 +124,7 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame(QuoteStatus::Expired, $quote->fresh()->status);
         $this->assertSame(1, DB::table('activity_log')->where('event', 'invoice.overdue')->count());
     }
+
     public function test_expected_withholding_is_not_treated_as_paid_until_justified(): void
     {
         $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));
@@ -147,5 +148,4 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame(InvoiceStatus::Paid, $invoice->status);
         $this->assertSame('0.000', app(InvoiceService::class)->balance($invoice));
     }
-
 }

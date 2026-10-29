@@ -136,4 +136,7 @@ return [
     'view_projects' => 'Voir tous les projets',
     'project_count_caption' => 'Projets par étape active',
     'workspace_note' => 'Pensé pour les cabinets d’architecture',
+    'login_intro' => 'Tous vos projets, documents et finances dans un seul espace.',
+    'login_welcome' => 'Ravi de vous retrouver',
+    'login_hint' => 'Connectez-vous pour accéder à votre espace cabinet.',
 ];

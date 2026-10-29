@@ -142,15 +142,32 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php tests/smoke/prepare_billing_ui.php
           node tests/smoke/billing_ui.mjs
-      - name: Export workspace visual diagnostic
+      - name: Export workspace visual diagnostic 1
         run: |
-          base64 -w 0 ui-workspace-fr.jpg | fold -w 10000 | awk '{printf "::notice title=UIFR%03d::%s\n", NR, $0}'
-      - name: Export Arabic billing visual diagnostic
+          base64 -w 0 ui-workspace-fr.jpg | fold -w 3000 | awk 'NR > 0 && NR <= 10 {printf "::notice title=UIFR%03d::%s\n", NR, $0}'
+      - name: Export workspace visual diagnostic 2
         run: |
-          base64 -w 0 ui-billing-ar.jpg | fold -w 10000 | awk '{printf "::notice title=UIAR%03d::%s\n", NR, $0}'
+          base64 -w 0 ui-workspace-fr.jpg | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=UIFR%03d::%s\n", NR, $0}'
+      - name: Export workspace visual diagnostic 3
+        run: |
+          base64 -w 0 ui-workspace-fr.jpg | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=UIFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic billing visual diagnostic 1
+        run: |
+          base64 -w 0 ui-billing-ar.jpg | fold -w 3000 | awk 'NR > 0 && NR <= 10 {printf "::notice title=UIAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic billing visual diagnostic 2
+        run: |
+          base64 -w 0 ui-billing-ar.jpg | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=UIAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic billing visual diagnostic 3
+        run: |
+          base64 -w 0 ui-billing-ar.jpg | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=UIAR%03d::%s\n", NR, $0}'
       - name: Generate and inspect French and Arabic billing PDFs
         run: |
           docker compose --profile pdf up -d --build --wait pdf
+          docker compose exec -T pdf node --input-type=module < tests/smoke/pdf_security.mjs
+          docker compose cp pdf:/tmp/security-probe.pdf security-probe.pdf
+          pdftotext security-probe.pdf security-probe.txt
+          grep -q SAFE_RENDER security-probe.txt
+          ! grep -q SCRIPT_EXECUTED security-probe.txt
           docker compose exec -T -u www-data app php tests/smoke/generate_billing_pdf.php
           docker compose cp app:/var/www/html/storage/app/private/ci-quote-fr.pdf ci-quote-fr.pdf
           docker compose cp app:/var/www/html/storage/app/private/ci-quote-ar.pdf ci-quote-ar.pdf
@@ -162,24 +179,54 @@ jobs:
           python3 -c "import pathlib; s=pathlib.Path('ci-quote-ar.txt').read_text(); assert any('\u0600' <= c <= '\u06ff' for c in s), 'Arabic text missing'"
           pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-fr.pdf ci-quote-fr
           pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-ar.pdf ci-quote-ar
-      - name: Export French PDF visual diagnostic
+      - name: Export French PDF visual diagnostic 1
         run: |
-          base64 -w 0 ci-quote-fr.jpg | fold -w 10000 | awk '{printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
-      - name: Export Arabic PDF visual diagnostic
+          base64 -w 0 ci-quote-fr.jpg | fold -w 3000 | awk 'NR > 0 && NR <= 10 {printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF visual diagnostic 2
         run: |
-          base64 -w 0 ci-quote-ar.jpg | fold -w 10000 | awk '{printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
+          base64 -w 0 ci-quote-fr.jpg | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF visual diagnostic 3
+        run: |
+          base64 -w 0 ci-quote-fr.jpg | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF visual diagnostic 1
+        run: |
+          base64 -w 0 ci-quote-ar.jpg | fold -w 3000 | awk 'NR > 0 && NR <= 10 {printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF visual diagnostic 2
+        run: |
+          base64 -w 0 ci-quote-ar.jpg | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF visual diagnostic 3
+        run: |
+          base64 -w 0 ci-quote-ar.jpg | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
       - name: Export French PDF sample part one
         run: |
-          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk 'NR <= 10 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 3000 | awk 'NR <= 10 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
       - name: Export French PDF sample part two
         run: |
-          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF sample part 3
+        run: |
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF sample part 4
+        run: |
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 30 && NR <= 40 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export French PDF sample part 5
+        run: |
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 40 && NR <= 50 {printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
       - name: Export Arabic PDF sample part one
         run: |
-          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk 'NR <= 10 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 3000 | awk 'NR <= 10 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
       - name: Export Arabic PDF sample part two
         run: |
-          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 10 && NR <= 20 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample part 3
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 20 && NR <= 30 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample part 4
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 30 && NR <= 40 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample part 5
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 3000 | awk 'NR > 40 && NR <= 50 {printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
       - name: Verify development scheduler container
         run: |
           docker compose --profile scheduler up -d scheduler

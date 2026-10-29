@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 const token = process.env.BILLING_PDF_TOKEN ?? '';
 if (Buffer.byteLength(token) < 32) throw new Error('BILLING_PDF_TOKEN must contain at least 32 bytes');
 const expected = Buffer.from(`Bearer ${token}`);
-const browser = await chromium.launch({ executablePath: '/usr/bin/chromium', args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking'] });
+const browser = await chromium.launch({ executablePath: process.env.BILLING_CHROMIUM_PATH ?? '/service/chromium', args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking'] });
 let active = 0;
 const maxBody = 2 * 1024 * 1024;
 
