@@ -44,7 +44,16 @@ class ProjectController extends Controller
         if (! empty($data['date_to'])) {
             $query->whereDate('start_date', '<=', $data['date_to']);
         }
-        $query->orderBy($data['sort'] ?? 'updated_at', $data['direction'] ?? 'desc')->orderBy('id');
+        $sort = $data['sort'] ?? 'updated_at';
+        $direction = $data['direction'] ?? 'desc';
+        if ($sort === 'client_name') {
+            $query->orderBy(Client::withTrashed()->select('name')->whereColumn('clients.id', 'projects.client_id'), $direction);
+        } elseif ($sort === 'lead_name') {
+            $query->orderBy(User::withTrashed()->select('name')->whereColumn('users.id', 'projects.lead_architect_id'), $direction);
+        } else {
+            $query->orderBy($sort, $direction);
+        }
+        $query->orderBy('id');
 
         return view('projects.index', ['projects' => $query->paginate(20)->withQueryString(), 'governorates' => Governorate::orderBy('name_fr')->get(), 'architects' => User::whereIn('id', Project::query()->visibleTo($request->user())->select('lead_architect_id'))->orderBy('name')->get(), 'statuses' => ProjectStatus::cases(), 'types' => ProjectType::cases(), 'kanban' => ($data['view'] ?? '') === 'kanban']);
     }

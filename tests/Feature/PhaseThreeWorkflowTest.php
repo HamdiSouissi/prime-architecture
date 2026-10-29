@@ -8,8 +8,10 @@ use App\Models\Governorate;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectAdministration;
+use Database\Seeders\PhaseThreeDemoSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PhaseThreeWorkflowTest extends TestCase
@@ -98,8 +100,8 @@ class PhaseThreeWorkflowTest extends TestCase
     public function test_demo_seeder_is_repeatable_and_spans_several_statuses(): void
     {
         $this->user('architect');
-        $this->seed(\Database\Seeders\PhaseThreeDemoSeeder::class);
-        $this->seed(\Database\Seeders\PhaseThreeDemoSeeder::class);
+        $this->seed(PhaseThreeDemoSeeder::class);
+        $this->seed(PhaseThreeDemoSeeder::class);
         $this->assertSame(15, Client::count());
         $this->assertSame(30, Project::count());
         $this->assertGreaterThan(1, Project::query()->distinct()->count('status'));
@@ -110,11 +112,24 @@ class PhaseThreeWorkflowTest extends TestCase
         $actor = $this->user('architect');
         Client::factory()->count(15)->create();
         $queries = [];
-        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
+        DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
         $this->actingAs($actor)->get(route('clients.index'))->assertOk();
         $this->assertLessThan(30, count($queries));
     }
 
+    public function test_admin_can_manage_projects_and_sort_by_client_name(): void
+    {
+        $admin = $this->user('admin');
+        $z = Client::factory()->create(['name' => 'Zina Client']);
+        $a = Client::factory()->create(['name' => 'Amel Client']);
+        $this->project($admin, $z);
+        $project = $this->project($admin, $a);
+        $this->actingAs($admin)->get(route('projects.index', ['sort' => 'client_name', 'direction' => 'asc']))->assertOk()->assertSeeInOrder(['Amel Client', 'Zina Client']);
+        $this->delete(route('projects.destroy', $project))->assertRedirect();
+        $this->assertSoftDeleted('projects', ['id' => $project->id]);
+        $this->post(route('projects.restore', $project))->assertRedirect();
+        $this->assertNotSoftDeleted('projects', ['id' => $project->id]);
+    }
 }
