@@ -25,7 +25,7 @@ Dernière mise à jour : fin de la phase 7 (tableau de bord, temps, rentabilité
 | 4 | Documents versionnés, catégories, commentaires, ZIP | Livré |
 | 5 | Planning, tâches, dépendances, charge, calendrier ouvré, notifications | Livré |
 | 6 | Devis, factures, avoirs, paiements, retenues, PDF FR/AR, interface | Livré avec réserves (PDF arabe, fiscalité, revue humaine) |
-| 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, en attente de validation |
+| 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
 | 8 et suivantes | Non commencées | — |
 
 Le détail des réserves et la liste de corrections sont dans

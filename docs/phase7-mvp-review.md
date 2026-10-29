@@ -38,7 +38,11 @@ fiscale, comptable ou juridique.
   rôles autorisés, absence de montants pour un collaborateur, 403 sur rapports, temps et
   export, plafond journalier, chronomètre unique, correction interdite à un tiers, validité
   du classeur XLSX, PDF envoyé au rendu privé, rendu FR/LTR et AR/RTL des écrans.
-- Pint, PHPStan niveau 5 et suite PHPUnit exécutés par la CI, sur MySQL 8.
+- Pint, PHPStan niveau 5 et suite PHPUnit exécutés par la CI, sur MySQL 8 : commit
+  `3b21a97`, exécution `123581991503` (quality, laravel-upgrade et docker-smoke vertes).
+- Audit navigateur étendu à `/time`, `/reports` et aux paramètres de rentabilité, en
+  français, à 1 440 px, 375 px et 320 px ; débordement, contrastes, structure de titres,
+  repères et identifiants uniques vérifiés automatiquement.
 - Contrôle des clés de traduction des vues de la phase 7 en FR et AR (aucune clé manquante).
 
 ## 4. Réserves ouvertes héritées des phases précédentes
