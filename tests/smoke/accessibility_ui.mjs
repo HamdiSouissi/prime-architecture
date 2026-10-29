@@ -172,6 +172,25 @@ try {
     for (const path of paths) await check(path, 'ar', 375);
     await checkMenu('ar', 375);
     await checkNotFound('ar', 375);
+    // Client portal: separate authenticated session, explicit financial access.
+    await page.goto(`${base}/dashboard`);
+    await Promise.all([page.waitForURL('**/'), page.locator('form[action$="/logout"] button').click()]);
+    await page.goto(`${base}/login`);
+    await page.locator('#email').fill('portal-ui@example.test');
+    await page.locator('#password').fill('portal-ci-password-123');
+    await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
+    const portalPaths = ['/portal', `/portal${project}/finance`, `/portal${project}/upload`];
+    for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const path of portalPaths) await check(path, 'fr', width);
+    }
+    await page.goto(`${base}/dashboard`);
+    await page.locator('#locale').selectOption('ar');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
+    for (const width of [1440, 375]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const path of portalPaths) await check(path, 'ar', width);
+    }
     if (findings.size) {
         for (const [id, entry] of findings) {
             const message = `${entry.count} occurrences; ${entry.examples.join(' | ')}`.slice(0, 3700).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');

@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
 use App\Models\User;
+use App\Services\PdfGenerator;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -49,6 +50,10 @@ class ClientPortalTest extends TestCase
         $this->actingAs($admin)->post(route('portal.access.store', $client), ['user_id' => $clientUser->id, 'financial_access' => 1])->assertRedirect()->assertSessionHasNoErrors();
         $this->post(route('portal.access.store', $client), ['user_id' => $otherUser->id, 'financial_access' => 0])->assertRedirect()->assertSessionHasNoErrors();
         $this->actingAs($clientUser)->get(route('portal.finance', $project))->assertOk()->assertSee($quote->number)->assertSee('FAC-ISSUED')->assertSee('4.000')->assertDontSee('DEV-DRAFT');
+        $this->mock(PdfGenerator::class, function ($mock): void {
+            $mock->shouldReceive('generate')->once()->andReturn('%PDF-test');
+        });
+        $this->get(route('portal.quotes.pdf', [$project, $quote, 'fr']))->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertHeader('Cache-Control', 'no-store, private');
         $this->get(route('portal.quotes.pdf', [$project, $draft, 'fr']))->assertNotFound();
         $this->get(route('portal.quotes.pdf', [$otherProject, $quote, 'fr']))->assertForbidden();
         $this->actingAs($otherUser)->get(route('projects.show', $project))->assertOk();

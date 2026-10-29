@@ -398,3 +398,17 @@ notifications une fois par jour et par utilisateur autorisé, y compris pour les
 Laravel. Ces rappels sont internes à l'application, sans envoi de courriel ; ils ne
 constituent pas un calcul de délai légal. Les dates d'échéance du dossier lui-même ne
 créent pas de rappel : saisir une étape pour être rappelé.
+
+## Phase 11 — espace client (en cours)
+
+L'espace `/portal` regroupe les projets visibles du compte client, leurs documents
+partagés, planning et chantier. L'administrateur gère les comptes associés à chaque
+client depuis sa fiche et active **explicitement** l'accès financier par compte ; les
+comptes existants liés par `clients.user_id` conservent l'accès au projet sans accès
+financier par défaut. La révocation retire aussi ce lien historique s'il existe.
+Seuls devis et factures émis sont affichés, avec PDF FR/AR et paiements ; aucun devis
+n'est validable par le client. Il peut commenter les documents partagés et déposer un
+nouveau document, soumis à l'inspection habituelle et conservé sur le disque privé.
+Cette inspection n'est pas un antivirus. Après migration, resynchroniser les rôles
+(`php artisan db:seed --class=RolePermissionSeeder`). Recette humaine, sécurité et
+accessibilité restent à vérifier ; limites PDF arabe déjà documentées en phase 6.

@@ -18,7 +18,9 @@ class PortalController extends Controller
         abort_unless($request->user()->can('portal.view') && $request->user()->hasRole('client'), 403);
         $projects = Project::query()->visibleTo($request->user())->orderBy('name')->paginate(20);
 
-        return view('portal.index', compact('projects'));
+        $financeClientIds = DB::table('client_portal_access')->where('user_id', $request->user()->id)->where('financial_access', true)->pluck('client_id')->all();
+
+        return view('portal.index', compact('projects', 'financeClientIds'));
     }
 
     public function finance(Request $request, Project $project, ClientPortalAccess $access): View

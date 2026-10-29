@@ -29,7 +29,8 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Livré, CI verte (`aadee8c`), en attente de validation |
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
 | 10 | Permis et urbanisme | Dossiers, étapes, documents et rappels développés ; recette humaine à réaliser |
-| 11–14 | Portail, PWA, sauvegardes, recette | Non commencées |
+| 11 | Portail client | En cours : périmètre de base développé, recette et vérifications à poursuivre |
+| 12–14 | PWA, sauvegardes, recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
@@ -121,3 +122,13 @@ L'accès courant est revérifié à l'affichage. Tests automatisés des droits, 
 entre projets, de la déduplication et du retrait des droits ; audits navigateur FR/AR des
 pages de dossier sur bureau et mobile. Recette humaine toujours nécessaire. Les phases
 11 à 14 restent à développer.
+
+## Reprise phase 11
+
+Accès client par `client_portal_access`, sans retirer le lien existant `clients.user_id` ;
+seul un administrateur attribue explicitement l'accès financier. La révocation supprime
+également le lien historique. Portail, dépôt privé via `DocumentAdministration` et
+commentaires existants, consultation des documents financiers émis et PDF. Tests de
+cloisonnement et CI verte sur `9c23986` ; audit navigateur spécifique au client ajouté
+après ce commit, à vérifier. Pas de validation client des devis. Aucun antivirus n'est
+installé. Recette humaine et tests de bout en bout complémentaires à réaliser.

@@ -2,10 +2,12 @@
 
 use App\Models\Project;
 use App\Models\User;
+use App\Services\ClientPortalAccess;
 use App\Services\InvoiceService;
 use App\Services\PermitAdministration;
 use App\Services\QuoteService;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Hash;
 
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
@@ -25,3 +27,8 @@ app(InvoiceService::class)->create($project, $actor, $data + ['due_date' => toda
 
 $permit = app(PermitAdministration::class)->create($project, $actor, ['title' => 'Permis UI test', 'permit_type' => 'Test', 'status' => 'En cours']);
 app(PermitAdministration::class)->addStep($permit, $actor, ['label' => 'Pièce UI test', 'due_on' => today()->addDays(7)->toDateString()]);
+
+$portalUser = User::firstOrCreate(['email' => 'portal-ui@example.test'], ['name' => 'Client UI', 'password' => Hash::make('portal-ci-password-123')]);
+$portalUser->forceFill(['email_verified_at' => now(), 'is_active' => true])->save();
+$portalUser->assignRole('client');
+app(ClientPortalAccess::class)->grant($project->client, $actor, $portalUser, true);
