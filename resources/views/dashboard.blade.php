@@ -67,7 +67,7 @@
 
     @if($financial)
         <section class="mt-8 grid gap-6 xl:grid-cols-2">
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+            <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                 <h2 class="section-title">{{ __('phase7.billed') }} / {{ __('phase7.collected') }}</h2>
                 <div class="mt-4 overflow-x-auto">
                     <table class="w-full text-sm">
@@ -81,7 +81,7 @@
                 </div>
                 <a class="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline" href="{{ route('billing.index') }}">{{ __('phase7.see_billing') }} <span aria-hidden="true" class="inline-block rtl:rotate-180">→</span></a>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+            <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                 <h2 class="section-title">{{ __('phase7.overdue_invoices') }}</h2>
                 <ul class="mt-4 divide-y divide-slate-100 text-sm">
                     @forelse($financial['overdue'] as $invoice)
@@ -95,10 +95,10 @@
 
         @if($trend && $financial)
             <section class="mt-8 grid gap-6 xl:grid-cols-2">
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+                <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                     <h2 class="section-title">{{ __('phase7.chart_trend') }}</h2>
                     <div class="mt-4 h-64" data-dashboard-chart="{{ json_encode(['type' => 'line', 'labels' => $trend['labels'], 'datasets' => [['label' => __('phase7.billed'), 'data' => $trend['billed'], 'kind' => 'currency'], ['label' => __('phase7.collected'), 'data' => $trend['collected'], 'kind' => 'currency', 'dashed' => true]]]) }}">
-                        <canvas role="img" aria-label="{{ __('phase7.chart_trend') }}">{{ __('phase7.chart_trend') }}</canvas>
+                        <canvas class="h-full w-full" role="img" aria-label="{{ __('phase7.chart_trend') }}">{{ __('phase7.chart_trend') }}</canvas>
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
@@ -107,14 +107,14 @@
                         </table></div>
                     </details>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+                <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                     <h2 class="section-title">{{ __('phase7.chart_status') }}</h2>
                     @php
                         $statusLabels = array_map(fn ($status) => __('phase3.'.$status), array_keys($overview['projects_by_status']));
                         $statusValues = array_values($overview['projects_by_status']);
                     @endphp
                     <div class="mt-4 h-64" data-dashboard-chart="{{ json_encode(['type' => 'doughnut', 'labels' => $statusLabels, 'datasets' => [['label' => __('phase7.active_projects'), 'data' => $statusValues, 'colors' => ['#3730a3', '#0f766e', '#b45309', '#0369a1', '#7e22ce', '#be123c', '#475569']]]]) }}">
-                        <canvas role="img" aria-label="{{ __('phase7.chart_status') }}">{{ __('phase7.chart_status') }}</canvas>
+                        <canvas class="h-full w-full" role="img" aria-label="{{ __('phase7.chart_status') }}">{{ __('phase7.chart_status') }}</canvas>
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
@@ -128,7 +128,7 @@
     @endif
 
     <section class="mt-8 grid gap-6 xl:grid-cols-2">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+        <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
             <div class="flex items-center justify-between gap-3"><h2 class="section-title">{{ __('phase5.my_tasks') }}</h2><a class="text-sm font-semibold text-brand-700 hover:underline" href="{{ route('planning.my-tasks') }}">{{ __('phase7.see_tasks') }}</a></div>
             <ul class="mt-4 divide-y divide-slate-100">
                 @forelse($tasks['next'] as $task)
@@ -142,7 +142,7 @@
                 @endforelse
             </ul>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+        <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
             <h2 class="section-title">{{ __('phase7.workload_week') }}</h2>
             <ul class="mt-4 space-y-3 text-sm">
                 @forelse($overview['workload'] as $row)

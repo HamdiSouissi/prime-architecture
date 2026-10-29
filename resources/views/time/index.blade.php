@@ -32,7 +32,7 @@
         @else
             <form class="mt-4 space-y-4" method="POST" action="{{ route('time.start') }}" x-data="{ project: '', tasks: @js($taskOptions) }">
                 @csrf
-                <div>
+                <div class="min-w-0">
                     <label for="timer-project" class="billing-label">{{ __('phase7.project') }}</label>
                     <select id="timer-project" name="project_id" x-model="project" required>
                         <option value="">{{ __('phase7.select_project') }}</option>
@@ -41,7 +41,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="timer-task" class="billing-label">{{ __('phase7.task') }}</label>
                     <select id="timer-task" name="task_id">
                         <option value="">{{ __('phase7.no_task') }}</option>
@@ -57,7 +57,7 @@
         <h2 class="section-title">{{ __('phase7.log_time') }}</h2>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" method="POST" action="{{ route('time.store') }}" x-data="{ project: '', tasks: @js($taskOptions) }">
             @csrf
-            <div class="sm:col-span-2">
+            <div class="min-w-0 sm:col-span-2">
                 <label for="entry-project" class="billing-label">{{ __('phase7.project') }}</label>
                 <select id="entry-project" name="project_id" x-model="project" required>
                     <option value="">{{ __('phase7.select_project') }}</option>
@@ -66,7 +66,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="sm:col-span-2">
+            <div class="min-w-0 sm:col-span-2">
                 <label for="entry-task" class="billing-label">{{ __('phase7.task') }}</label>
                 <select id="entry-task" name="task_id">
                     <option value="">{{ __('phase7.no_task') }}</option>
@@ -75,8 +75,8 @@
             </div>
             <x-form-field type="date" name="worked_on" :label="__('common.date')" :value="old('worked_on', today()->toDateString())" required max="{{ today()->toDateString() }}" />
             <x-form-field type="number" name="minutes" :label="__('phase7.minutes')" :help="__('phase7.minutes_hint')" value="{{ old('minutes') }}" min="1" max="1440" required />
-            <label class="sm:col-span-2"><span class="billing-label">{{ __('phase7.note') }}</span><textarea name="note" maxlength="2000" class="w-full">{{ old('note') }}</textarea></label>
-            <label class="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="billable" value="1" @checked(old('billable', true))> {{ __('phase7.billable') }}</label>
+            <label class="min-w-0 sm:col-span-2"><span class="billing-label">{{ __('phase7.note') }}</span><textarea name="note" maxlength="2000" class="w-full">{{ old('note') }}</textarea></label>
+            <label class="flex min-w-0 items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="billable" value="1" @checked(old('billable', true))> {{ __('phase7.billable') }}</label>
             <div class="sm:col-span-2"><x-button type="submit">{{ __('common.save') }}</x-button></div>
         </form>
     </section>
@@ -123,8 +123,8 @@
                                         @csrf @method('PUT')
                                         <x-form-field type="date" name="worked_on" :id="'worked_on_'.$entry->id" :label="__('common.date')" :value="$entry->worked_on->toDateString()" required max="{{ today()->toDateString() }}" />
                                         <x-form-field type="number" name="minutes" :id="'minutes_'.$entry->id" :label="__('phase7.minutes')" :value="$entry->minutes" min="1" max="1440" required />
-                                        <label class="sm:col-span-2"><span class="billing-label">{{ __('phase7.note') }}</span><textarea name="note" maxlength="2000" class="w-full">{{ $entry->note }}</textarea></label>
-                                        <label class="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="billable" value="1" @checked($entry->billable)> {{ __('phase7.billable') }}</label>
+                                        <label class="min-w-0 sm:col-span-2"><span class="billing-label">{{ __('phase7.note') }}</span><textarea name="note" maxlength="2000" class="w-full">{{ $entry->note }}</textarea></label>
+                                        <label class="flex min-w-0 items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="billable" value="1" @checked($entry->billable)> {{ __('phase7.billable') }}</label>
                                         <div class="sm:col-span-2 flex flex-wrap gap-2"><x-button type="submit">{{ __('common.save') }}</x-button></div>
                                     </form>
                                     <form class="mt-2" method="POST" action="{{ route('time.destroy', $entry) }}" data-confirm="{{ __('common.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm)">

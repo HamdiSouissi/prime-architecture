@@ -7,11 +7,11 @@
 @if(session('status'))<x-alert variant="success" class="mb-5">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="mb-5" role="alert"><ul class="list-disc ps-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="grid gap-6 xl:grid-cols-2">
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+    <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
         <h2 class="section-title">{{ __('phase7.default_hourly_cost') }}</h2>
         <form class="mt-5 grid gap-4 sm:grid-cols-2" method="POST" action="{{ route('reports.settings.store') }}">
             @csrf
-            <x-form-field type="date" name="effective_from" :label="__('phase7.effective_from')" :value="today()->toDateString()" required />
+            <x-form-field type="date" name="effective_from" :id="'default-effective-from'" :label="__('phase7.effective_from')" :value="today()->toDateString()" required />
             <x-form-field name="default_hourly_cost" :label="__('phase7.default_hourly_cost')" inputmode="decimal" required />
             <div class="sm:col-span-2"><x-form-field name="label" :label="__('phase7.settings_label')" /></div>
             <div class="sm:col-span-2"><x-button type="submit">{{ __('phase7.add_cost_version') }}</x-button></div>
@@ -29,11 +29,11 @@
             @endforelse
         </ul>
     </section>
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+    <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
         <h2 class="section-title">{{ __('phase7.user_rates') }}</h2>
         <form class="mt-5 grid gap-4 sm:grid-cols-2" method="POST" action="{{ route('reports.settings.rate') }}">
             @csrf
-            <div class="sm:col-span-2">
+            <div class="min-w-0 sm:col-span-2">
                 <label for="rate-user" class="billing-label">{{ __('phase7.collaborator') }}</label>
                 <select id="rate-user" name="user_id" required>
                     @foreach($users as $user)
@@ -41,7 +41,7 @@
                     @endforeach
                 </select>
             </div>
-            <x-form-field type="date" name="effective_from" :label="__('phase7.effective_from')" :value="today()->toDateString()" required />
+            <x-form-field type="date" name="effective_from" :id="'rate-effective-from'" :label="__('phase7.effective_from')" :value="today()->toDateString()" required />
             <x-form-field name="hourly_cost_rate" :label="__('phase7.default_hourly_cost')" inputmode="decimal" required />
             <div class="sm:col-span-2"><x-button type="submit">{{ __('phase7.add_user_rate') }}</x-button></div>
         </form>

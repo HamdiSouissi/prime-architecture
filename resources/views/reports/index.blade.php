@@ -12,7 +12,7 @@
 <form method="GET" action="{{ route('reports.index') }}" class="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:grid-cols-2 lg:grid-cols-5">
     <x-form-field type="date" name="from" :label="__('phase7.from')" :value="$from->toDateString()" />
     <x-form-field type="date" name="to" :label="__('phase7.to')" :value="$to->toDateString()" />
-    <div>
+    <div class="min-w-0">
         <label for="report-client" class="billing-label">{{ __('phase7.client') }}</label>
         <select id="report-client" name="client_id">
             <option value="">{{ __('phase7.all_clients') }}</option>
@@ -21,7 +21,7 @@
             @endforeach
         </select>
     </div>
-    <div>
+    <div class="min-w-0">
         <label for="report-project" class="billing-label">{{ __('phase7.project') }}</label>
         <select id="report-project" name="project_id">
             <option value="">{{ __('phase7.all_projects') }}</option>
