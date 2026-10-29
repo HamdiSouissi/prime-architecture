@@ -106,6 +106,7 @@ class SiteSupervisionService
                 'reference' => $this->nextNumber($locked, 'snags', 'R', 'reference'),
                 'title' => $data['title'],
                 'description' => $this->text($data['description'] ?? null),
+                'internal_notes' => $this->text($data['internal_notes'] ?? null),
                 'location' => $this->text($data['location'] ?? null),
                 'responsible' => $this->text($data['responsible'] ?? null),
                 'severity' => $data['severity'],
@@ -139,6 +140,18 @@ class SiteSupervisionService
             $this->trace($actor, $locked, 'site.snag_updated', ['reference' => $locked->reference]);
 
             return $locked;
+        }, 3);
+    }
+
+    public function updateSnagNotes(Snag $snag, User $actor, ?string $notes): void
+    {
+        DB::transaction(function () use ($snag, $actor, $notes): void {
+            $locked = Snag::query()->lockForUpdate()->findOrFail($snag->id);
+            if ($locked->status === SnagStatus::Validated) {
+                throw ValidationException::withMessages(['snag' => __('phase8.snag_validated_readonly')]);
+            }
+            $locked->update(['internal_notes' => $this->text($notes)]);
+            $this->trace($actor, $locked, 'site.snag_notes_updated', ['reference' => $locked->reference]);
         }, 3);
     }
 

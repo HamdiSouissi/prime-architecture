@@ -56,7 +56,7 @@ la fumée Docker reconstruit l'image avec l'extension GD.
 - **Réserves non paginées** : le registre charge toutes les réserves du projet, filtrage et
   tri compris ; à paginer pour les très gros chantiers.
 - **Visibilité client** : le client lit toutes les réserves du projet, y compris celles
-  rédigées en interne ; aucun champ « note interne » n'existe encore.
+  rédigées en interne ; le champ « notes internes » est masqué au client.
 - **Facteurs d'avancement** : les pondérations par statut sont des conventions de gestion
   (`config/site.php`), à valider par le cabinet avant tout usage contractuel.
 - **Conservation** : aucune purge automatique des photos ni des comptes rendus ; la durée de

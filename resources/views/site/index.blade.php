@@ -169,6 +169,7 @@
                     <select id="snag-report" name="site_report_id"><option value="">{{ __('phase8.no_attachment') }}</option>@foreach($reportOptions as $option)<option value="{{ $option->id }}">{{ $option->number }} — {{ $option->meeting_date->format('d/m/Y') }}</option>@endforeach</select>
                 </div>
                 <label class="block"><span class="billing-label">{{ __('phase8.description') }}</span><textarea name="description" maxlength="5000" rows="2" class="w-full">{{ old('description') }}</textarea></label>
+                <label class="block"><span class="billing-label">{{ __('phase8.internal_snag_notes') }}</span><textarea name="internal_notes" maxlength="5000" rows="2" class="w-full">{{ old('internal_notes') }}</textarea></label>
                 <x-button type="submit">{{ __('phase8.add_snag') }}</x-button>
             </form>
         @endif

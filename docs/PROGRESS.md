@@ -105,4 +105,4 @@ processus prévu ; aucune branche `develop` n'est touchée par cette session.
 
 ## Reprise phase 9
 
-Le catalogue et son historique sont exposés aux administrateurs et architectes ; les métrés utilisent les prix courants et se transfèrent vers des devis brouillon via les services de facturation. Les tests et l’analyse PHP ont réussi en CI sur `98aa667` ; une correction Pint est en cours. La recette humaine FR/AR reste à effectuer. La gestion des notes internes de réserves reste à faire.
+Le catalogue et son historique sont exposés aux administrateurs et architectes ; les métrés utilisent les prix courants et se transfèrent vers des devis brouillon via les services de facturation. Les tests et l’analyse PHP ont réussi en CI sur `98aa667` ; une correction Pint est en cours. La recette humaine FR/AR reste à effectuer. Les notes internes des réserves sont séparées et masquées au client ; des tests de non-divulgation couvrent la page chantier et la sérialisation.

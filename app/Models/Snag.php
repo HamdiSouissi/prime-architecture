@@ -40,7 +40,9 @@ class Snag extends Model
         });
     }
 
-    protected $fillable = ['project_id', 'site_report_id', 'reference', 'title', 'description', 'location', 'responsible', 'severity', 'status', 'due_on', 'fixed_at', 'validated_at', 'validated_by', 'created_by'];
+    protected $fillable = ['project_id', 'site_report_id', 'reference', 'title', 'description', 'internal_notes', 'location', 'responsible', 'severity', 'status', 'due_on', 'fixed_at', 'validated_at', 'validated_by', 'created_by'];
+
+    protected $hidden = ['internal_notes'];
 
     protected function casts(): array
     {

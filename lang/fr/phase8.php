@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'internal_snag_notes' => 'Notes internes (invisibles au client)',
     'site' => 'Chantier',
     'site_intro' => 'Réunions de chantier, avancement, réserves et photos du projet.',
     'back_project' => 'Retour au projet',

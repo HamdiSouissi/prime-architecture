@@ -31,6 +31,16 @@ class SnagController extends Controller
         return back()->with('status', __('phase8.snag_updated'));
     }
 
+    public function notes(Request $request, Project $project, Snag $snag, SiteSupervisionService $service): RedirectResponse
+    {
+        $this->ensureBelongs($project, $snag);
+        Gate::authorize('update', $snag);
+        $data = $request->validate(['internal_notes' => ['nullable', 'string', 'max:5000']]);
+        $service->updateSnagNotes($snag, $request->user(), $data['internal_notes'] ?? null);
+
+        return back()->with('status', __('phase8.snag_updated'));
+    }
+
     public function status(Request $request, Project $project, Snag $snag, SiteSupervisionService $service): RedirectResponse
     {
         $this->ensureBelongs($project, $snag);

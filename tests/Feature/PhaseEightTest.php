@@ -183,6 +183,26 @@ class PhaseEightTest extends TestCase
         app(SiteSupervisionService::class)->transition($snag->fresh() ?? $snag, $architect, SnagStatus::Fixed);
     }
 
+    public function test_internal_snag_notes_are_not_disclosed_to_clients(): void
+    {
+        $this->withoutVite();
+        $project = $this->project();
+        $architect = $this->member($project, 'architect');
+        $client = $this->userWithRole('client');
+        $project->client->update(['user_id' => $client->id]);
+        $this->actingAs($architect)->post(route('site.snags.store', $project), [
+            'title' => 'Fissure', 'severity' => 'major', 'internal_notes' => 'Secret chantier',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $snag = Snag::query()->firstOrFail();
+        $this->assertArrayNotHasKey('internal_notes', $snag->toArray());
+        $this->get(route('site.index', $project))->assertOk()->assertSee('Secret chantier');
+        $this->actingAs($client)->get(route('site.index', $project))->assertOk()->assertSee('Fissure')->assertDontSee('Secret chantier');
+        $this->put(route('site.snags.notes', [$project, $snag]), ['internal_notes' => 'Intrusion'])->assertForbidden();
+        $this->assertSame('Secret chantier', $snag->fresh()->internal_notes);
+        $this->actingAs($architect)->put(route('site.snags.notes', [$project, $snag]), ['internal_notes' => 'Suivi privé'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($client)->get(route('site.index', $project))->assertOk()->assertDontSee('Suivi privé');
+    }
+
     public function test_progress_is_declared_and_compared_with_the_planning(): void
     {
         $this->withoutVite();

@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/projects/{project}/site/reports/{report}', [SiteReportController::class, 'show'])->whereNumber('report')->name('site.reports.show');
         Route::post('/projects/{project}/site/snags', [SnagController::class, 'store'])->name('site.snags.store');
         Route::put('/projects/{project}/site/snags/{snag}', [SnagController::class, 'update'])->whereNumber('snag')->name('site.snags.update');
+        Route::put('/projects/{project}/site/snags/{snag}/notes', [SnagController::class, 'notes'])->name('site.snags.notes');
         Route::post('/projects/{project}/site/snags/{snag}/status', [SnagController::class, 'status'])->whereNumber('snag')->name('site.snags.status');
         Route::delete('/projects/{project}/site/snags/{snag}', [SnagController::class, 'destroy'])->whereNumber('snag')->name('site.snags.destroy');
         Route::post('/projects/{project}/site/photos', [SitePhotoController::class, 'store'])->name('site.photos.store');

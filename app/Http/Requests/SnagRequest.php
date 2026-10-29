@@ -18,6 +18,7 @@ class SnagRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'internal_notes' => ['nullable', 'string', 'max:5000'],
             'location' => ['nullable', 'string', 'max:150'],
             'responsible' => ['nullable', 'string', 'max:150'],
             'severity' => ['required', Rule::enum(SnagSeverity::class)],

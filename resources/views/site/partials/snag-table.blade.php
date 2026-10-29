@@ -20,6 +20,10 @@
                 <td>
                     <span class="block font-semibold">{{ $snag->title }}</span>
                     @if($snag->location)<span class="block text-xs text-slate-500">{{ $snag->location }}</span>@endif
+                    @can('site.view')
+                        @if($snag->internal_notes)<p class="mt-2 text-xs text-slate-600"><strong>{{ __('phase8.internal_snag_notes') }} :</strong> {{ $snag->internal_notes }}</p>@endif
+                        @can('update', $snag)<details class="mt-2"><summary class="cursor-pointer text-xs font-semibold text-brand-700">{{ __('phase8.internal_snag_notes') }}</summary><form method="POST" action="{{ route('site.snags.notes', [$project, $snag]) }}" class="mt-2">@csrf @method('PUT')<label for="snag-notes-{{ $snag->id }}" class="billing-label">{{ __('phase8.internal_snag_notes') }}</label><textarea id="snag-notes-{{ $snag->id }}" name="internal_notes" maxlength="5000" rows="2" class="w-full">{{ $snag->internal_notes }}</textarea><button type="submit" class="text-xs font-semibold text-brand-700 underline">{{ __('common.save') }}</button></form></details>@endcan
+                    @endcan
                 </td>
                 <td>
                     <x-site-badge :tone="match($snag->severity->value) { 'critical' => 'danger', 'major' => 'warning', default => 'neutral' }">{{ __('phase8.severity_'.$snag->severity->value) }}</x-site-badge>
