@@ -28,11 +28,17 @@ class PhaseThreeDemoSeeder extends Seeder
             $client = Client::firstOrCreate(['email' => 'demo-client-'.($index + 1).'@example.test'], ['type' => 'individual', 'name' => $name, 'phone' => '+216'.str_pad((string) (20000001 + $index), 8, '0', STR_PAD_LEFT)]);
             foreach ([1, 2] as $number) {
                 $projectName = 'Démo — Projet '.($index + 1).'-'.$number;
-                if (Project::withTrashed()->where('client_id', $client->id)->where('name', $projectName)->exists()) { continue; }
-                if ($client->trashed()) { continue; }
+                if (Project::withTrashed()->where('client_id', $client->id)->where('name', $projectName)->exists()) {
+                    continue;
+                }
+                if ($client->trashed()) {
+                    continue;
+                }
                 $project = $service->create(['client_id' => $client->id, 'name' => $projectName, 'project_type' => $number === 1 ? 'villa' : 'renovation', 'lead_architect_id' => $architect->id], $architect);
                 $status = $statuses[($index * 2 + $number) % count($statuses)];
-                if ($status !== ProjectStatus::Sketch) { $service->changeStatus($project, $architect, $status, null); }
+                if ($status !== ProjectStatus::Sketch) {
+                    $service->changeStatus($project, $architect, $status, null);
+                }
             }
         }
     }

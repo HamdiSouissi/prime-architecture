@@ -46,7 +46,11 @@ class ClientRequest extends FormRequest
             'whatsapp_phone' => ['nullable', 'string', new TunisianPhoneRule],
             'address' => ['nullable', 'string', 'max:5000'],
             'governorate_id' => ['nullable', 'integer', Rule::exists('governorates', 'id')],
-            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $this->input('governorate_id')), function ($attribute, $value, $fail) { if ($value && ! $this->input('governorate_id')) { $fail(__('phase3.invalid_location')); } }],
+            'delegation_id' => ['nullable', 'integer', Rule::exists('delegations', 'id')->where('governorate_id', $this->input('governorate_id')), function ($attribute, $value, $fail) {
+                if ($value && ! $this->input('governorate_id')) {
+                    $fail(__('phase3.invalid_location'));
+                }
+            }],
             'notes' => ['nullable', 'string', 'max:10000'],
             'user_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
                 if (! User::role('client')->where('is_active', true)->whereKey($value)->exists()) {

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProjectStatus;
 use App\Enums\ProjectType;
-use App\Http\Requests\ProjectRequest;
 use App\Http\Requests\ProjectIndexRequest;
+use App\Http\Requests\ProjectRequest;
 use App\Models\Client;
 use App\Models\Governorate;
 use App\Models\Project;
@@ -33,10 +33,16 @@ class ProjectController extends Controller
             $query->where(fn ($q) => $q->where('reference', 'like', $search)->orWhere('name', 'like', $search)->orWhereHas('client', fn ($c) => $c->where('name', 'like', $search)));
         }
         foreach (['status', 'project_type', 'lead_architect_id', 'governorate_id'] as $field) {
-            if (! empty($data[$field])) { $query->where($field, $data[$field]); }
+            if (! empty($data[$field])) {
+                $query->where($field, $data[$field]);
+            }
         }
-        if (! empty($data['date_from'])) { $query->whereDate('start_date', '>=', $data['date_from']); }
-        if (! empty($data['date_to'])) { $query->whereDate('start_date', '<=', $data['date_to']); }
+        if (! empty($data['date_from'])) {
+            $query->whereDate('start_date', '>=', $data['date_from']);
+        }
+        if (! empty($data['date_to'])) {
+            $query->whereDate('start_date', '<=', $data['date_to']);
+        }
         $query->orderBy($data['sort'] ?? 'updated_at', $data['direction'] ?? 'desc')->orderBy('id');
 
         return view('projects.index', ['projects' => $query->paginate(20)->withQueryString(), 'governorates' => Governorate::orderBy('name_fr')->get(), 'architects' => User::whereIn('id', Project::query()->visibleTo($request->user())->select('lead_architect_id'))->orderBy('name')->get(), 'statuses' => ProjectStatus::cases(), 'types' => ProjectType::cases(), 'kanban' => ($data['view'] ?? '') === 'kanban']);
@@ -61,7 +67,9 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
         $internal = $request->user()->can('viewInternal', $project);
         $project->load(['client', 'leadArchitect', 'governorate', 'delegation']);
-        if ($internal) { $project->load(['members', 'statusHistory.actor', 'notes.author']); }
+        if ($internal) {
+            $project->load(['members', 'statusHistory.actor', 'notes.author']);
+        }
         $users = $request->user()->can('manageTeam', $project) ? User::role(['admin', 'architect', 'collaborator'])->with('roles')->where('is_active', true)->orderBy('name')->get() : collect();
 
         return view('projects.show', ['project' => $project, 'internal' => $internal, 'users' => $users, 'statuses' => ProjectStatus::cases()]);

@@ -111,9 +111,13 @@ class PhaseThreeAccessTest extends TestCase
     {
         $architect = $this->user('architect');
         $client = Client::factory()->create();
-        for ($i = 0; $i < 12; $i++) { $this->project($architect, $client, 'Project '.$i); }
+        for ($i = 0; $i < 12; $i++) {
+            $this->project($architect, $client, 'Project '.$i);
+        }
         $queries = [];
-        DB::listen(function ($query) use (&$queries) { $queries[] = $query->sql; });
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
         $this->actingAs($architect)->get(route('projects.index'))->assertOk();
         $this->assertLessThan(30, count($queries), 'Project list should eager-load related records.');
     }

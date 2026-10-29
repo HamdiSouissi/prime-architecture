@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ClientRequest;
 use App\Http\Requests\ClientIndexRequest;
+use App\Http\Requests\ClientRequest;
 use App\Models\Client;
 use App\Models\Governorate;
 use App\Models\User;
@@ -21,13 +21,19 @@ class ClientController extends Controller
         Gate::authorize('viewAny', Client::class);
         $data = $request->validated();
         $query = Client::query()->with('governorate');
-        if (! empty($data['archived'])) { $query->onlyTrashed(); }
+        if (! empty($data['archived'])) {
+            $query->onlyTrashed();
+        }
         if (! empty($data['search'])) {
             $search = '%'.$data['search'].'%';
             $query->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search)->orWhere('phone', 'like', $search)->orWhere('tax_id', 'like', $search)->orWhere('national_id', 'like', $search));
         }
-        if (! empty($data['type'])) { $query->where('type', $data['type']); }
-        if (! empty($data['governorate_id'])) { $query->where('governorate_id', $data['governorate_id']); }
+        if (! empty($data['type'])) {
+            $query->where('type', $data['type']);
+        }
+        if (! empty($data['governorate_id'])) {
+            $query->where('governorate_id', $data['governorate_id']);
+        }
 
         return view('clients.index', ['clients' => $query->orderBy('name')->paginate(20)->withQueryString(), 'governorates' => Governorate::orderBy('name_fr')->get()]);
     }

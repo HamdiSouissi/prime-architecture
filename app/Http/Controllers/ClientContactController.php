@@ -7,8 +7,8 @@ use App\Models\Client;
 use App\Models\ClientContact;
 use App\Services\ClientAdministration;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ClientContactController extends Controller
 {
