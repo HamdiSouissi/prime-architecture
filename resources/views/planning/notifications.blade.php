@@ -1,0 +1,11 @@
+@extends('layouts.app')
+@section('title', __('phase5.notifications'))
+@section('content')
+<x-card><h1 class="text-2xl font-bold">{{ __('phase5.notifications') }}</h1>
+@if(session('status'))<x-alert>{{ session('status') }}</x-alert>@endif
+<form method="POST" action="{{ route('planning.notifications.preference') }}" class="my-4">@csrf<input type="hidden" name="planning_email_enabled" value="0"><label><input type="checkbox" name="planning_email_enabled" value="1" @checked(auth()->user()->planning_email_enabled)> {{ __('phase5.email_notifications') }}</label> <x-button type="submit">{{ __('common.save') }}</x-button></form>
+<ul>@forelse($notifications as $notification)<li class="border-b py-3">@php($kind = $notification->data['kind'] ?? '')
+@if(in_array($kind, ['assigned', 'comment', 'status'], true)){{ __('phase5.notification_'.$kind) }} @php($task = $tasks->get($notification->data['task_id'] ?? 0)) @if($task)<a href="{{ route('planning.tasks.show', [$task->project_id, $task->id]) }}" class="underline">{{ $task->title }}</a>@endif
+@elseif($kind === 'digest'){{ __('phase5.digest_counts', ['tasks' => $notification->data['task_count'] ?? 0, 'milestones' => $notification->data['milestone_count'] ?? 0]) }}@endif
+<small>{{ $notification->created_at }}</small>@if(! $notification->read_at)<form method="POST" action="{{ route('planning.notifications.read', $notification->id) }}">@csrf<button class="underline">{{ __('phase5.mark_read') }}</button></form>@endif</li>@empty<li>{{ __('phase3.empty') }}</li>@endforelse</ul><div class="mt-4">{{ $notifications->links() }}</div></x-card>
+@endsection

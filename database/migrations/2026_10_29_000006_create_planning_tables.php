@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -113,7 +114,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('id')->primary();
             $table->unsignedBigInteger('revision')->default(0);
         });
-        \Illuminate\Support\Facades\DB::table('planning_calendar_state')->insert(['id' => 1, 'revision' => 0]);
+        DB::table('planning_calendar_state')->insert(['id' => 1, 'revision' => 0]);
         Schema::create('working_calendar_days', function (Blueprint $table) {
             $table->unsignedTinyInteger('iso_weekday')->primary();
             $table->boolean('is_working');

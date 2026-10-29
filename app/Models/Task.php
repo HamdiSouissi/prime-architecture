@@ -13,7 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/** @property TaskStatus $status @property TaskPriority $priority */
+/**
+ * @property TaskStatus $status
+ * @property TaskPriority $priority
+ * @property \Carbon\CarbonImmutable|null $start_date
+ * @property \Carbon\CarbonImmutable|null $due_date
+ */
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */

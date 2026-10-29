@@ -43,7 +43,7 @@ class SendPlanningDigests extends Command
                     continue;
                 }
                 try {
-                    $user->notify(new PlanningDigestNotification($today->toDateString(), $tasks, $milestones));
+                    $user->notify((new PlanningDigestNotification($today->toDateString(), $tasks, $milestones))->locale($user->locale));
                     DB::table('planning_daily_digests')->where('user_id', $user->id)->where('digest_date', $today->toDateString())->update(['status' => 'sent', 'updated_at' => now()]);
                 } catch (Throwable $error) {
                     $errors++;

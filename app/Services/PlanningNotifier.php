@@ -20,7 +20,7 @@ class PlanningNotifier
             }
             $sent[$user->id] = true;
             try {
-                $user->notify(new PlanningEventNotification($task, $kind));
+                $user->notify((new PlanningEventNotification($task, $kind))->locale($user->locale));
             } catch (Throwable $error) {
                 // Do not roll back an already committed task when delivery fails.
                 report($error);

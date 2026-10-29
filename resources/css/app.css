@@ -3,3 +3,6 @@
 @tailwind utilities;
 
 [x-cloak] { display: none !important; }
+
+/* Local today indicator: Community Gantt has no marker plugin. */
+.gantt_task_cell.planning-today { background-color: #fef3c7; }

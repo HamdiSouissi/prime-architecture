@@ -48,7 +48,7 @@ class PlanningTaskController extends Controller
             $task->load(['assignees', 'predecessors', 'comments.author']);
         }
         $canUpdate = $request->user()->can('update', $task);
-        $candidates = $canUpdate ? Task::query()->visibleTo($request->user())->where('project_id', $project->id)->whereKeyNot($task->id)->orderBy('title')->get(['id', 'title']) : collect();
+        $candidates = $canUpdate ? Task::query()->visibleTo($request->user())->where('project_id', $project->id)->where('id', '!=', $task->id)->orderBy('title')->get(['id', 'title']) : collect();
 
         return view('planning.task-show', compact('project', 'task', 'internal', 'canUpdate', 'candidates'));
     }

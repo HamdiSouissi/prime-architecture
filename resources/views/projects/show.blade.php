@@ -6,6 +6,7 @@
 @if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="my-3"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="my-4 flex flex-wrap gap-3 border-b border-slate-200" role="tablist">
+@can('viewAny', [\App\Models\Task::class, $project])<a href="{{ route('planning.index', $project) }}" class="underline">{{ __('phase5.planning') }}</a>@endcan
 @can('viewAny', [\App\Models\Document::class, $project])<a href="{{ route('documents.index', $project) }}" class="underline">{{ __('phase4.documents') }}</a>@endcan
 <button type="button" role="tab" :aria-selected="tab === 'overview'" @click="tab = 'overview'">{{ __('phase3.overview') }}</button>
 @if($internal)@foreach(['team', 'history', 'internal_notes'] as $tab)<button type="button" role="tab" :aria-selected="tab === '{{ $tab }}'" @click="tab = '{{ $tab }}'">{{ __('phase3.'.$tab) }}</button>@endforeach @endif

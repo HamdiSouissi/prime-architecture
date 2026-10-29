@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Milestone;
-use App\Models\Project;
 use App\Models\User;
 use App\Notifications\PlanningDigestNotification;
 use App\Notifications\PlanningEventNotification;
