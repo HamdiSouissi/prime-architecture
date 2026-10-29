@@ -12,6 +12,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\TaxSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class BillingWebTest extends TestCase
@@ -37,6 +38,11 @@ class BillingWebTest extends TestCase
         $this->assertSame('119.000', $quote->total_ttc);
         $this->get(route('billing.quotes.show', $quote))->assertOk()->assertSee('Architecture');
         $this->post(route('billing.quotes.issue', $quote))->assertSessionHasNoErrors();
+        config(['billing.pdf_token' => str_repeat('a', 32), 'billing.pdf_url' => 'http://pdf:3000']);
+        Http::fake(['http://pdf:3000/render' => Http::response('%PDF-1.7 test', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->get(route('billing.quotes.pdf', [$quote, 'ar']))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        Http::assertSent(fn ($request) => str_contains($request->body(), 'lang=\"ar\"') && str_contains($request->body(), 'dir=\"rtl\"'));
+
         $this->put(route('billing.quotes.update', $quote), $input)->assertForbidden();
         $this->post(route('billing.quotes.decide', $quote), ['status' => 'accepted'])->assertSessionHasNoErrors();
         $this->assertSame(QuoteStatus::Accepted, $quote->fresh()->status);
@@ -50,6 +56,7 @@ class BillingWebTest extends TestCase
         $project->client->update(['user_id' => $external->id]);
         $this->actingAs($external)->get(route('billing.index'))->assertForbidden();
         $this->get(route('billing.quotes.show', $quote))->assertForbidden();
+        $this->get(route('billing.quotes.pdf', [$quote, 'ar']))->assertForbidden();
         $this->get(route('billing.invoices.show', $invoice))->assertForbidden();
         $this->postJson(route('billing.quotes.preview', $project), $input)->assertForbidden();
     }

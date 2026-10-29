@@ -90,10 +90,10 @@ class BillingSettingsController extends Controller
 
         return back()->with('status', __('phase6.saved'));
     }
+
     private function lockSettings(): void
     {
         DB::table('billing_number_counters')->insertOrIgnore(['document_type' => 'tax_config', 'year' => 0, 'last_number' => 0]);
         DB::table('billing_number_counters')->where('document_type', 'tax_config')->where('year', 0)->lockForUpdate()->firstOrFail();
     }
-
 }

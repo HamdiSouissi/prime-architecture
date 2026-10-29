@@ -126,4 +126,9 @@ return [
     'profile_history' => 'نسخ بيانات المكتب',
     'format_history' => 'الصيغ المسجلة',
     'no_config' => 'لا توجد نسخة.',
+    'client' => 'الحريف',
+    'pdf' => 'PDF',
+    'language_fr' => 'الفرنسية',
+    'language_ar' => 'العربية',
+    'pdf_unavailable' => 'خدمة PDF غير متاحة أو لم يتم إعدادها.',
 ];

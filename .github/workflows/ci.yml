@@ -94,6 +94,7 @@ jobs:
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: CI-admin-password-123
       PASSWORD_CHECK_COMPROMISED: 'false'
+      BILLING_PDF_TOKEN: 'ci-only-pdf-renderer-token-at-least-32-characters'
     steps:
       - uses: actions/checkout@v4
       - name: Build and start services
@@ -135,6 +136,26 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php artisan db:seed --class=WorkingCalendarSeeder --force
           npm run test:planning-ui
+      - name: Generate and inspect French and Arabic billing PDFs
+        run: |
+          docker compose --profile pdf up -d --build pdf
+          docker compose exec -T -u www-data app php tests/smoke/generate_billing_pdf.php
+          docker compose cp app:/var/www/html/storage/app/private/ci-quote-fr.pdf ci-quote-fr.pdf
+          docker compose cp app:/var/www/html/storage/app/private/ci-quote-ar.pdf ci-quote-ar.pdf
+          pdfinfo ci-quote-fr.pdf | grep -q 'Pages:'
+          pdfinfo ci-quote-ar.pdf | grep -q 'Pages:'
+          pdffonts ci-quote-fr.pdf | grep -qi 'Inter'
+          pdffonts ci-quote-ar.pdf | grep -qi 'Cairo'
+          pdftotext ci-quote-ar.pdf ci-quote-ar.txt
+          python3 -c "import pathlib; s=pathlib.Path('ci-quote-ar.txt').read_text(); assert any('\u0600' <= c <= '\u06ff' for c in s), 'Arabic text missing'"
+          pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-fr.pdf ci-quote-fr
+          pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-ar.pdf ci-quote-ar
+      - name: Export French PDF visual diagnostic
+        run: |
+          base64 -w 0 ci-quote-fr.jpg | fold -w 3000 | awk '{printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF visual diagnostic
+        run: |
+          base64 -w 0 ci-quote-ar.jpg | fold -w 3000 | awk '{printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
       - name: Verify development scheduler container
         run: |
           docker compose --profile scheduler up -d scheduler

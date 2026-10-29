@@ -10,9 +10,9 @@ use App\Models\Project;
 use App\Models\Quote;
 use App\Services\BillingCalculation;
 use App\Services\InvoiceService;
+use App\Services\QuoteService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
-use App\Services\QuoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,12 +70,29 @@ class BillingController extends Controller
         return view('billing.form', compact('project', 'document', 'type', 'settings', 'rates', 'withholdings', 'lines'));
     }
 
-    public function preview(BillingDocumentRequest $request): JsonResponse
+    public function previewQuote(BillingDocumentRequest $request, Project $project): JsonResponse
+    {
+        return $this->calculatePreview($request, $project, 'quote');
+    }
+
+    public function previewInvoice(BillingDocumentRequest $request, Project $project): JsonResponse
+    {
+        return $this->calculatePreview($request, $project, 'invoice');
+    }
+
+    public function previewQuoteEdit(BillingDocumentRequest $request, Quote $quote): JsonResponse
+    {
+        return $this->calculatePreview($request, $quote->project, 'quote');
+    }
+
+    public function previewInvoiceEdit(BillingDocumentRequest $request, Invoice $invoice): JsonResponse
+    {
+        return $this->calculatePreview($request, $invoice->project, 'invoice');
+    }
+
+    private function calculatePreview(BillingDocumentRequest $request, Project $project, string $type): JsonResponse
     {
         $data = $request->validated();
-        $document = $request->route('quote') ?? $request->route('invoice');
-        $project = $request->route('project') ?? $document->project;
-        $type = $request->routeIs('billing.quotes.*') ? 'quote' : 'invoice';
         $result = app(BillingCalculation::class)->calculate($project, CarbonImmutable::parse($data['document_date']), array_values($data['lines']), $data['discount_percent'], isset($data['withholding_rate_id']) ? (int) $data['withholding_rate_id'] : null, $type, false);
 
         return response()->json($result['totals']);

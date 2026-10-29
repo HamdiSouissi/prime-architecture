@@ -7,6 +7,7 @@
 @if(session('status'))<x-alert class="mb-4">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="mb-5"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="mb-5 flex flex-wrap gap-3">
+@if($document->issued_at)@foreach(['fr', 'ar'] as $language)<a href="{{ route('billing.'.$kind.'.pdf', [$document, $language]) }}" class="inline-flex min-h-11 items-center rounded-xl border border-slate-300 bg-white px-4 font-semibold text-ink hover:bg-slate-50">{{ __('phase6.pdf') }} · {{ __('phase6.language_'.$language) }}</a>@endforeach @endif
 @can('update', $document)<a href="{{ route('billing.'.$kind.'.edit', $document) }}" class="inline-flex min-h-11 items-center rounded-xl border border-slate-300 bg-white px-4 font-semibold text-ink hover:bg-slate-50">{{ __('common.edit') }}</a>@endcan
 @can('issue', $document)<form action="{{ route('billing.'.$kind.'.issue', $document) }}" method="POST" data-confirm="{{ __('phase6.issue_confirm') }}" onsubmit="return confirm(this.dataset.confirm)">@csrf<x-button type="submit">{{ __('phase6.issue') }}</x-button></form>@endcan
 @if($type === 'quote')

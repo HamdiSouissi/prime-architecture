@@ -126,4 +126,9 @@ return [
     'profile_history' => 'Versions du profil',
     'format_history' => 'Formats existants',
     'no_config' => 'Aucune version.',
+    'client' => 'Client',
+    'pdf' => 'PDF',
+    'language_fr' => 'Français',
+    'language_ar' => 'Arabe',
+    'pdf_unavailable' => 'Le service PDF est indisponible ou non configuré.',
 ];

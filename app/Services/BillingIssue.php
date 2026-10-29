@@ -7,8 +7,8 @@ use App\Enums\QuoteStatus;
 use App\Models\Invoice;
 use App\Models\Quote;
 use Carbon\CarbonImmutable;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BillingIssue
 {

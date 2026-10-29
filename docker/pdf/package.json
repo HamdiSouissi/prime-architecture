@@ -1,0 +1,7 @@
+{
+  "name": "archi-private-pdf-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": { "playwright-core": "1.64.1" }
+}
