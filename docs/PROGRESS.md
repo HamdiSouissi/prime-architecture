@@ -30,7 +30,8 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
 | 10 | Permis et urbanisme | Dossiers, étapes, documents et rappels développés ; recette humaine à réaliser |
 | 11 | Portail client | En cours : périmètre de base développé, recette et vérifications à poursuivre |
-| 12–14 | PWA, sauvegardes, recette | Non commencées |
+| 12 | PWA et hors-ligne | Socle installable et page hors-ligne publique ; synchronisation et coffre chiffré non réalisés |
+| 13–14 | Sauvegardes et recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
@@ -120,8 +121,7 @@ un rappel par jour et par utilisateur, limité aux 500 premières étapes. Aucun
 n'est envoyé et la date du dossier ne déclenche pas de rappel sans étape correspondante.
 L'accès courant est revérifié à l'affichage. Tests automatisés des droits, du rattachement
 entre projets, de la déduplication et du retrait des droits ; audits navigateur FR/AR des
-pages de dossier sur bureau et mobile. Recette humaine toujours nécessaire. Les phases
-11 à 14 restent à développer.
+pages de dossier sur bureau et mobile. Recette humaine toujours nécessaire.
 
 ## Reprise phase 11
 
@@ -129,6 +129,12 @@ Accès client par `client_portal_access`, sans retirer le lien existant `clients
 seul un administrateur attribue explicitement l'accès financier. La révocation supprime
 également le lien historique. Portail, dépôt privé via `DocumentAdministration` et
 commentaires existants, consultation des documents financiers émis et PDF. Tests de
-cloisonnement et CI verte sur `9c23986` ; audit navigateur spécifique au client ajouté
-après ce commit, à vérifier. Pas de validation client des devis. Aucun antivirus n'est
+cloisonnement et CI verte sur `1afbece`, audit navigateur spécifique au client FR/AR sur mobile et bureau inclus. Pas de validation client des devis. Aucun antivirus n'est
 installé. Recette humaine et tests de bout en bout complémentaires à réaliser.
+
+## Reprise phase 12
+
+Manifeste et service worker : seul un écran hors-ligne public est mis en cache ; les
+réponses authentifiées ne le sont jamais. La consultation de données privées hors
+ligne, le coffre chiffré et les écritures/synchronisations ne sont **pas implémentés**.
+Ils restent à construire et tester avant d'annoncer la PWA hors ligne fonctionnelle.

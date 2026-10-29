@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#4338ca">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <title>{{ $__env->yieldContent('title', __('common.app_name')) }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

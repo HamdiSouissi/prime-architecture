@@ -412,3 +412,10 @@ nouveau document, soumis à l'inspection habituelle et conservé sur le disque p
 Cette inspection n'est pas un antivirus. Après migration, resynchroniser les rôles
 (`php artisan db:seed --class=RolePermissionSeeder`). Recette humaine, sécurité et
 accessibilité restent à vérifier ; limites PDF arabe déjà documentées en phase 6.
+
+## Phase 12 — PWA (socle seulement)
+
+Un manifeste permet l'installation et un service worker affiche un message public en
+cas de perte de réseau, sans mettre en cache les pages ou données privées. Le coffre
+local chiffré et la consultation, la saisie et la synchronisation hors ligne ne sont
+**pas encore disponibles**.
