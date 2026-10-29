@@ -87,7 +87,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/offline/projects', [OfflineProgressController::class, 'projects'])->name('offline.projects');
         Route::post('/offline/projects/{project}/progress', [OfflineProgressController::class, 'store'])->name('offline.progress.store');
+        Route::get('/offline/projects/{project}/snags', [OfflineSnagController::class, 'snapshot'])->name('offline.snags.snapshot');
         Route::post('/offline/projects/{project}/snags', [OfflineSnagController::class, 'store'])->name('offline.snags.store');
+        Route::put('/offline/projects/{project}/snags/{snag}', [OfflineSnagController::class, 'update'])->name('offline.snags.update');
         Route::post('/offline/projects/{project}/photos', [OfflinePhotoController::class, 'store'])->name('offline.photos.store');
 
         Route::get('/projects/{project}/site', [SiteController::class, 'index'])->name('site.index');

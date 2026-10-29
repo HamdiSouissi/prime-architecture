@@ -56,6 +56,20 @@ try {
     assert.equal(await page.getByText('SECRET-RELEVE-CI').count(), 0);
     assert.equal(await page.getByText('NOTE-INTERNE-CI').count(), 0);
     assert.equal(await page.getByText('PHOTO-SECRET-CI').count(), 0);
+    await page.locator('#prepare-snags').click();
+    await page.getByText('Réserves préparées.', { exact: false }).waitFor();
+    await context.setOffline(true);
+    await page.locator('#edit-snag').selectOption({ label: /RESERVE-PRIVEE-CI/ });
+    await page.locator('#edit-title').fill('RESERVE-MODIFIEE-CI');
+    await page.locator('#edit-internal').fill('NOTE-MODIFIEE-CI');
+    await page.locator('#edit-snag-form button[type=submit]').click();
+    await page.getByText('Modification chiffrée enregistrée.', { exact: false }).waitFor();
+    await context.setOffline(false);
+    await page.locator('#sync').click();
+    await page.getByText('Synchronisation terminée.', { exact: false }).waitFor();
+    await page.locator('#prepare-snags').click();
+    await page.getByText('Réserves préparées.', { exact: false }).waitFor();
+    await page.locator('#snapshot-list').getByText('NOTE-MODIFIEE-CI', { exact: false }).waitFor();
     console.log('Encrypted progress draft survives offline reload and syncs after reconnecting.');
 } finally {
     await browser.close();

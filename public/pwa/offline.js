@@ -53,17 +53,20 @@ async function save() {
 }
 function status(message, error = false) { $('status').textContent = message; $('status').className = error ? 'error' : ''; }
 function draw() {
-    for (const [id, permission] of [['project', 'can_progress'], ['snag-project', 'can_snag'], ['photo-project', 'can_photo']]) {
+    for (const [id, permission] of [['project', 'can_progress'], ['snag-project', 'can_snag'], ['photo-project', 'can_photo'], ['snapshot-project', 'can_snag']]) {
         const select = $(id);
+        const selected = select.value;
         select.replaceChildren();
         for (const project of vault.projects.filter(item => item[permission])) {
             const opt = document.createElement('option'); opt.value = String(project.id); opt.textContent = `${project.reference} — ${project.name}`; select.append(opt);
         }
+        if ([...select.options].some(option => option.value === selected)) select.value = selected;
     }
+    drawSnapshots();
     const list = $('drafts'); list.replaceChildren();
     for (const draft of vault.drafts) {
         const li = document.createElement('li');
-        li.textContent = draft.kind === 'photo' ? `${draft.project_name} — Photo — ${draft.caption || ''}` : draft.kind === 'snag' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}` : `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
+        li.textContent = draft.kind === 'snag_edit' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}` : draft.kind === 'photo' ? `${draft.project_name} — Photo — ${draft.caption || ''}` : draft.kind === 'snag' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}` : `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
         const button = document.createElement('button'); button.className = 'secondary'; button.type = 'button'; button.textContent = 'Supprimer / حذف';
         button.onclick = async () => {
             if (!confirm('Supprimer ce relevé local ? / حذف التقرير المحلي؟')) return;
@@ -84,6 +87,7 @@ $('unlock').onclick = async () => {
         const record = await read(); salt = record ? new Uint8Array(record.salt) : random(16);
         key = await derive($('secret').value, salt); $('secret').value = '';
         vault = record ? JSON.parse(dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: record.iv, additionalData: enc.encode('archi-vault-v1') }, key, record.cipher))) : { owner_id: null, projects: [], drafts: [] };
+        vault.snapshots ??= {};
         version = record?.version ?? null;
         if (!record) await save();
         $('workspace').hidden = false; draw(); status('Coffre ouvert. / تم فتح الخزنة.');
@@ -101,9 +105,55 @@ $('draft-form').onsubmit = async event => {
     event.preventDefault();
     const project = vault.projects.find(item => String(item.id) === $('project').value);
     const value = $('percent').value;
-    if (!project || vault.drafts.some(item => item.project_id === project.id && item.kind !== 'snag') || !/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(value) || Number(value) > 100) { status('Projet invalide ou relevé déjà en attente. / مشروع غير صالح أو تقرير قيد الانتظار.', true); return; }
+    if (!project || vault.drafts.some(item => item.project_id === project.id && (item.kind === 'progress' || !item.kind)) || !/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(value) || Number(value) > 100) { status('Projet invalide ou relevé déjà en attente. / مشروع غير صالح أو تقرير قيد الانتظار.', true); return; }
     vault.drafts.push({ kind: 'progress', operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id, project_name: project.name, base_revision: project.base_revision, recorded_on: $('recorded').value, percent: value, note: $('note').value, conflict: false });
     try { await save(); $('note').value = ''; draw(); status('Relevé chiffré enregistré sur cet appareil. / حُفظ التقرير مشفّراً على الجهاز.'); }
+    catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
+};
+function drawSnapshots() {
+    const current = $('snapshot-project').value;
+    const rows = vault.snapshots?.[current] || [];
+    const list = $('snapshot-list'); list.replaceChildren();
+    const select = $('edit-snag'); select.replaceChildren();
+    for (const item of rows) {
+        const li = document.createElement('li');
+        li.textContent = `${item.reference} — ${item.title} — ${item.status} — ${item.description || ''} — ${item.internal_notes || ''}`;
+        list.append(li);
+        if (item.can_edit) { const option = document.createElement('option'); option.value = String(item.id); option.textContent = `${item.reference} — ${item.title}`; select.append(option); }
+    }
+    fillEdit();
+}
+function fillEdit() {
+    const rows = vault.snapshots?.[$('snapshot-project').value] || [];
+    const item = rows.find(row => String(row.id) === $('edit-snag').value);
+    for (const [field, name] of [['edit-title', 'title'], ['edit-severity', 'severity'], ['edit-description', 'description'], ['edit-location', 'location'], ['edit-responsible', 'responsible'], ['edit-due', 'due_on'], ['edit-internal', 'internal_notes']]) $(field).value = item?.[name] || '';
+}
+$('snapshot-project').onchange = drawSnapshots;
+$('edit-snag').onchange = fillEdit;
+$('prepare-snags').onclick = async () => {
+    try {
+        const project = vault.projects.find(item => String(item.id) === $('snapshot-project').value && item.can_snag);
+        if (!project) throw new Error('project');
+        const current = await session();
+        if (current.owner_id !== vault.owner_id) throw new Error('owner');
+        const response = await fetch(`/offline/projects/${project.id}/snags`, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('snapshot');
+        const data = await response.json();
+        if (data.owner_id !== vault.owner_id || data.project_id !== project.id) throw new Error('owner');
+        vault.snapshots[String(project.id)] = data.snags;
+        await save(); draw(); status(data.truncated ? 'Réserves préparées : liste limitée à 500. / القائمة محدودة بـ 500.' : 'Réserves préparées. / تم تحضير الملاحظات.');
+    } catch { status('Préparation impossible. / تعذر التحضير.', true); }
+};
+$('edit-snag-form').onsubmit = async event => {
+    event.preventDefault();
+    const project = vault.projects.find(item => String(item.id) === $('snapshot-project').value && item.can_snag);
+    const snag = (vault.snapshots?.[$('snapshot-project').value] || []).find(item => String(item.id) === $('edit-snag').value && item.can_edit);
+    if (!project || !snag || vault.drafts.some(item => item.kind === 'snag_edit' && item.snag_id === snag.id)) { status('Réserve invalide ou déjà en attente. / ملاحظة غير صالحة أو قيد الانتظار.', true); return; }
+    vault.drafts.push({ kind: 'snag_edit', operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id,
+        project_name: project.name, snag_id: snag.id, base_revision: snag.revision, title: $('edit-title').value,
+        severity: $('edit-severity').value, description: $('edit-description').value || null, location: $('edit-location').value || null,
+        responsible: $('edit-responsible').value || null, due_on: $('edit-due').value || null, internal_notes: $('edit-internal').value || null, conflict: false });
+    try { await save(); draw(); status('Modification chiffrée enregistrée. / حُفظ التعديل مشفّراً.'); }
     catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
 };
 $('snag-form').onsubmit = async event => {
@@ -138,7 +188,7 @@ $('sync').onclick = async () => {
         if (current.owner_id !== vault.owner_id) throw new Error('owner');
         for (const draft of [...vault.drafts]) {
             if (draft.conflict) continue;
-            const endpoint = draft.kind === 'photo' ? 'photos' : draft.kind === 'snag' ? 'snags' : 'progress';
+            const endpoint = draft.kind === 'photo' ? 'photos' : draft.kind === 'snag_edit' ? `snags/${draft.snag_id}` : draft.kind === 'snag' ? 'snags' : 'progress';
             const headers = { Accept: 'application/json', 'X-CSRF-TOKEN': current.csrf_token };
             let body;
             if (draft.kind === 'photo') {
@@ -151,13 +201,14 @@ $('sync').onclick = async () => {
             } else {
                 headers['Content-Type'] = 'application/json'; body = JSON.stringify(draft);
             }
-            const response = await fetch(`/offline/projects/${draft.project_id}/${endpoint}`, { method: 'POST', credentials: 'same-origin', headers, body });
+            const response = await fetch(`/offline/projects/${draft.project_id}/${endpoint}`, { method: draft.kind === 'snag_edit' ? 'PUT' : 'POST', credentials: 'same-origin', headers, body });
             if (response.status === 409) { draft.conflict = true; await save(); continue; }
             if (!response.ok) throw new Error('sync');
             const result = await response.json();
             vault.drafts = vault.drafts.filter(item => item.operation_id !== draft.operation_id);
             const project = vault.projects.find(item => item.id === draft.project_id);
-            if (project && draft.kind !== 'snag' && draft.kind !== 'photo') project.base_revision = result.id;
+            if (project && (draft.kind === 'progress' || !draft.kind)) project.base_revision = result.id;
+            if (draft.kind === 'snag_edit') vault.snapshots[String(draft.project_id)] = (vault.snapshots[String(draft.project_id)] || []).filter(item => item.id !== draft.snag_id);
             await save();
         }
         draw(); status('Synchronisation terminée. Vérifiez les éventuels conflits. / انتهت المزامنة. تحقق من التعارضات.');
