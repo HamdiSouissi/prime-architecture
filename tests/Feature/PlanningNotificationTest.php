@@ -68,6 +68,10 @@ class PlanningNotificationTest extends TestCase
         $this->actingAs($member)->get(route('planning.notifications'))->assertOk()->assertSee('Private title');
         $digest = new PlanningDigestNotification(now()->toDateString(), [['id' => $task->id, 'project_id' => $project->id]], []);
         $this->assertStringContainsString('Private title', implode(' ', $digest->toMail($member)->introLines));
+        $task->update(['title' => '![](https://example.com/pixel) <script>']);
+        $rendered = $digest->toMail($member)->render();
+        $this->assertStringNotContainsString('<script>', $rendered);
+        $this->assertStringNotContainsString('<img src="https://example.com/pixel', $rendered);
         $this->post(route('planning.notifications.preference'), ['planning_email_enabled' => '0'])->assertSessionHasNoErrors();
         $this->assertFalse($member->fresh()->planning_email_enabled);
         $project->members()->detach($member->id);

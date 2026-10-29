@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Support\PlanningMailText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -26,6 +27,6 @@ class PlanningEventNotification extends Notification
 
     public function toMail(User $notifiable): MailMessage
     {
-        return (new MailMessage)->subject(__('phase5.notification_subject'))->line(__('phase5.notification_'.$this->kind))->line($this->task->title)->action(__('phase5.task'), route('planning.tasks.show', [$this->task->project_id, $this->task->id]));
+        return (new MailMessage)->subject(__('phase5.notification_subject'))->line(__('phase5.notification_'.$this->kind))->line(PlanningMailText::escape($this->task->title))->action(__('phase5.task'), route('planning.tasks.show', [$this->task->project_id, $this->task->id]));
     }
 }
