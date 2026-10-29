@@ -69,14 +69,16 @@
         <section class="mt-8 grid gap-6 xl:grid-cols-2">
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                 <h2 class="section-title">{{ __('phase7.billed') }} / {{ __('phase7.collected') }}</h2>
-                <table class="mt-4 w-full text-sm">
-                    <thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.period_label') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
-                    <tbody>
-                    @foreach(['month' => __('phase7.month'), 'quarter' => __('phase7.quarter'), 'year' => __('phase7.year')] as $key => $label)
-                        <tr><th scope="row" class="font-semibold">{{ $label }}</th><td class="text-end" dir="ltr">{{ $financial['periods'][$key]['billed'] }} TND</td><td class="text-end" dir="ltr">{{ $financial['periods'][$key]['collected'] }} TND</td></tr>
-                    @endforeach
-                    </tbody>
-                </table>
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.period_label') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
+                        <tbody>
+                        @foreach(['month' => __('phase7.month'), 'quarter' => __('phase7.quarter'), 'year' => __('phase7.year')] as $key => $label)
+                            <tr><th scope="row" class="font-semibold">{{ $label }}</th><td class="text-end" dir="ltr"><span class="block">{{ $financial['periods'][$key]['billed'] }}</span><span class="block text-xs text-slate-500">TND</span></td><td class="text-end" dir="ltr"><span class="block">{{ $financial['periods'][$key]['collected'] }}</span><span class="block text-xs text-slate-500">TND</span></td></tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
                 <a class="mt-4 inline-block text-sm font-semibold text-brand-700 hover:underline" href="{{ route('billing.index') }}">{{ __('phase7.see_billing') }} <span aria-hidden="true" class="inline-block rtl:rotate-180">→</span></a>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
@@ -100,9 +102,9 @@
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
-                        <table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.month') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
+                        <div class="overflow-x-auto"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.month') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
                             <tbody>@foreach($trend['labels'] as $index => $label)<tr><th scope="row" class="font-semibold">{{ $label }}</th><td class="text-end" dir="ltr">{{ number_format($trend['billed'][$index], 3, ',', ' ') }}</td><td class="text-end" dir="ltr">{{ number_format($trend['collected'][$index], 3, ',', ' ') }}</td></tr>@endforeach</tbody>
-                        </table>
+                        </table></div>
                     </details>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
@@ -116,9 +118,9 @@
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
-                        <table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.label') }}</th><th scope="col" class="text-end">{{ __('phase7.count') }}</th></tr></thead>
+                        <div class="overflow-x-auto"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.label') }}</th><th scope="col" class="text-end">{{ __('phase7.count') }}</th></tr></thead>
                             <tbody>@foreach($overview['projects_by_status'] as $status => $total)<tr><th scope="row" class="font-semibold">{{ __('phase3.'.$status) }}</th><td class="text-end">{{ $total }}</td></tr>@endforeach</tbody>
-                        </table>
+                        </table></div>
                     </details>
                 </div>
             </section>

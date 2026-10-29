@@ -120,10 +120,7 @@ class DashboardService
         return BillingDecimal::round((string) $total);
     }
 
-    /**
-     * @param  Builder<Project>  $projectIds
-     * @return \Illuminate\Database\Query\Builder
-     */
+    /** @param Builder<Project> $projectIds */
     private function balanceQuery(Builder $projectIds): \Illuminate\Database\Query\Builder
     {
         $paid = DB::table('payments')->selectRaw('invoice_id, COALESCE(SUM(amount), 0) AS paid')->groupBy('invoice_id');
