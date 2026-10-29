@@ -107,18 +107,24 @@ class PhaseThreeAccessTest extends TestCase
         $this->assertDatabaseHas('client_contacts', ['client_id' => $company->id, 'name' => 'Second', 'is_primary' => 1]);
     }
 
-    public function test_dashboard_and_project_list_do_not_issue_queries_per_row(): void
+    public function test_project_list_query_count_does_not_grow_with_rows(): void
     {
         $architect = $this->user('architect');
         $client = Client::factory()->create();
-        for ($i = 0; $i < 12; $i++) {
-            $this->project($architect, $client, 'Project '.$i);
-        }
+        $this->project($architect, $client, 'Project first');
         $queries = [];
         DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
-        $this->actingAs($architect)->get(route('projects.index'))->assertOk();
-        $this->assertLessThan(30, count($queries), 'Project list should eager-load related records.');
+        $this->actingAs($architect)->get(route('projects.index'))->assertOk(); // Warm authorization caches.
+        $queries = [];
+        $this->get(route('projects.index'))->assertOk();
+        $oneRowQueries = count($queries);
+        for ($i = 0; $i < 14; $i++) {
+            $this->project($architect, $client, 'Project '.$i);
+        }
+        $queries = [];
+        $this->get(route('projects.index'))->assertOk();
+        $this->assertLessThanOrEqual($oneRowQueries + 1, count($queries), 'Project list should not issue queries per row.');
     }
 }

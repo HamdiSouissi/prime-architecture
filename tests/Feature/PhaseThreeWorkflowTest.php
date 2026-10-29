@@ -107,16 +107,22 @@ class PhaseThreeWorkflowTest extends TestCase
         $this->assertGreaterThan(1, Project::query()->distinct()->count('status'));
     }
 
-    public function test_client_list_does_not_issue_queries_per_row(): void
+    public function test_client_list_query_count_does_not_grow_with_rows(): void
     {
         $actor = $this->user('architect');
-        Client::factory()->count(15)->create();
+        Client::factory()->create();
         $queries = [];
         DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
-        $this->actingAs($actor)->get(route('clients.index'))->assertOk();
-        $this->assertLessThan(30, count($queries));
+        $this->actingAs($actor)->get(route('clients.index'))->assertOk(); // Warm authorization caches.
+        $queries = [];
+        $this->get(route('clients.index'))->assertOk();
+        $oneRowQueries = count($queries);
+        Client::factory()->count(14)->create();
+        $queries = [];
+        $this->get(route('clients.index'))->assertOk();
+        $this->assertLessThanOrEqual($oneRowQueries + 1, count($queries), 'Client list should not issue queries per row.');
     }
 
     public function test_admin_can_manage_projects_and_sort_by_client_name(): void
