@@ -72,10 +72,14 @@ jobs:
             head -c 8000 pint-result.json
             echo
             echo "::error title=Pint::$(head -c 4000 pint-result.json | tr '\r\n' '  ')"
-            vendor/bin/pint --format=json
-            python3 -c 'import subprocess; p=subprocess.check_output(["git", "diff"], text=True); print("::notice title=Pint patch::" + p.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
             exit 1
           fi
+      - name: Produce Pint diagnostic patch
+        if: steps.formatting.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          vendor/bin/pint --format=json || true
+          python3 -c 'import subprocess; p=subprocess.check_output(["git", "diff"], text=True); print("::error title=Pint patch::" + p.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
       - name: Analyse PHP
         id: analysis
         continue-on-error: true

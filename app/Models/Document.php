@@ -37,31 +37,37 @@ class Document extends Model
         }
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<DocumentCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(DocumentCategory::class, 'category_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
+    /** @return BelongsTo<DocumentVersion, $this> */
     public function currentVersion(): BelongsTo
     {
         return $this->belongsTo(DocumentVersion::class, 'current_version_id');
     }
 
+    /** @return HasMany<DocumentVersion, $this> */
     public function versions(): HasMany
     {
         return $this->hasMany(DocumentVersion::class)->orderByDesc('version_number');
     }
 
+    /** @return HasMany<DocumentComment, $this> */
     public function comments(): HasMany
     {
         return $this->hasMany(DocumentComment::class)->latest('id');

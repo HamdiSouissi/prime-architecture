@@ -161,7 +161,7 @@ class DocumentAdministration
         if ($last && hash_equals($last->checksum_sha256, $stored['checksum_sha256'])) {
             throw ValidationException::withMessages(['file' => __('phase4.duplicate_file')]);
         }
-        $version = $document->versions()->create($stored + ['version_number' => ($last?->version_number ?? 0) + 1, 'change_note' => $note, 'uploaded_by' => $actor->id]);
+        $version = $document->versions()->create($stored + ['version_number' => ($last->version_number ?? 0) + 1, 'change_note' => $note, 'uploaded_by' => $actor->id]);
         $document->forceFill(['current_version_id' => $version->id])->save();
 
         return $version;

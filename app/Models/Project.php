@@ -75,6 +75,7 @@ class Project extends Model
         return $this->hasMany(ProjectStatusHistory::class)->orderByDesc('id');
     }
 
+    /** @return HasMany<Document, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);

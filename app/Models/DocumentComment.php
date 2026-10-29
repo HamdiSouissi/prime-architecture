@@ -24,6 +24,7 @@ class DocumentComment extends Model
         return ['is_internal' => 'boolean', 'created_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<User, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
