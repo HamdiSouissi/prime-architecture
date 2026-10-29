@@ -144,7 +144,8 @@ return [
     'fee_help' => 'Les honoraires sont indicatifs ; les factures utilisent leurs propres lignes et montants figés.',
     'receipt' => 'Reçu de paiement',
     'total_discount' => 'Remises totales',
-    'logo' => 'Logo PNG ou JPEG (256 Ko maximum)',
+    'logo' => 'Logo PNG ou JPEG (256 Ko et 2 048 × 2 048 pixels maximum)',
     'logo_unavailable' => 'Le logo du cabinet est indisponible ou invalide.',
     'cancel_confirm' => 'Un avoir intégral sera émis et cette facture sera annulée. Continuer ?',
+    'cancelled_pdf' => 'Facture annulée — un avoir intégral a été émis.',
 ];

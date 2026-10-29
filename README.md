@@ -284,7 +284,7 @@ Dans `.env` **local, non versionné**, définir `BILLING_PDF_TOKEN` avec au moin
 docker compose --profile pdf up -d --build
 ```
 
-Si le service est arrêté ou le secret absent, les liens PDF renvoient une indisponibilité. Le code serveur communique avec le conteneur privé, jamais avec `localhost` depuis le navigateur. Valider visuellement sur le système cible le sens RTL, les ligatures arabes, la pagination et l’incorporation des polices, ainsi que les mentions et le modèle d’avoir avec le comptable. Le logo du profil est un PNG ou JPEG privé de 256 Ko maximum, vérifié sur son extension et son type réel, puis figé dans le document à l’émission. Cette vérification ne remplace pas un antivirus. Un échec entre stockage et transaction peut laisser un fichier orphelin ; ne pas supprimer automatiquement un fichier après un commit incertain.
+Si le service est arrêté ou le secret absent, les liens PDF renvoient une indisponibilité. Le code serveur communique avec le conteneur privé, jamais avec `localhost` depuis le navigateur. Valider visuellement sur le système cible le sens RTL, les ligatures arabes, la pagination et l’incorporation des polices, ainsi que les mentions et le modèle d’avoir avec le comptable. Le logo du profil est un PNG ou JPEG privé de 256 Ko et 2 048 × 2 048 pixels maximum, vérifié sur son extension, son type réel et ses dimensions, puis figé dans le document à l’émission. Cette vérification ne remplace pas un antivirus. Un échec entre stockage et transaction peut laisser un fichier orphelin ; ne pas supprimer automatiquement un fichier après un commit incertain.
 
 ### Interface et vérifications
 

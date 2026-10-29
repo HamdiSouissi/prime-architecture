@@ -57,6 +57,12 @@ class BillingWorkflowTest extends TestCase
         $invoice = app(InvoiceService::class)->issue($invoice, $actor);
         $this->assertSame('FAC-2026-0001', $invoice->number);
         $this->assertSame('119.000', $invoice->total_ttc);
+        try {
+            $invoice->lines()->firstOrFail()->update(['description' => 'Changed']);
+            $this->fail('Lines of an issued invoice must be immutable.');
+        } catch (LogicException) {
+            $this->assertSame('Design', $invoice->lines()->firstOrFail()->description);
+        }
         DB::table('tax_rates')->where('rate', '19.0000')->update(['rate' => '20.0000']);
         $this->assertSame('19.0000', $invoice->fresh()->snapshot['lines'][0]['tax_rate']);
         $invoice = app(InvoiceService::class)->pay($invoice, $actor, ['amount' => '19.000', 'payment_date' => '2026-11-02', 'method' => 'cash']);
@@ -105,6 +111,8 @@ class BillingWorkflowTest extends TestCase
         Http::fake(['http://pdf:3000/render' => Http::response('%PDF-1.7 test', 200)]);
         $this->actingAs($actor)->get(route('billing.invoices.credit-pdf', [$invoice, 'ar']))->assertOk()->assertHeader('Content-Type', 'application/pdf');
         Http::assertSent(fn ($request) => str_contains($request->body(), $credit->number));
+        $this->get(route('billing.invoices.pdf', [$invoice, 'fr']))->assertOk();
+        Http::assertSent(fn ($request) => str_contains(json_decode($request->body(), true)['html'], __('phase6.cancelled_pdf')));
 
     }
 

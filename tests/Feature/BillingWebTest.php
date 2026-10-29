@@ -99,6 +99,8 @@ class BillingWebTest extends TestCase
         Storage::disk('documents')->assertExists($profile->logo_path);
         $invalidLogo = UploadedFile::fake()->createWithContent('logo.png', 'not a png');
         $this->post(route('billing.settings.profile'), ['effective_from' => '2026-11-02', 'name' => 'Cabinet', 'logo' => $invalidLogo])->assertSessionHasErrors('logo');
+        $oversizedLogo = UploadedFile::fake()->createWithContent('logo.png', substr_replace($png, pack('N', 4096), 16, 4));
+        $this->post(route('billing.settings.profile'), ['effective_from' => '2026-11-02', 'name' => 'Cabinet', 'logo' => $oversizedLogo])->assertSessionHasErrors('logo');
         $this->post(route('billing.settings.format'), ['effective_from' => '2026-11-02', 'document_type' => 'quote', 'format' => 'DEV-{year}-{sequence}', 'padding' => '4'])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('billing_number_formats', ['document_type' => 'quote', 'format' => 'DEV-{year}-{sequence}']);
         $project = Project::factory()->create();
@@ -106,7 +108,10 @@ class BillingWebTest extends TestCase
         $this->post(route('billing.quotes.store', $project), $input)->assertSessionHasNoErrors();
         $quote = Quote::firstOrFail();
         $this->post(route('billing.quotes.issue', $quote))->assertSessionHasNoErrors();
-        $this->assertStringStartsWith('data:image/png;base64,', $quote->fresh()->snapshot['profile']['logo']);
+        $snapshotLogo = $quote->fresh()->snapshot['profile']['logo'];
+        $this->assertStringStartsWith('data:image/png;base64,', $snapshotLogo);
+        Storage::disk('documents')->put($profile->logo_path, 'changed');
+        $this->assertSame($snapshotLogo, $quote->fresh()->snapshot['profile']['logo']);
 
         unset($data['verified']);
         $this->post(route('billing.settings.tax'), $data)->assertSessionHasErrors('verified');

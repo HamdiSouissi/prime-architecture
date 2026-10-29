@@ -77,7 +77,8 @@ class BillingSettingsController extends Controller
             } catch (ValidationException) {
                 throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
             }
-            if (! in_array($info['extension'], ['jpg', 'jpeg', 'png'], true)) {
+            $dimensions = @getimagesize($file->getPathname());
+            if (! in_array($info['extension'], ['jpg', 'jpeg', 'png'], true) || $dimensions === false || $dimensions[0] > 2048 || $dimensions[1] > 2048) {
                 throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
             }
             $path = Storage::disk('documents')->putFileAs('billing-logos', $file, Str::uuid().'.'.$info['extension']);
