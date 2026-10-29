@@ -151,14 +151,14 @@ jobs:
       - name: Generate and inspect French and Arabic billing PDFs
         run: |
           trap 'echo "::error title=PDF diagnostic::Command on workflow line $LINENO failed"' ERR
-          docker compose exec -T pdf node --input-type=module < tests/smoke/pdf_security.mjs
-          docker compose cp pdf:/tmp/security-probe.pdf security-probe.pdf
+          docker compose --profile pdf exec -T pdf node --input-type=module < tests/smoke/pdf_security.mjs
+          docker compose --profile pdf exec -T pdf cat /tmp/security-probe.pdf > security-probe.pdf
           pdftotext security-probe.pdf security-probe.txt
           grep -q SAFE_RENDER security-probe.txt
           ! grep -q SCRIPT_EXECUTED security-probe.txt
           docker compose exec -T -u www-data app php tests/smoke/generate_billing_pdf.php
-          docker compose cp app:/var/www/html/storage/app/private/ci-quote-fr.pdf ci-quote-fr.pdf
-          docker compose cp app:/var/www/html/storage/app/private/ci-quote-ar.pdf ci-quote-ar.pdf
+          docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-fr.pdf > ci-quote-fr.pdf
+          docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-ar.pdf > ci-quote-ar.pdf
           pdfinfo ci-quote-fr.pdf | grep -q 'Pages:'
           pdfinfo ci-quote-ar.pdf | grep -q 'Pages:'
           pdffonts ci-quote-fr.pdf | grep -qi 'Inter'

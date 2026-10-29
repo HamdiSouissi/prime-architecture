@@ -3,6 +3,7 @@
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\InvoiceService;
 use App\Services\PdfGenerator;
 use App\Services\QuoteService;
 use Database\Seeders\TaxSettingsSeeder;
@@ -28,3 +29,17 @@ foreach (['fr', 'ar'] as $language) {
     file_put_contents(storage_path('app/private/ci-quote-'.$language.'.pdf'), $pdf);
     echo $language.' PDF: '.strlen($pdf)." bytes\n";
 }
+
+// Exercise the other document types on synthetic records as well.
+$invoiceData = ['document_date' => today()->toDateString(), 'due_date' => today()->addDays(30)->toDateString(), 'discount_percent' => '0', 'lines' => $data['lines']];
+$invoices = app(InvoiceService::class);
+$invoice = $invoices->issue($invoices->create($project, $actor, $invoiceData), $actor);
+app(PdfGenerator::class)->generate($invoice, 'fr');
+$invoice = $invoices->cancel($invoice, $actor, 'Annulation fictive');
+$credit = DB::table('credit_notes')->where('invoice_id', $invoice->id)->first();
+app(PdfGenerator::class)->credit($invoice, $credit, 'ar');
+$paidInvoice = $invoices->issue($invoices->create($project, $actor, $invoiceData), $actor);
+$paidInvoice = $invoices->pay($paidInvoice, $actor, ['amount' => '1.000', 'payment_date' => today()->toDateString(), 'method' => 'cash']);
+$payment = DB::table('payments')->where('invoice_id', $paidInvoice->id)->first();
+app(PdfGenerator::class)->receipt($paidInvoice, $payment, 'ar');
+echo "Invoice, credit note and receipt PDFs generated.\n";
