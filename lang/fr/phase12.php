@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'offline_progress' => 'Relevés hors ligne chiffrés',
+    'offline_progress' => 'Chantier hors ligne chiffré',
 ];

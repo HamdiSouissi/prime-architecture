@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\SiteProgressUpdate;
+use App\Models\Snag;
 use App\Services\OfflineProgressSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,11 +14,13 @@ class OfflineProgressController extends Controller
 {
     public function projects(Request $request): JsonResponse
     {
-        abort_unless($request->user()->can('site.progress.record'), 403);
+        abort_unless($request->user()->can('site.progress.record') || $request->user()->can('site.snags.manage'), 403);
         $projects = Project::query()->visibleTo($request->user())->orderBy('name')->get(['id', 'reference', 'name']);
         $projects = $projects->filter(fn (Project $project) => $request->user()->can('update', $project))->map(fn (Project $project) => [
             'id' => $project->id, 'reference' => $project->reference, 'name' => $project->name,
             'base_revision' => SiteProgressUpdate::query()->where('project_id', $project->id)->max('id'),
+            'can_progress' => $request->user()->can('site.progress.record'),
+            'can_snag' => $request->user()->can('create', [Snag::class, $project]),
         ])->values();
 
         return response()->json(['owner_id' => $request->user()->id, 'csrf_token' => csrf_token(), 'projects' => $projects])->header('Cache-Control', 'private, no-store');

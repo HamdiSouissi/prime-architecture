@@ -53,15 +53,17 @@ async function save() {
 }
 function status(message, error = false) { $('status').textContent = message; $('status').className = error ? 'error' : ''; }
 function draw() {
-    const select = $('project');
-    select.replaceChildren();
-    for (const project of vault.projects) {
-        const opt = document.createElement('option'); opt.value = String(project.id); opt.textContent = `${project.reference} — ${project.name}`; select.append(opt);
+    for (const [id, permission] of [['project', 'can_progress'], ['snag-project', 'can_snag']]) {
+        const select = $(id);
+        select.replaceChildren();
+        for (const project of vault.projects.filter(item => item[permission])) {
+            const opt = document.createElement('option'); opt.value = String(project.id); opt.textContent = `${project.reference} — ${project.name}`; select.append(opt);
+        }
     }
     const list = $('drafts'); list.replaceChildren();
     for (const draft of vault.drafts) {
         const li = document.createElement('li');
-        li.textContent = `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
+        li.textContent = draft.kind === 'snag' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}` : `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
         const button = document.createElement('button'); button.className = 'secondary'; button.type = 'button'; button.textContent = 'Supprimer / حذف';
         button.onclick = async () => {
             if (!confirm('Supprimer ce relevé local ? / حذف التقرير المحلي؟')) return;
@@ -99,9 +101,21 @@ $('draft-form').onsubmit = async event => {
     event.preventDefault();
     const project = vault.projects.find(item => String(item.id) === $('project').value);
     const value = $('percent').value;
-    if (!project || vault.drafts.some(item => item.project_id === project.id) || !/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(value) || Number(value) > 100) { status('Projet invalide ou relevé déjà en attente. / مشروع غير صالح أو تقرير قيد الانتظار.', true); return; }
-    vault.drafts.push({ operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id, project_name: project.name, base_revision: project.base_revision, recorded_on: $('recorded').value, percent: value, note: $('note').value, conflict: false });
+    if (!project || vault.drafts.some(item => item.project_id === project.id && item.kind !== 'snag') || !/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(value) || Number(value) > 100) { status('Projet invalide ou relevé déjà en attente. / مشروع غير صالح أو تقرير قيد الانتظار.', true); return; }
+    vault.drafts.push({ kind: 'progress', operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id, project_name: project.name, base_revision: project.base_revision, recorded_on: $('recorded').value, percent: value, note: $('note').value, conflict: false });
     try { await save(); $('note').value = ''; draw(); status('Relevé chiffré enregistré sur cet appareil. / حُفظ التقرير مشفّراً على الجهاز.'); }
+    catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
+};
+$('snag-form').onsubmit = async event => {
+    event.preventDefault();
+    const project = vault.projects.find(item => String(item.id) === $('snag-project').value && item.can_snag);
+    if (!project) { status('Projet invalide. / مشروع غير صالح.', true); return; }
+    vault.drafts.push({ kind: 'snag', operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id,
+        project_name: project.name, title: $('snag-title').value, severity: $('snag-severity').value,
+        description: $('snag-description').value || null, location: $('snag-location').value || null,
+        responsible: $('snag-responsible').value || null, due_on: $('snag-due').value || null,
+        internal_notes: $('snag-internal').value || null });
+    try { await save(); $('snag-form').reset(); draw(); status('Réserve chiffrée enregistrée sur cet appareil. / حُفظت الملاحظة مشفّرة على الجهاز.'); }
     catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
 };
 $('sync').onclick = async () => {
@@ -110,13 +124,14 @@ $('sync').onclick = async () => {
         if (current.owner_id !== vault.owner_id) throw new Error('owner');
         for (const draft of [...vault.drafts]) {
             if (draft.conflict) continue;
-            const response = await fetch(`/offline/projects/${draft.project_id}/progress`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': current.csrf_token }, body: JSON.stringify(draft) });
+            const endpoint = draft.kind === 'snag' ? 'snags' : 'progress';
+            const response = await fetch(`/offline/projects/${draft.project_id}/${endpoint}`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': current.csrf_token }, body: JSON.stringify(draft) });
             if (response.status === 409) { draft.conflict = true; await save(); continue; }
             if (!response.ok) throw new Error('sync');
             const result = await response.json();
             vault.drafts = vault.drafts.filter(item => item.operation_id !== draft.operation_id);
             const project = vault.projects.find(item => item.id === draft.project_id);
-            if (project) project.base_revision = result.id;
+            if (project && draft.kind !== 'snag') project.base_revision = result.id;
             await save();
         }
         draw(); status('Synchronisation terminée. Vérifiez les éventuels conflits. / انتهت المزامنة. تحقق من التعارضات.');

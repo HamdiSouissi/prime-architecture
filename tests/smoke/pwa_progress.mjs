@@ -23,6 +23,10 @@ try {
     await page.locator('#note').fill('SECRET-RELEVE-CI');
     await page.locator('#draft-form button[type=submit]').click();
     await page.getByText('SECRET-RELEVE-CI').waitFor();
+    await page.locator('#snag-title').fill('RESERVE-PRIVEE-CI');
+    await page.locator('#snag-internal').fill('NOTE-INTERNE-CI');
+    await page.locator('#snag-form button[type=submit]').click();
+    await page.getByText('NOTE-INTERNE-CI').waitFor();
     const stored = await page.evaluate(async () => {
         const db = await new Promise((resolve, reject) => { const r = indexedDB.open('archi-offline-vault'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
         const row = await new Promise((resolve, reject) => { const r = db.transaction('vault').objectStore('vault').get('data'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
@@ -30,6 +34,7 @@ try {
     });
     assert.deepEqual(stored.keys, ['cipher', 'iv', 'salt', 'version']);
     assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('SECRET-RELEVE-CI')), false);
+    assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('NOTE-INTERNE-CI')), false);
     await page.goto(`${base}/dashboard`);
     await page.locator('#secret').fill('mauvaise-phrase-secrete');
     await page.locator('#unlock').click();
@@ -37,10 +42,12 @@ try {
     await page.locator('#secret').fill('phrase-de-test-assez-longue');
     await page.locator('#unlock').click();
     await page.getByText('SECRET-RELEVE-CI').waitFor();
+    await page.getByText('NOTE-INTERNE-CI').waitFor();
     await context.setOffline(false);
     await page.locator('#sync').click();
     await page.getByText('Synchronisation terminée.', { exact: false }).waitFor();
     assert.equal(await page.getByText('SECRET-RELEVE-CI').count(), 0);
+    assert.equal(await page.getByText('NOTE-INTERNE-CI').count(), 0);
     console.log('Encrypted progress draft survives offline reload and syncs after reconnecting.');
 } finally {
     await browser.close();

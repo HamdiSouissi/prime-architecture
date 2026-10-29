@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'offline_progress' => 'تقارير التقدم المشفرة دون اتصال',
+    'offline_progress' => 'متابعة الورشة المشفرة دون اتصال',
 ];

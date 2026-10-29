@@ -36,7 +36,7 @@ class OfflineProgressTest extends TestCase
     {
         $this->seed(RolePermissionSeeder::class);
         $project = Project::factory()->create();
-        foreach (['client', 'collaborator', 'contractor'] as $role) {
+        foreach (['client', 'contractor'] as $role) {
             $user = User::factory()->create();
             $user->assignRole($role);
             $this->actingAs($user)->getJson(route('offline.projects'))->assertForbidden();
