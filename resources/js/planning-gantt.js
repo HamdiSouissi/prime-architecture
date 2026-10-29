@@ -5,6 +5,13 @@ const element = document.getElementById('planning-gantt');
 if (element) {
     const message = document.getElementById('gantt-message');
     gantt.i18n.setLocale(element.dataset.locale === 'ar' ? 'ar' : 'fr');
+    if (element.dataset.locale === 'ar') {
+        // The library's Arabic full names use Levantine months. Use Tunisian
+        // month names consistently in both full and abbreviated scales.
+        const months = ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        gantt.locale.date.month_full = [...months];
+        gantt.locale.date.month_short = [...months];
+    }
     gantt.config.readonly = true;
     gantt.config.rtl = element.dataset.locale === 'ar';
     gantt.config.date_format = '%Y-%m-%d';
