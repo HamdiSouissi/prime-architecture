@@ -370,3 +370,14 @@ Permissions de la phase 8 :
 | `site.client.view` | — | — | — | oui |
 
 Le module requiert l'extension **GD** (JPEG, WebP) : elle est ajoutée à l'image Docker et aux extensions de la CI. Sans GD, un téléversement échoue explicitement plutôt que d'enregistrer un fichier non vérifié. Les fichiers restent soumis aux limites `SITE_PHOTO_MAX_KB` (8 Mo par défaut) et ne sont pas analysés par un antivirus ; l'isolation du stockage et une politique de sauvegarde restent nécessaires.
+
+## Phase 9 — base de prix et métré
+
+Le catalogue, initialement vide, permet aux administrateurs et architectes de gérer
+des articles (catégorie, désignation, unité, prix TND) et conserve l'historique des
+prix. Un métré par projet réutilise les articles et affiche les prix **courants** ;
+une variation de prix modifie donc les montants des métrés. Les lignes peuvent être
+copiées vers un nouveau devis ou ajoutées à un devis brouillon, avec un taux de TVA
+choisi parmi les taux configurés. Les prix copiés restent indépendants du catalogue
+et les devis émis restent immuables. Permissions : `prices.view`, `prices.manage`
+(administrateur et architecte). Aucune recette visuelle humaine n'est revendiquée.

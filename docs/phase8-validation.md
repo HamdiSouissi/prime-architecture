@@ -44,9 +44,9 @@ la fumée Docker reconstruit l'image avec l'extension GD.
 
 ## 3. Limites assumées
 
-- **Orientation EXIF** : l'extension `exif` n'est pas installée ; une photo portrait dont
-  l'orientation est portée par les métadonnées peut donc apparaître pivotée. Le ré-encodage
-  supprime ces métadonnées, y compris la géolocalisation.
+- **Orientation EXIF** : prise en compte avant ré-encodage depuis `6e336e9` ; les
+  métadonnées, y compris la géolocalisation, sont ensuite supprimées. Vérifier avec une
+  photo réelle de téléphone en complément du test automatisé.
 - **Aucun antivirus** : le ré-encodage garantit qu'un fichier image valide est produit, pas
   l'absence de charge malveillante dans une image piégée. Une analyse antivirus reste à
   prévoir si le module reçoit des fichiers externes.

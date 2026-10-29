@@ -7,9 +7,9 @@ use App\Models\MeasurementLine;
 use App\Models\PriceItem;
 use App\Models\Project;
 use App\Models\Quote;
+use App\Models\User;
 use App\Services\QuoteService;
 use Carbon\CarbonImmutable;
-use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\TaxSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,6 +52,7 @@ class MeasurementWebTest extends TestCase
         $this->actingAs($admin)->get(route('prices.index'))->assertOk();
         $this->assertSame(1, MeasurementLine::query()->count());
     }
+
     public function test_transfer_creates_and_appends_drafts_but_never_changes_issued_quotes(): void
     {
         $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));

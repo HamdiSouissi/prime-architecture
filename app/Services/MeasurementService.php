@@ -13,6 +13,7 @@ class MeasurementService
     public function add(Project $project, PriceItem $item, User $actor, string $quantity): MeasurementLine
     {
         $quantity = BillingDecimal::validate($quantity, 6, '999999999.999999');
+
         return DB::transaction(function () use ($project, $item, $actor, $quantity): MeasurementLine {
             $line = MeasurementLine::create(['project_id' => $project->id, 'price_item_id' => $item->id, 'quantity' => $quantity]);
             activity('prices')->causedBy($actor)->performedOn($line)->event('measurement.created')->log('measurement.created');
