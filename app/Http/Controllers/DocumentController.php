@@ -40,10 +40,10 @@ class DocumentController extends Controller
             $query->whereHas('currentVersion', fn ($q) => $q->where('uploaded_by', $data['uploaded_by']));
         }
         if (! empty($data['date_from'])) {
-            $query->whereDate('created_at', '>=', $data['date_from']);
+            $query->whereHas('currentVersion', fn ($q) => $q->whereDate('created_at', '>=', $data['date_from']));
         }
         if (! empty($data['date_to'])) {
-            $query->whereDate('created_at', '<=', $data['date_to']);
+            $query->whereHas('currentVersion', fn ($q) => $q->whereDate('created_at', '<=', $data['date_to']));
         }
 
         return view('documents.index', [

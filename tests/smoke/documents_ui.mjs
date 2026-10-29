@@ -28,6 +28,15 @@ try {
     assert.equal(preview.status(), 200);
     assert.match(preview.headers()['content-disposition'], /^inline/);
     assert.equal(preview.headers()['x-content-type-options'], 'nosniff');
+    await page.goto(documentUrl.replace(/\/\d+$/, '/create'));
+    const multi = page.locator('section[x-data="documentMultiUpload"]');
+    await multi.locator('input[type="file"]').setInputFiles([
+        { name: 'multiple.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% Multi\n%%EOF\n') },
+        { name: 'fake.pdf', mimeType: 'application/pdf', buffer: Buffer.from('<?php echo 1;') },
+    ]);
+    await multi.locator('button[type="submit"]').click();
+    await multi.getByText('Modifications enregistrées.').waitFor();
+    await multi.getByText('Fichier invalide, trop volumineux ou de format non autorisé.').waitFor();
     await page.locator('#locale').selectOption('ar');
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
     await page.goto(documentUrl);
