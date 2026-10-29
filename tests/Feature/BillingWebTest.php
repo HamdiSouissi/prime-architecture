@@ -132,6 +132,8 @@ class BillingWebTest extends TestCase
         $this->get(route('billing.fees.index', $project))->assertSee('25.000');
         $this->put(route('billing.fees.update', [$other, $fee->id]), $data)->assertNotFound();
         $this->post(route('billing.fees.store', $project), [...$data, 'value' => '101'])->assertSessionHasErrors('value');
+        $this->post(route('billing.fees.store', $project), ['phase' => 'Projet important', 'mode' => 'fixed', 'value' => '999999999999.999'])->assertSessionHasNoErrors();
+        $this->get(route('billing.fees.index', $project))->assertSee('999999999999.999');
         $client = User::factory()->create();
         $client->assignRole('client');
         $this->actingAs($client)->get(route('billing.fees.index', $project))->assertForbidden();
