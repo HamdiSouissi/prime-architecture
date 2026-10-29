@@ -21,12 +21,14 @@ use App\Http\Controllers\DocumentZipController;
 use App\Http\Controllers\FeeScheduleController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PlanningNotificationController;
 use App\Http\Controllers\PlanningTaskController;
 use App\Http\Controllers\PlanningTemplateController;
 use App\Http\Controllers\PlanningWorkloadController;
+use App\Http\Controllers\PriceCatalogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectActionsController;
 use App\Http\Controllers\ProjectController;
@@ -155,6 +157,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/planning/milestones', [MilestoneController::class, 'store'])->name('planning.milestones.store');
         Route::put('/projects/{project}/planning/milestones/{milestone}', [MilestoneController::class, 'update'])->name('planning.milestones.update');
         Route::delete('/projects/{project}/planning/milestones/{milestone}', [MilestoneController::class, 'destroy'])->name('planning.milestones.destroy');
+
+        Route::get('/prices', [PriceCatalogController::class, 'index'])->name('prices.index');
+        Route::post('/prices', [PriceCatalogController::class, 'store'])->name('prices.store');
+        Route::put('/prices/{item}', [PriceCatalogController::class, 'update'])->name('prices.update');
+        Route::get('/projects/{project}/measurement', [MeasurementController::class, 'index'])->name('measurement.index');
+        Route::post('/projects/{project}/measurement', [MeasurementController::class, 'store'])->name('measurement.store');
+        Route::delete('/projects/{project}/measurement/{line}', [MeasurementController::class, 'destroy'])->name('measurement.destroy');
 
         Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
         Route::get('/billing/settings', [BillingSettingsController::class, 'index'])->name('billing.settings.index');
