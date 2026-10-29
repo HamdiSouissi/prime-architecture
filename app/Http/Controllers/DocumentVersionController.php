@@ -38,7 +38,7 @@ class DocumentVersionController extends Controller
         $this->check($project, $document, $version);
         Gate::authorize('download', $document);
         if ($inline) {
-            abort_unless(in_array($version->mime_type, config('documents.inline_mimes'), true) && in_array($version->extension, ['pdf', 'jpg', 'jpeg', 'png', 'webp'], true), 404);
+            abort_unless(in_array($version->mime_type, config('documents.inline_mimes'), true) && in_array($version->extension, config('documents.inline_extensions'), true), 404);
         }
         $disk = Storage::disk($version->disk);
         abort_unless($disk->exists($version->path), 404);

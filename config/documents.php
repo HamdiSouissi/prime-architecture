@@ -23,5 +23,6 @@ return [
         'zip' => ['application/zip', 'application/x-zip'],
         'txt' => ['text/plain'],
     ],
+    'inline_extensions' => ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
     'inline_mimes' => ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
 ];

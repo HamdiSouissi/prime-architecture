@@ -31,7 +31,7 @@ class Document extends Model
 
             return;
         }
-        $query->whereHas('project', fn (Builder $projects) => $projects->visibleTo($user));
+        $query->whereIn('project_id', Project::query()->visibleTo($user)->select('id'));
         if ($user->hasRole('client') && ! $user->hasAnyRole(['admin', 'architect', 'collaborator'])) {
             $query->where('visible_to_client', true);
         }

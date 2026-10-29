@@ -79,7 +79,7 @@ jobs:
         continue-on-error: true
         run: |
           vendor/bin/pint --format=json || true
-          python3 -c 'import subprocess; p=subprocess.check_output(["git", "diff"], text=True); print("::error title=Pint patch::" + p.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
+          python3 -c 'import subprocess,zlib,base64; s=base64.b64encode(zlib.compress(subprocess.check_output(["git","diff"]))).decode(); [print("::error title=PINTPART%03d::" % i + s[i*1500:(i+1)*1500]) for i in range((len(s)+1499)//1500)]'
       - name: Analyse PHP
         id: analysis
         continue-on-error: true
