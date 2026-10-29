@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\Delegation;
 use App\Models\Governorate;
+use App\Models\Project;
 use App\Models\User;
 use Database\Seeders\GeographySeeder;
 use Database\Seeders\RolePermissionSeeder;
@@ -52,10 +53,12 @@ class GeographySeederTest extends TestCase
         $carthage = Delegation::create(['key' => 'tn-01-carthage', 'governorate_id' => $tunis->id, 'name_fr' => 'Ancien nom', 'name_ar' => 'قديم']);
         $custom = Delegation::create(['key' => 'custom-existing', 'governorate_id' => $tunis->id, 'name_fr' => 'Ancienne entrée', 'name_ar' => 'مدخل قديم']);
         $client = Client::factory()->create(['governorate_id' => $tunis->id, 'delegation_id' => $carthage->id]);
+        $project = Project::factory()->create(['client_id' => $client->id, 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id]);
         $this->seed(GeographySeeder::class);
         $this->seed(GeographySeeder::class);
         $this->assertDatabaseCount('delegations', 280);
         $this->assertSame($carthage->id, $client->fresh()->delegation_id);
+        $this->assertSame($carthage->id, $project->fresh()->delegation_id);
         $this->assertSame('Carthage', $carthage->fresh()->name_fr);
         $this->assertDatabaseHas('delegations', ['id' => $custom->id, 'key' => 'custom-existing']);
     }
@@ -90,5 +93,11 @@ class GeographySeederTest extends TestCase
         $this->post(route('clients.store'), ['type' => 'individual', 'name' => 'Test', 'governorate_id' => $ariana->id, 'delegation_id' => $carthage->id])->assertSessionHasErrors('delegation_id');
         $this->post(route('clients.store'), ['type' => 'individual', 'name' => 'Test valide', 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id])->assertRedirect();
         $this->assertDatabaseHas('clients', ['name' => 'Test valide', 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id]);
+        $client = Client::where('name', 'Test valide')->firstOrFail();
+        $project = ['client_id' => $client->id, 'name' => 'Projet à Carthage', 'project_type' => 'villa', 'lead_architect_id' => $architect->id, 'governorate_id' => $ariana->id, 'delegation_id' => $carthage->id];
+        $this->post(route('projects.store'), $project)->assertSessionHasErrors('delegation_id');
+        $project['governorate_id'] = $tunis->id;
+        $this->post(route('projects.store'), $project)->assertRedirect();
+        $this->assertDatabaseHas('projects', ['name' => 'Projet à Carthage', 'governorate_id' => $tunis->id, 'delegation_id' => $carthage->id]);
     }
 }
