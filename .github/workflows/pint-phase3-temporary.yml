@@ -1,6 +1,8 @@
 name: Temporary phase 3 formatting
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/pint-phase3-temporary.yml
 permissions:
   contents: write
 jobs:
