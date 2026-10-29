@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright-core';
+
+const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
+const context = await browser.newContext();
+const page = await context.newPage();
+const base = 'http://localhost:8080';
+try {
+    await page.goto(`${base}/login`);
+    await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
+    await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
+    await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.goto(`${base}/pwa/offline.html`);
+    await page.locator('#secret').fill('phrase-de-test-assez-longue');
+    await page.locator('#unlock').click();
+    await page.locator('#workspace').waitFor();
+    await page.locator('#prepare').click();
+    await page.getByText('Projets préparés.', { exact: false }).waitFor();
+    await context.setOffline(true);
+    await page.locator('#recorded').fill('2020-01-01');
+    await page.locator('#percent').fill('37.25');
+    await page.locator('#note').fill('SECRET-RELEVE-CI');
+    await page.locator('#draft-form button[type=submit]').click();
+    await page.getByText('SECRET-RELEVE-CI').waitFor();
+    const stored = await page.evaluate(async () => {
+        const db = await new Promise((resolve, reject) => { const r = indexedDB.open('archi-offline-vault'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
+        const row = await new Promise((resolve, reject) => { const r = db.transaction('vault').objectStore('vault').get('data'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
+        return { keys: Object.keys(row).sort(), cipher: Array.from(new Uint8Array(row.cipher)) };
+    });
+    assert.deepEqual(stored.keys, ['cipher', 'iv', 'salt', 'version']);
+    assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('SECRET-RELEVE-CI')), false);
+    await page.goto(`${base}/dashboard`);
+    await page.locator('#secret').fill('mauvaise-phrase-secrete');
+    await page.locator('#unlock').click();
+    await page.getByText('Phrase invalide', { exact: false }).waitFor();
+    await page.locator('#secret').fill('phrase-de-test-assez-longue');
+    await page.locator('#unlock').click();
+    await page.getByText('SECRET-RELEVE-CI').waitFor();
+    await context.setOffline(false);
+    await page.locator('#sync').click();
+    await page.getByText('Synchronisation terminée.', { exact: false }).waitFor();
+    assert.equal(await page.getByText('SECRET-RELEVE-CI').count(), 0);
+    console.log('Encrypted progress draft survives offline reload and syncs after reconnecting.');
+} finally {
+    await browser.close();
+}

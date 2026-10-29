@@ -20,7 +20,7 @@ try {
         }
         return entries;
     });
-    assert.deepEqual(cached, ['/pwa/offline.html']);
+    assert.deepEqual(cached.sort(), ['/pwa/offline.html', '/pwa/offline.js']);
     await context.setOffline(true);
     await page.goto(`${base}/dashboard`);
     await page.getByRole('heading', { name: 'Connexion indisponible' }).waitFor();

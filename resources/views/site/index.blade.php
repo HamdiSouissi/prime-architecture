@@ -3,6 +3,7 @@
 @section('content')
 <x-page-header :title="__('phase8.site')" :eyebrow="$project->reference.' — '.$project->name" :description="__('phase8.site_intro')">
     <a class="action-link" href="{{ route('projects.show', $project) }}">{{ __('phase8.back_project') }}</a>
+    @if($canRecordProgress)<a class="secondary-action-link" href="{{ asset('pwa/offline.html') }}">{{ __('phase12.offline_progress') }}</a>@endif
     @if($canManageReports)<a class="action-link" href="{{ route('site.reports.create', $project) }}">{{ __('phase8.new_report') }}</a>@endif
 </x-page-header>
 

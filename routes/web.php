@@ -23,6 +23,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MeasurementController;
 use App\Http\Controllers\MilestoneController;
+use App\Http\Controllers\OfflineProgressController;
 use App\Http\Controllers\PermitController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\PlanningNotificationController;
@@ -81,6 +82,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/notes', [ProjectActionsController::class, 'addNote'])->name('projects.notes.store');
         Route::delete('/projects/{project}/notes/{note}', [ProjectActionsController::class, 'removeNote'])->name('projects.notes.destroy');
         Route::resource('projects', ProjectController::class);
+
+        Route::get('/offline/projects', [OfflineProgressController::class, 'projects'])->name('offline.projects');
+        Route::post('/offline/projects/{project}/progress', [OfflineProgressController::class, 'store'])->name('offline.progress.store');
 
         Route::get('/projects/{project}/site', [SiteController::class, 'index'])->name('site.index');
         Route::post('/projects/{project}/site/progress', [SiteController::class, 'storeProgress'])->name('site.progress.store');

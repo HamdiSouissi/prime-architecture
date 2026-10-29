@@ -151,7 +151,9 @@ jobs:
           docker compose exec -T -u www-data app php tests/smoke/prepare_accessibility.php
           node tests/smoke/accessibility_ui.mjs
       - name: Verify private-safe PWA shell
-        run: node tests/smoke/pwa_shell.mjs
+        run: |
+          node tests/smoke/pwa_shell.mjs
+          node tests/smoke/pwa_progress.mjs
       - name: Install PDF inspection tools
         run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
       - name: Build and start private PDF renderer
