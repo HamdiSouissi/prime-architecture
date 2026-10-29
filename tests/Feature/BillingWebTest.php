@@ -139,4 +139,18 @@ class BillingWebTest extends TestCase
         $this->actingAs($client)->get(route('billing.fees.index', $project))->assertForbidden();
         $this->post(route('billing.fees.store', $project), $data)->assertForbidden();
     }
+
+    public function test_tax_settings_preserve_dynamic_input_after_validation_error(): void
+    {
+        $this->withoutVite();
+        $this->seed(RolePermissionSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $this->actingAs($admin)->from(route('billing.settings.index'))->post(route('billing.settings.tax'), [
+            'effective_from' => today()->toDateString(), 'stamp_amount' => '2.500', 'verified' => '1',
+            'rates' => [['label_fr' => 'TauxTest', 'label_ar' => 'اختبار', 'rate' => '101']],
+            'withholdings' => [['label_fr' => 'RetenueTest', 'label_ar' => 'اقتطاع', 'rate' => '1', 'base' => 'ttc', 'includes_stamp' => '1']],
+        ])->assertSessionHasErrors('rates')->assertRedirect(route('billing.settings.index'));
+        $this->get(route('billing.settings.index'))->assertOk()->assertSee('TauxTest')->assertSee('RetenueTest')->assertSee('2.500')->assertSee('includesStamp');
+    }
 }
