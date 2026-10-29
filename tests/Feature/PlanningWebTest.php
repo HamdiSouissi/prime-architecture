@@ -179,4 +179,19 @@ class PlanningWebTest extends TestCase
         $this->assertSame(0, $project->tasks()->count());
         $this->assertSame(0, $project->milestones()->count());
     }
+
+    public function test_milestones_are_paginated_without_silently_losing_later_items(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class]);
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        Milestone::factory()->count(51)->create(['project_id' => $project->id]);
+        $response = $this->actingAs($architect)->get(route('planning.index', $project))->assertOk();
+        $this->assertSame(51, $response->viewData('milestones')->total());
+        $this->assertCount(50, $response->viewData('milestones')->items());
+        $second = $this->get(route('planning.index', [$project, 'milestones_page' => 2]))->assertOk();
+        $this->assertCount(1, $second->viewData('milestones')->items());
+    }
 }
