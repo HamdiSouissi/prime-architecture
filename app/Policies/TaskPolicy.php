@@ -18,6 +18,11 @@ class TaskPolicy
         return ! $task->trashed() && Task::query()->visibleTo($user)->whereKey($task->id)->exists();
     }
 
+    public function viewWorkload(User $user, Project $project): bool
+    {
+        return $user->can('planning.view_workload') && $this->viewAny($user, $project);
+    }
+
     public function create(User $user, Project $project): bool
     {
         return $user->can('tasks.create') && ! $project->trashed() && $user->can('update', $project);
@@ -38,6 +43,11 @@ class TaskPolicy
     public function assign(User $user, Task $task): bool
     {
         return $user->can('tasks.assign') && $this->update($user, $task);
+    }
+
+    public function restore(User $user, Task $task): bool
+    {
+        return $task->trashed() && $user->hasAnyRole(['admin', 'architect']) && $user->can('tasks.delete') && $user->can('update', $task->project);
     }
 
     public function delete(User $user, Task $task): bool

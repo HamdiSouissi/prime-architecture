@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright-core';
+
+const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
+const base = 'http://localhost:8080';
+try {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(`${base}/login`);
+    await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
+    await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
+    await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
+    await page.goto(`${base}/projects`);
+    await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').click();
+    await page.getByRole('link', { name: 'Planning', exact: true }).click();
+    await page.getByRole('link', { name: 'Nouvelle tâche' }).click();
+    await page.locator('#title').fill('Planning UI test');
+    await page.locator('#start_date').fill('2026-11-02');
+    await page.locator('#due_date').fill('2026-11-03');
+    await Promise.all([page.waitForURL(/\/planning\/tasks\/\d+$/), page.locator('form button[type="submit"]').last().click()]);
+    await page.getByRole('link', { name: 'Planning', exact: true }).last().click();
+    await page.getByRole('link', { name: 'Gantt', exact: true }).click();
+    await page.locator('.gantt_task_line').first().waitFor();
+    assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), false);
+    await page.locator('[data-gantt-zoom="week"]').click();
+    await page.locator('[data-gantt-zoom="month"]').click();
+    await page.locator('#locale').selectOption('ar');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[action$="/locale"] button[type="submit"]').click()]);
+    assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    await page.locator('.gantt_task_line').first().waitFor();
+    assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), true);
+    assert.deepEqual(errors, []);
+    console.log('Planning browser smoke: task, Gantt zoom and RTL passed.');
+} catch (error) {
+    const message = String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+    console.error(`::error title=Planning browser::${message}`);
+    process.exitCode = 1;
+} finally {
+    await browser.close();
+}

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,8 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * @property TaskStatus $status
  * @property TaskPriority $priority
- * @property \Carbon\CarbonImmutable|null $start_date
- * @property \Carbon\CarbonImmutable|null $due_date
+ * @property CarbonImmutable|null $start_date
+ * @property CarbonImmutable|null $due_date
  */
 class Task extends Model
 {

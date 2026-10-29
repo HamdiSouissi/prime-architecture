@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: app
-    environment:
+    environment: &app_environment
       APP_ENV: local
       APP_DEBUG: "false"
       APP_URL: ${APP_URL:-http://localhost:8080}
@@ -23,6 +23,11 @@ services:
       DOCUMENT_MAX_FILE_KB: ${DOCUMENT_MAX_FILE_KB:-25600}
       DOCUMENT_MAX_ZIP_BYTES: ${DOCUMENT_MAX_ZIP_BYTES:-262144000}
       DOCUMENT_MAX_ZIP_FILES: ${DOCUMENT_MAX_ZIP_FILES:-50}
+      PLANNING_TIMEZONE: ${PLANNING_TIMEZONE:-Africa/Tunis}
+      PLANNING_WEEKLY_CAPACITY_HOURS: ${PLANNING_WEEKLY_CAPACITY_HOURS:-40}
+      PLANNING_GANTT_MAX_ITEMS: ${PLANNING_GANTT_MAX_ITEMS:-500}
+      PLANNING_REMINDER_TIME: ${PLANNING_REMINDER_TIME:-08:00}
+      PLANNING_MILESTONE_REMINDER_DAYS: ${PLANNING_MILESTONE_REMINDER_DAYS:-7}
       MAIL_MAILER: smtp
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
@@ -39,6 +44,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+  scheduler:
+    profiles: ["scheduler"]
+    build:
+      context: .
+      target: app
+    environment: *app_environment
+    volumes:
+      - app_runtime:/var/www/runtime
+      - app_storage:/var/www/html/storage
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["su", "-s", "/bin/sh", "www-data", "-c", "php artisan schedule:work --no-interaction"]
   web:
     build:
       context: .

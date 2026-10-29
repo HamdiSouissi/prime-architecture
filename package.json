@@ -5,7 +5,8 @@
         "build": "vite build",
         "dev": "vite",
         "test:location-ui": "node tests/smoke/location_forms.mjs",
-        "test:documents-ui": "node tests/smoke/documents_ui.mjs"
+        "test:documents-ui": "node tests/smoke/documents_ui.mjs",
+        "test:planning-ui": "node tests/smoke/planning_ui.mjs"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.20",

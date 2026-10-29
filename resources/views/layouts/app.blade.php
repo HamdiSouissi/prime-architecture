@@ -41,6 +41,8 @@
                 <a href="{{ route('profile.edit') }}" class="block px-3 py-2">{{ __('common.profile') }}</a>
                 @can('users.manage')<a href="{{ route('users.index') }}" class="block px-3 py-2">{{ __('common.users') }}</a>@endcan
                 @role('admin')<a href="{{ route('document-categories.index') }}" class="block px-3 py-2">{{ __('phase4.manage_categories') }}</a>@endrole
+                @can('manage', \App\Models\PlanningTemplate::class)<a href="{{ route('planning.templates.index') }}" class="block px-3 py-2">{{ __('phase5.templates') }}</a>@endcan
+                @can('manage', \App\Models\Holiday::class)<a href="{{ route('planning.calendar-admin') }}" class="block px-3 py-2">{{ __('phase5.calendar_admin') }}</a>@endcan
                 @can('tasks.view')<a href="{{ route('planning.notifications') }}" class="block px-3 py-2">{{ __('phase5.notifications') }}</a>@endcan
                 @hasanyrole('admin|architect|collaborator')@can('tasks.view')<a href="{{ route('planning.my-tasks') }}" class="block px-3 py-2">{{ __('phase5.my_tasks') }}</a>@endcan @endhasanyrole
                 @can('activity.view')<a href="{{ route('activity.index') }}" class="block px-3 py-2">{{ __('common.activity') }}</a>@endcan

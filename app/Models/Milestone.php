@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/** @property \Carbon\CarbonImmutable $due_date */
+/** @property CarbonImmutable $due_date */
 class Milestone extends Model
 {
     /** @use HasFactory<MilestoneFactory> */

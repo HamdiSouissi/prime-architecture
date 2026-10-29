@@ -19,7 +19,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class PlanningTaskController extends Controller
 {
@@ -47,10 +49,13 @@ class PlanningTaskController extends Controller
         if ($internal) {
             $task->load(['assignees', 'predecessors', 'comments.author']);
         }
+        $history = $internal ? Activity::query()->where('subject_type', $task->getMorphClass())->where('subject_id', $task->id)->with('causer')->latest('id')->limit(50)->get() : collect();
+        $isMember = $internal && $project->members()->where('users.id', $request->user()->id)->exists();
+        $isFollowing = $isMember && $task->followers()->where('users.id', $request->user()->id)->exists();
         $canUpdate = $request->user()->can('update', $task);
         $candidates = $canUpdate ? Task::query()->visibleTo($request->user())->where('project_id', $project->id)->where('id', '!=', $task->id)->orderBy('title')->get(['id', 'title']) : collect();
 
-        return view('planning.task-show', compact('project', 'task', 'internal', 'canUpdate', 'candidates'));
+        return view('planning.task-show', compact('project', 'task', 'internal', 'canUpdate', 'candidates', 'history', 'isMember', 'isFollowing'));
     }
 
     public function edit(Project $project, Task $task): View
@@ -86,13 +91,54 @@ class PlanningTaskController extends Controller
             $task = Task::query()->lockForUpdate()->findOrFail($task->id);
             Gate::authorize('delete', $task);
             if ($task->children()->exists() || $task->predecessors()->exists() || $task->successors()->exists()) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['task' => __('phase5.remove_links_first')]);
+                throw ValidationException::withMessages(['task' => __('phase5.remove_links_first')]);
             }
             $task->delete();
             activity('planning')->performedOn($task)->event('task.archived')->log('task.archived');
         });
 
         return redirect()->route('planning.index', $project)->with('status', __('common.saved'));
+    }
+
+    public function restore(Project $project, Task $task): RedirectResponse
+    {
+        $this->check($project, $task);
+        DB::transaction(function () use ($project, $task) {
+            Project::query()->lockForUpdate()->findOrFail($project->id);
+            $task = Task::withTrashed()->lockForUpdate()->findOrFail($task->id);
+            Gate::authorize('restore', $task);
+            $task->restore();
+            activity('planning')->performedOn($task)->event('task.restored')->log('task.restored');
+        }, 3);
+
+        return redirect()->route('planning.tasks.show', [$project, $task])->with('status', __('common.saved'));
+    }
+
+    public function follow(Project $project, Task $task): RedirectResponse
+    {
+        $this->check($project, $task);
+        DB::transaction(function () use ($project, $task) {
+            Project::query()->lockForUpdate()->findOrFail($project->id);
+            $task = Task::query()->lockForUpdate()->findOrFail($task->id);
+            Gate::authorize('view', $task);
+            abort_unless($project->members()->where('users.id', request()->user()->id)->exists(), 403);
+            $task->followers()->syncWithoutDetaching([request()->user()->id => ['project_id' => $project->id]]);
+        }, 3);
+
+        return redirect()->route('planning.tasks.show', [$project, $task])->with('status', __('common.saved'));
+    }
+
+    public function unfollow(Project $project, Task $task): RedirectResponse
+    {
+        $this->check($project, $task);
+        DB::transaction(function () use ($project, $task) {
+            Project::query()->lockForUpdate()->findOrFail($project->id);
+            $task = Task::query()->lockForUpdate()->findOrFail($task->id);
+            Gate::authorize('view', $task);
+            $task->followers()->detach(request()->user()->id);
+        }, 3);
+
+        return redirect()->route('planning.tasks.show', [$project, $task])->with('status', __('common.saved'));
     }
 
     public function previewMove(PlanningMoveRequest $request, Project $project, Task $task, PlanningService $service): View

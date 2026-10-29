@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Services\PlanningService;
 use App\Services\ProjectAdministration;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WorkingCalendarSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -74,11 +75,12 @@ class PlanningWebTest extends TestCase
         $this->post(route('planning.tasks.move.confirm', [$project, $task]), ['start_date' => '2026-11-03', 'due_date' => '2026-11-04', 'token' => $token])->assertSessionHasNoErrors();
         $this->assertSame('2026-11-03', $task->fresh()->start_date->toDateString());
     }
+
     public function test_my_tasks_are_grouped_by_due_date(): void
     {
         $this->withoutVite();
         $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class]);
-        $this->travelTo(\Carbon\CarbonImmutable::parse('2026-11-04 10:00:00', 'Africa/Tunis'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-04 10:00:00', 'Africa/Tunis'));
         $architect = User::factory()->create();
         $architect->assignRole('architect');
         $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
@@ -91,5 +93,67 @@ class PlanningWebTest extends TestCase
         $this->assertSame('Today', $groups['today']->first()->title);
         $this->assertSame('Week', $groups['this_week']->first()->title);
         $this->assertSame('Later', $groups['later']->first()->title);
+    }
+    public function test_calendar_permissions_and_workload_allocation(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class]);
+        Notification::fake();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $collaborator = User::factory()->create();
+        $collaborator->assignRole('collaborator');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        $project->members()->attach($collaborator->id, ['project_role' => 'collaborator']);
+        $this->actingAs($architect)->get(route('planning.calendar-admin'))->assertForbidden();
+        $this->actingAs($admin)->put(route('planning.calendar.days'), [])->assertSessionHasErrors('working_days');
+        $this->put(route('planning.calendar.days'), ['working_days' => [1, 2, 3, 4, 5, 6]])->assertSessionHasNoErrors();
+        $this->post(route('planning.calendar.holidays.store'), ['date' => '2026-11-03', 'name_fr' => 'Test', 'name_ar' => 'اختبار'])->assertSessionHasNoErrors();
+        $task = app(PlanningService::class)->createTask($project, $architect, ['title' => 'Hours', 'status' => 'todo', 'priority' => 'normal', 'estimated_hours' => 40, 'start_date' => '2026-11-02', 'due_date' => '2026-11-07'], [$architect->id, $collaborator->id]);
+        $response = $this->actingAs($architect)->get(route('planning.workload', [$project, 'start' => '2026-11-02', 'weeks' => 1]))->assertOk();
+        $hours = $response->viewData('hours');
+        $this->assertEqualsWithDelta(40, $hours[$architect->id]['2026-11-02'], 0.01);
+        $this->assertEqualsWithDelta(40, $hours[$collaborator->id]['2026-11-02'], 0.01);
+        $this->actingAs($collaborator)->get(route('planning.workload', $project))->assertForbidden();
+        $this->assertSame('Hours', $task->title);
+    }
+    public function test_template_preview_is_invalidated_when_an_item_changes(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class, \Database\Seeders\PlanningTemplateSeeder::class]);
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        $template = \App\Models\PlanningTemplate::where('key', 'demo-villa')->firstOrFail();
+        $item = $template->items()->firstOrFail();
+        $response = $this->actingAs($architect)->post(route('planning.templates.preview', [$project, $template]), ['start' => '2026-11-02', 'locale' => 'fr'])->assertOk();
+        $token = $response->viewData('preview')['token'];
+        $this->assertSame(0, $project->tasks()->count());
+        $this->put(route('planning.templates.items.update', [$template, $item]), ['title_fr' => 'Nouveau titre', 'title_ar' => $item->title_ar, 'type' => $item->type, 'offset_workdays' => $item->offset_workdays, 'duration_workdays' => $item->duration_workdays, 'sort_order' => $item->sort_order])->assertSessionHasNoErrors();
+        $this->post(route('planning.templates.apply', [$project, $template]), ['start' => '2026-11-02', 'locale' => 'fr', 'token' => $token])->assertSessionHasErrors('token');
+        $this->assertSame(0, $project->tasks()->count());
+    }
+
+    public function test_archived_tasks_can_be_restored_and_reassigned(): void
+    {
+        $this->withoutVite();
+        $this->seed([RolePermissionSeeder::class, WorkingCalendarSeeder::class]);
+        Notification::fake();
+        $architect = User::factory()->create();
+        $architect->assignRole('architect');
+        $member = User::factory()->create();
+        $member->assignRole('collaborator');
+        $project = app(ProjectAdministration::class)->create(['name' => 'Project', 'project_type' => 'villa', 'client_id' => Client::factory()->create()->id, 'lead_architect_id' => $architect->id], $architect);
+        $project->members()->attach($member->id, ['project_role' => 'collaborator']);
+        $task = app(PlanningService::class)->createTask($project, $architect, ['title' => 'Task', 'status' => 'todo', 'priority' => 'normal'], [$member->id]);
+        $this->actingAs($architect)->delete(route('planning.tasks.destroy', [$project, $task]))->assertSessionHasNoErrors();
+        $this->assertSoftDeleted($task);
+        $this->delete(route('projects.members.destroy', [$project, $member]))->assertSessionHasErrors('member');
+        $this->post(route('planning.tasks.restore', [$project, $task]))->assertSessionHasNoErrors();
+        app(PlanningService::class)->updateTask($task->fresh(), $architect, [], []);
+        $this->delete(route('projects.members.destroy', [$project, $member]))->assertSessionHasNoErrors();
+        $this->assertDatabaseMissing('project_user', ['project_id' => $project->id, 'user_id' => $member->id]);
     }
 }

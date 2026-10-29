@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
 use App\Http\Requests\PlanningIndexRequest;
-use App\Models\Milestone;
+use App\Models\PlanningTemplate;
 use App\Models\Project;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
@@ -39,9 +39,11 @@ class PlanningController extends Controller
         $tasks = $query->orderBy($data['sort'] ?? 'due_date')->orderBy('id')->paginate(100)->withQueryString();
         $milestones = $project->milestones()->when($view === 'calendar', fn ($q) => $q->whereBetween('due_date', [$start->toDateString(), $end->toDateString()]))->orderBy('due_date')->limit(500)->get();
         $members = $internal ? $project->members()->orderBy('users.name')->get(['users.id', 'users.name']) : collect();
+        $archivedTasks = $request->user()->hasAnyRole(['admin', 'architect']) && $request->user()->can('tasks.delete') ? Task::onlyTrashed()->where('project_id', $project->id)->latest('id')->limit(100)->get() : collect();
         $statuses = TaskStatus::cases();
+        $templates = $request->user()->can('manage', PlanningTemplate::class) && $request->user()->can('update', $project) ? PlanningTemplate::query()->where('is_active', true)->orderBy('name_fr')->get() : collect();
 
-        return view('planning.index', compact('project', 'tasks', 'milestones', 'members', 'statuses', 'view', 'internal', 'period', 'start', 'end'));
+        return view('planning.index', compact('project', 'tasks', 'milestones', 'members', 'statuses', 'view', 'internal', 'period', 'start', 'end', 'templates', 'archivedTasks'));
     }
 
     public function gantt(Request $request, Project $project): JsonResponse
