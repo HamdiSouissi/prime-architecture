@@ -88,6 +88,27 @@ async function checkMenu(locale, width) {
     await scanState('menu-open', '/dashboard', locale, width);
     await toggle.click();
 }
+async function checkKeyboard(locale, width) {
+    await open('/projects/create');
+    for (let step = 1; step <= 8; step++) {
+        await page.keyboard.press('Tab');
+        const focus = await page.evaluate(() => {
+            const element = document.activeElement;
+            if (!element || element === document.body || element === document.documentElement) return { tag: element?.tagName ?? 'none' };
+            const style = getComputedStyle(element);
+            return {
+                tag: element.tagName.toLowerCase(),
+                outline: style.outlineStyle,
+                width: Number.parseFloat(style.outlineWidth || '0'),
+                shadow: style.boxShadow,
+                hidden: element.getBoundingClientRect().width === 0,
+            };
+        });
+        const label = `${locale}/${width} keyboard step ${step} (${focus.tag})`;
+        if (focus.tag === 'body' || focus.tag === 'html' || focus.tag === 'none') add('keyboard-focus-lost', label, `${locale}/${step}`);
+        else if (!focus.hidden && (focus.outline === 'none' || focus.width < 1) && focus.shadow === 'none') add('focus-not-visible', label, `${locale}/${step}`);
+    }
+}
 async function checkNotFound(locale, width) {
     const response = await page.goto(`${base}/page-introuvable`, { waitUntil: 'domcontentloaded' });
     assert.equal(response.status(), 404);
@@ -131,6 +152,10 @@ try {
     for (const path of paths) await check(path, 'fr', 1440);
     for (const path of validationPaths) await checkValidation(path, 'fr', 1440);
     await checkNotFound('fr', 1440);
+    await checkKeyboard('fr', 1440);
+    await page.setViewportSize({ width: 320, height: 720 });
+    for (const path of ['/dashboard', '/billing', client, `${project}/documents`, `${project}/planning`]) await check(path, 'fr', 320);
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.setViewportSize({ width: 375, height: 812 });
     for (const path of paths) await check(path, 'fr', 375);
     await checkMenu('fr', 375);
