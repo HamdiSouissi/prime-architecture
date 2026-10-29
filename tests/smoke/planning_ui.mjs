@@ -26,11 +26,12 @@ try {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`${base}/projects`);
     await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').click();
+    const projectUrl = page.url();
     const overviewTab = page.locator('#project-tab-overview');
     await overviewTab.focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await page.locator('#project-tab-team').getAttribute('aria-selected'), 'true');
-    assert.equal(await page.locator('#project-panel-team').isVisible(), true);
+    await page.locator('#project-panel-team').waitFor({ state: 'visible' });
     await page.keyboard.press('ArrowLeft');
     assert.equal(await overviewTab.getAttribute('aria-selected'), 'true');
     await page.getByRole('link', { name: 'Planning', exact: true }).click();
@@ -72,6 +73,11 @@ try {
     assert.equal(await page.locator('#site-navigation').isVisible(), true);
     assert.match(await page.locator('body').evaluate((element) => getComputedStyle(element).fontFamily), /Cairo/);
     await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(projectUrl);
+    await page.locator('#project-tab-overview').focus();
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await page.locator('#project-tab-team').getAttribute('aria-selected'), 'true');
+    await page.locator('#project-panel-team').waitFor({ state: 'visible' });
     await page.goto(ganttUrl);
     await page.locator('.gantt_task_line').first().waitFor();
     assert.equal(await page.locator('#planning-gantt').evaluate((element) => element.classList.contains('gantt_rtl')), true);
