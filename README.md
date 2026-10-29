@@ -1,6 +1,6 @@
 # Archi TN
 
-Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette version comprend l’authentification, les rôles, les clients et les projets. Les documents, la planification et la facturation restent hors périmètre.
+Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette version comprend l’authentification, les rôles, les clients, les projets et les documents versionnés. La planification et la facturation restent hors périmètre.
 
 > **Support et déploiement :** Laravel 12 reçoit des correctifs de sécurité jusqu’au 24 février 2027 ; ses correctifs fonctionnels se sont arrêtés le 13 août 2026. Prévoir la mise à niveau suivante avant la fin de support. Exécuter `composer audit` et traiter ses alertes ; Docker Compose est réservé au développement local.
 
@@ -164,3 +164,41 @@ Les références ont par défaut la forme `2026-001` : l’année est calculée 
 La CIN est une chaîne de huit chiffres. Les téléphones tunisiens sont contrôlés sur leur structure à huit chiffres puis stockés sous `+216XXXXXXXX`, avec ou sans indicatif en entrée ; l’attribution effective du numéro n’est pas vérifiée. Le matricule fiscal est contrôlé **syntaxiquement seulement** : par défaut sept chiffres, trois lettres et trois chiffres, par exemple `1234567/A/A/M/000`. La règle est configurable dans `config/projects.php` (`CLIENT_TAX_ID_PATTERN`). **Ce format et les catégories acceptées doivent être confirmés auprès de l’administration compétente** ; aucun contrôle de validité officiel ou d’existence n’est effectué. Les champs financiers sont indicatifs, en TND avec trois décimales ; aucune logique de facturation n’est incluse.
 
 Le tableau Kanban est en lecture seule et porte sur la page de résultats courante. Le statut initial (`PROJECT_INITIAL_STATUS`, `sketch` par défaut) et les états actifs du tableau de bord sont configurés dans `config/projects.php`. Pour protéger les données internes, les clients ne reçoivent ni notes ni historique détaillé, et les listes sont filtrées en base avant pagination.
+
+## Phase 4 : bibliothèque documentaire privée
+
+Les documents appartiennent à un projet ; chaque fichier est une version immuable, numérotée sous verrou MySQL et identifiée par SHA-256. La version courante est une référence, et recopier une ancienne version crée une nouvelle version. L'archivage ne supprime pas les fichiers ; l'administrateur seul restaure les éléments archivés. Un projet archivé conserve ses fichiers mais les documents ne sont accessibles qu'une fois le projet restauré. Une version courante archivée est remplacée par la dernière version active disponible, ou aucune si toutes sont archivées. Restaurer une version archivée ne la rend pas automatiquement courante.
+
+| Rôle | Consultation / téléchargement | Dépôt / modification | Archivage | Restauration / catégories |
+|---|---|---|---|---|
+| admin | Tous les projets actifs | Oui | Oui | Oui |
+| architect | Tous les projets actifs | Oui | Oui | Non |
+| collaborator | Projets où il est membre | Membres non `viewer` | Seulement si permission accordée | Non |
+| client | Documents visibles de ses projets uniquement | Non ; commentaires publics uniquement | Non | Non |
+| contractor | Aucun | Non | Non | Non |
+
+Permissions : `documents.view`, `documents.upload`, `documents.update`, `documents.delete`, `documents.restore`, `documents.download`, `documents.manage_categories`. Les catégories initiales sont créées sans écraser les modifications de l'administrateur. Après déploiement, sauvegarder MySQL et le stockage, appliquer les migrations et synchroniser les permissions et catégories :
+
+```sh
+docker compose up -d --build
+docker compose exec -u www-data app php artisan migrate --force
+docker compose exec -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=DocumentCategorySeeder --force
+```
+
+Le disque `documents` se trouve dans `storage/app/private/documents`, hors de `public`, dans le volume `app_storage`. Sauvegarder **ensemble et de manière cohérente MySQL, `app_storage` et `app_runtime`**, vérifier régulièrement la restauration et conserver la clé d'application. Ne jamais utiliser `docker compose down -v` sur des données à conserver. Aucun fichier n'est servi via une URL publique : les téléchargements et aperçus passent par les policies et des réponses privées. PDF et images sont affichables ; les autres formats sont uniquement téléchargés.
+
+`config/documents.php` configure les extensions, les MIME détectés côté serveur, la taille, les formats affichables et les limites ZIP. Par défaut `DOCUMENT_MAX_FILE_KB=25600` (25 Mio), `DOCUMENT_MAX_ZIP_BYTES=262144000` (250 Mio) et `DOCUMENT_MAX_ZIP_FILES=50`. PHP-FPM accepte 25M par fichier et 128M par requête ; Nginx limite la requête à 128M. Modifier ensemble configuration applicative, `Dockerfile` et `docker/nginx/default.conf`, puis reconstruire, si des tailles supérieures sont nécessaires. Prévoir aussi l'espace disque temporaire pour les ZIP (jusqu'à la taille des fichiers plus celle de l'archive) et les sauvegardes. L'envoi multiple transmet les fichiers séparément ; chaque fichier réussit ou échoue indépendamment.
+
+Les contrôles de MIME et d'extension ne garantissent pas l'absence de code malveillant. **Aucun antivirus n'est activé** : l'interface `DocumentScanner` est un point d'extension, pas un scan. Les signatures DWG/DXF et des anciens formats Office peuvent varier ; tester avec vos fichiers avant usage. Un fichier doit avoir une seule extension (les noms contenant plusieurs points sont refusés). Les contenus ne sont jamais convertis.
+
+Une transaction MySQL et un stockage externe ne peuvent pas être atomiques en cas de panne brutale. Un journal durable permet de retrouver les dépôts interrompus. Après arrêt des dépôts et contrôle de la base et des sauvegardes, l'administrateur peut lister puis réconcilier les intentions datant d'au moins 24 heures :
+
+```sh
+docker compose exec -u www-data app php artisan documents:reconcile
+docker compose exec -u www-data app php artisan documents:reconcile --delete
+```
+
+La seconde commande supprime les fichiers non référencés des intentions périmées : **arrêter les dépôts actifs et inspecter la liste avant son exécution**. Ne pas la lancer pendant un dépôt de longue durée. Les erreurs de stockage doivent être surveillées et les sauvegardes testées ; le journal ne remplace pas ces mesures.
+
+Pour une démo locale uniquement, sur une base de test avec des projets et un architecte existants : `docker compose exec -u www-data app php artisan db:seed --class=DocumentDemoSeeder`. Ce seeder ne doit pas être utilisé en production.

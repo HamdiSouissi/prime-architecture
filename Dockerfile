@@ -27,7 +27,8 @@ RUN mkdir -p /var/www/runtime storage/framework/sessions storage/framework/views
     && rm -f .env && ln -s /var/www/runtime/.env .env \
     && chown -R www-data:www-data storage bootstrap/cache /var/www/runtime
 COPY --from=assets /app/public/build public/build
-RUN printf '[www]\nclear_env = no\n' > /usr/local/etc/php-fpm.d/zzz-archi.conf
+RUN printf '[www]\nclear_env = no\n' > /usr/local/etc/php-fpm.d/zzz-archi.conf \
+    && printf 'upload_max_filesize=25M\npost_max_size=128M\nmax_file_uploads=20\n' > /usr/local/etc/php/conf.d/archi-uploads.ini
 COPY docker/php/entrypoint.sh /usr/local/bin/archi-entrypoint
 RUN chmod +x /usr/local/bin/archi-entrypoint
 ENTRYPOINT ["archi-entrypoint"]

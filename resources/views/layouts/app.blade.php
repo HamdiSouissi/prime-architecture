@@ -40,6 +40,7 @@
                 @can('projects.view')<a href="{{ route('projects.index') }}" class="block px-3 py-2">{{ __('phase3.projects') }}</a>@endcan
                 <a href="{{ route('profile.edit') }}" class="block px-3 py-2">{{ __('common.profile') }}</a>
                 @can('users.manage')<a href="{{ route('users.index') }}" class="block px-3 py-2">{{ __('common.users') }}</a>@endcan
+                @role('admin')<a href="{{ route('document-categories.index') }}" class="block px-3 py-2">{{ __('phase4.manage_categories') }}</a>@endrole
                 @can('activity.view')<a href="{{ route('activity.index') }}" class="block px-3 py-2">{{ __('common.activity') }}</a>@endcan
             @endauth
         </nav>

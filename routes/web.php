@@ -52,6 +52,29 @@ Route::middleware('auth')->group(function () {
         Route::delete('/projects/{project}/notes/{note}', [ProjectActionsController::class, 'removeNote'])->name('projects.notes.destroy');
         Route::resource('projects', ProjectController::class);
 
+        Route::get('/projects/{project}/documents', [\App\Http\Controllers\DocumentController::class, 'index'])->name('documents.index');
+        Route::get('/projects/{project}/documents/create', [\App\Http\Controllers\DocumentController::class, 'create'])->name('documents.create');
+        Route::post('/projects/{project}/documents', [\App\Http\Controllers\DocumentController::class, 'store'])->name('documents.store');
+        Route::post('/projects/{project}/documents/zip', \App\Http\Controllers\DocumentZipController::class)->name('documents.zip');
+        Route::post('/projects/{project}/documents/{document}/restore', [\App\Http\Controllers\DocumentController::class, 'restore'])->withTrashed()->name('documents.restore');
+        Route::get('/projects/{project}/documents/{document}', [\App\Http\Controllers\DocumentController::class, 'show'])->name('documents.show');
+        Route::get('/projects/{project}/documents/{document}/edit', [\App\Http\Controllers\DocumentController::class, 'edit'])->name('documents.edit');
+        Route::put('/projects/{project}/documents/{document}', [\App\Http\Controllers\DocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/projects/{project}/documents/{document}', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('documents.destroy');
+        Route::post('/projects/{project}/documents/{document}/versions', [\App\Http\Controllers\DocumentVersionController::class, 'store'])->name('documents.versions.store');
+        Route::get('/projects/{project}/documents/{document}/versions/{version}/download', [\App\Http\Controllers\DocumentVersionController::class, 'download'])->name('documents.versions.download');
+        Route::get('/projects/{project}/documents/{document}/versions/{version}/preview', [\App\Http\Controllers\DocumentVersionController::class, 'preview'])->name('documents.versions.preview');
+        Route::post('/projects/{project}/documents/{document}/versions/{version}/copy', [\App\Http\Controllers\DocumentVersionController::class, 'copy'])->name('documents.versions.copy');
+        Route::delete('/projects/{project}/documents/{document}/versions/{version}', [\App\Http\Controllers\DocumentVersionController::class, 'destroy'])->name('documents.versions.destroy');
+        Route::post('/projects/{project}/documents/{document}/versions/{version}/restore', [\App\Http\Controllers\DocumentVersionController::class, 'restore'])->withTrashed()->name('documents.versions.restore');
+        Route::post('/projects/{project}/documents/{document}/comments', [\App\Http\Controllers\DocumentCommentController::class, 'store'])->name('documents.comments.store');
+        Route::delete('/projects/{project}/documents/{document}/comments/{comment}', [\App\Http\Controllers\DocumentCommentController::class, 'destroy'])->name('documents.comments.destroy');
+        Route::get('/document-categories', [\App\Http\Controllers\DocumentCategoryController::class, 'index'])->name('document-categories.index');
+        Route::post('/document-categories', [\App\Http\Controllers\DocumentCategoryController::class, 'store'])->name('document-categories.store');
+        Route::put('/document-categories/{category}', [\App\Http\Controllers\DocumentCategoryController::class, 'update'])->name('document-categories.update');
+        Route::delete('/document-categories/{category}', [\App\Http\Controllers\DocumentCategoryController::class, 'destroy'])->name('document-categories.destroy');
+
+
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'password'])->name('profile.password');

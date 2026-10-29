@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'documents' => 'Documents', 'new' => 'Nouveau document', 'title' => 'Titre', 'category' => 'Catégorie', 'description' => 'Description',
+    'file' => 'Fichier', 'visible_to_client' => 'Visible par le client', 'current_version' => 'Version courante', 'version' => 'Version',
+    'size' => 'Taille', 'author' => 'Auteur', 'type' => 'Type', 'download' => 'Télécharger', 'preview' => 'Aperçu',
+    'history' => 'Historique des versions', 'add_version' => 'Ajouter une version', 'change_note' => 'Note de modification',
+    'copy_version' => 'Créer une nouvelle version à partir de celle-ci', 'restored_from' => 'Copie de la version :number',
+    'archive_version' => 'Archiver cette version', 'restore_version' => 'Restaurer la version archivée', 'archived_versions' => 'Versions archivées',
+    'archive_document' => 'Archiver le document', 'restore_document' => 'Restaurer le document', 'archived_documents' => 'Documents archivés',
+    'comments' => 'Commentaires', 'add_comment' => 'Ajouter un commentaire', 'internal' => 'Interne (invisible du client)',
+    'all_versions' => 'Document entier', 'empty' => 'Aucun document.', 'zip' => 'Télécharger la sélection en ZIP', 'select' => 'Sélectionner',
+    'manage_categories' => 'Gérer les catégories', 'slug' => 'Identifiant', 'name_fr' => 'Nom français', 'name_ar' => 'Nom arabe', 'sort_order' => 'Ordre',
+    'category_in_use' => 'Cette catégorie est utilisée. Désactivez-la au lieu de la supprimer.',
+    'invalid_file' => 'Fichier invalide, trop volumineux ou de format non autorisé.',
+    'invalid_filename' => 'Nom de fichier invalide : évitez les doubles extensions, caractères de contrôle et noms trop longs.',
+    'duplicate_file' => 'Cette version est identique à la version précédente.',
+    'integrity_error' => 'L’intégrité du fichier ne peut pas être vérifiée.',
+    'zip_too_large' => 'La sélection dépasse la limite autorisée pour le ZIP.',
+    'no_current_version' => 'Un document sélectionné n’a pas de version courante.',
+    'multiple_upload' => 'Déposer plusieurs documents', 'multiple_hint' => 'Chaque fichier crée un document distinct. Le nom du fichier devient son titre.',
+    'upload_files' => 'Envoyer les fichiers', 'upload_failed' => 'Le dépôt a échoué.', 'upload_complete' => 'Dépôt terminé.',
+    'back_project' => 'Retour au projet', 'back_documents' => 'Retour aux documents', 'no_preview' => 'Aucun aperçu pour ce format.',
+    'file_help' => 'Formats et taille selon la configuration du serveur. Un seul point est accepté dans le nom du fichier.',
+];

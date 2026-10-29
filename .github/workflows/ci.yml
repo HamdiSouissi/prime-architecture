@@ -62,6 +62,8 @@ jobs:
           fi
       - name: Verify concurrent project reference allocation
         run: php tests/smoke/concurrent_references.php
+      - name: Verify concurrent document version allocation
+        run: php tests/smoke/concurrent_document_versions.php
       - name: Check PHP formatting
         run: |
           if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
