@@ -45,6 +45,10 @@ class TaxCalculatorTest extends TestCase
         $this->assertSame('120.000', $result['withholding_base']);
         $this->assertSame('12.000', $result['withholding']);
         $this->assertSame('108.000', $result['net_due']);
+        $excluded = $calculator->calculate([$line], '0', '1.000', '10', 'ttc', false);
+        $this->assertSame('119.000', $excluded['withholding_base']);
+        $this->assertSame('11.900', $excluded['withholding']);
+        $this->assertSame('108.100', $excluded['net_due']);
     }
 
     public function test_rejects_floats_invalid_rates_and_overflow(): void

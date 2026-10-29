@@ -55,7 +55,7 @@ class BillingSettingsController extends Controller
                 DB::table('tax_rates')->insert(['tax_setting_id' => $id, 'label_fr' => $rate['label_fr'], 'label_ar' => $rate['label_ar'], 'rate' => $rate['rate'], 'is_default' => $index === 0, 'created_at' => now(), 'updated_at' => now()]);
             }
             foreach ($data['withholdings'] ?? [] as $withholding) {
-                DB::table('withholding_rates')->insert(['tax_setting_id' => $id, 'label_fr' => $withholding['label_fr'], 'label_ar' => $withholding['label_ar'], 'rate' => $withholding['rate'], 'base' => $withholding['base'], 'includes_stamp' => (bool) ($withholding['includes_stamp'] ?? false), 'created_at' => now(), 'updated_at' => now()]);
+                DB::table('withholding_rates')->insert(['tax_setting_id' => $id, 'label_fr' => $withholding['label_fr'], 'label_ar' => $withholding['label_ar'], 'rate' => $withholding['rate'], 'base' => $withholding['base'], 'includes_stamp' => false, 'created_at' => now(), 'updated_at' => now()]);
             }
             activity('billing')->causedBy($request->user())->withProperties(['tax_setting_id' => $id])->event('billing.tax_version_created')->log('billing.tax_version_created');
         }, 3);

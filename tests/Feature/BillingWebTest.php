@@ -153,4 +153,21 @@ class BillingWebTest extends TestCase
         ])->assertSessionHasErrors('rates')->assertRedirect(route('billing.settings.index'));
         $this->get(route('billing.settings.index'))->assertOk()->assertSee('TauxTest')->assertSee('RetenueTest')->assertSee('2.500')->assertSee('includesStamp');
     }
+
+    public function test_fiscal_settings_never_include_stamp_in_withholding_and_disclose_e_invoicing_limit(): void
+    {
+        $this->withoutVite();
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));
+        $this->seed(RolePermissionSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $this->actingAs($admin)->get(route('billing.settings.index'))->assertOk()
+            ->assertSee(__('phase6.e_invoicing_title'))->assertSee(__('phase6.withholding_base_hint'));
+        $this->post(route('billing.settings.tax'), [
+            'effective_from' => '2026-11-02', 'stamp_amount' => '1.000', 'stamp_on_invoice' => '1', 'verified' => '1',
+            'rates' => [['label_fr' => 'TVA 19', 'label_ar' => 'أداء 19', 'rate' => '19.0000']],
+            'withholdings' => [['label_fr' => 'Honoraires TTC', 'label_ar' => 'أتعاب', 'rate' => '3.0000', 'base' => 'ttc', 'includes_stamp' => '1']],
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('withholding_rates', ['rate' => '3.0000', 'base' => 'ttc', 'includes_stamp' => false]);
+    }
 }
