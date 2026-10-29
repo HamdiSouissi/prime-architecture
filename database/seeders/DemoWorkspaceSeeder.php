@@ -8,8 +8,8 @@ use App\Models\User;
 use App\Services\ClientPortalAccess;
 use App\Services\InvoiceService;
 use App\Services\QuoteService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /** Explicitly opt-in, for a fresh local database only. */
