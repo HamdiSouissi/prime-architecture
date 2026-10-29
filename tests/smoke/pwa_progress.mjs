@@ -27,6 +27,11 @@ try {
     await page.locator('#snag-internal').fill('NOTE-INTERNE-CI');
     await page.locator('#snag-form button[type=submit]').click();
     await page.getByText('NOTE-INTERNE-CI').waitFor();
+    const photoBase64 = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 30; canvas.height = 20; canvas.getContext('2d').fillRect(0, 0, 30, 20); return canvas.toDataURL('image/png').split(',')[1]; });
+    await page.locator('#photo-file').setInputFiles({ name: 'site.png', mimeType: 'image/png', buffer: Buffer.from(photoBase64, 'base64') });
+    await page.locator('#photo-caption').fill('PHOTO-SECRET-CI');
+    await page.locator('#photo-form button[type=submit]').click();
+    await page.getByText('PHOTO-SECRET-CI').waitFor();
     const stored = await page.evaluate(async () => {
         const db = await new Promise((resolve, reject) => { const r = indexedDB.open('archi-offline-vault'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
         const row = await new Promise((resolve, reject) => { const r = db.transaction('vault').objectStore('vault').get('data'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
@@ -35,6 +40,7 @@ try {
     assert.deepEqual(stored.keys, ['cipher', 'iv', 'salt', 'version']);
     assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('SECRET-RELEVE-CI')), false);
     assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('NOTE-INTERNE-CI')), false);
+    assert.equal(Buffer.from(stored.cipher).includes(Buffer.from('PHOTO-SECRET-CI')), false);
     await page.goto(`${base}/dashboard`);
     await page.locator('#secret').fill('mauvaise-phrase-secrete');
     await page.locator('#unlock').click();
@@ -43,11 +49,13 @@ try {
     await page.locator('#unlock').click();
     await page.getByText('SECRET-RELEVE-CI').waitFor();
     await page.getByText('NOTE-INTERNE-CI').waitFor();
+    await page.getByText('PHOTO-SECRET-CI').waitFor();
     await context.setOffline(false);
     await page.locator('#sync').click();
     await page.getByText('Synchronisation terminée.', { exact: false }).waitFor();
     assert.equal(await page.getByText('SECRET-RELEVE-CI').count(), 0);
     assert.equal(await page.getByText('NOTE-INTERNE-CI').count(), 0);
+    assert.equal(await page.getByText('PHOTO-SECRET-CI').count(), 0);
     console.log('Encrypted progress draft survives offline reload and syncs after reconnecting.');
 } finally {
     await browser.close();

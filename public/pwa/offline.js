@@ -53,7 +53,7 @@ async function save() {
 }
 function status(message, error = false) { $('status').textContent = message; $('status').className = error ? 'error' : ''; }
 function draw() {
-    for (const [id, permission] of [['project', 'can_progress'], ['snag-project', 'can_snag']]) {
+    for (const [id, permission] of [['project', 'can_progress'], ['snag-project', 'can_snag'], ['photo-project', 'can_photo']]) {
         const select = $(id);
         select.replaceChildren();
         for (const project of vault.projects.filter(item => item[permission])) {
@@ -63,7 +63,7 @@ function draw() {
     const list = $('drafts'); list.replaceChildren();
     for (const draft of vault.drafts) {
         const li = document.createElement('li');
-        li.textContent = draft.kind === 'snag' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}` : `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
+        li.textContent = draft.kind === 'photo' ? `${draft.project_name} — Photo — ${draft.caption || ''}` : draft.kind === 'snag' ? `${draft.project_name} — ${draft.title} — ${draft.severity} — ${draft.description || ''} — ${draft.location || ''} — ${draft.responsible || ''} — ${draft.due_on || ''} — ${draft.internal_notes || ''}` : `${draft.project_name} — ${draft.recorded_on} — ${draft.percent}% — ${draft.note || ''}${draft.conflict ? ' — Conflit : version serveur conservée / تعارض: تم اعتماد نسخة الخادم' : ''}`;
         const button = document.createElement('button'); button.className = 'secondary'; button.type = 'button'; button.textContent = 'Supprimer / حذف';
         button.onclick = async () => {
             if (!confirm('Supprimer ce relevé local ? / حذف التقرير المحلي؟')) return;
@@ -93,7 +93,7 @@ $('prepare').onclick = async () => {
     try {
         const data = await session();
         if (vault.owner_id !== null && vault.owner_id !== data.owner_id) throw new Error('owner');
-        vault.owner_id = data.owner_id; vault.projects = data.projects;
+        vault.owner_id = data.owner_id; vault.projects = data.projects; vault.photo_max_kb = data.photo_max_kb;
         await save(); draw(); status('Projets préparés. / تم تحضير المشاريع.');
     } catch { status('Connexion, compte ou préparation impossible. / تعذر الاتصال أو تحضير المشاريع.', true); }
 };
@@ -118,20 +118,46 @@ $('snag-form').onsubmit = async event => {
     try { await save(); $('snag-form').reset(); draw(); status('Réserve chiffrée enregistrée sur cet appareil. / حُفظت الملاحظة مشفّرة على الجهاز.'); }
     catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
 };
+$('photo-form').onsubmit = async event => {
+    event.preventDefault();
+    const project = vault.projects.find(item => String(item.id) === $('photo-project').value && item.can_photo);
+    const file = $('photo-file').files[0];
+    if (!project || !file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size < 1 || file.size > vault.photo_max_kb * 1024) {
+        status('Photo invalide ou trop volumineuse. / الصورة غير صالحة أو كبيرة جداً.', true); return;
+    }
+    try {
+        const data = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); });
+        vault.drafts.push({ kind: 'photo', operation_id: crypto.randomUUID(), owner_id: vault.owner_id, project_id: project.id,
+            project_name: project.name, filename: file.name, photo_data: data, caption: $('photo-caption').value || null, taken_on: $('photo-date').value || null });
+        await save(); $('photo-form').reset(); draw(); status('Photo chiffrée enregistrée sur cet appareil. / حُفظت الصورة مشفّرة على الجهاز.');
+    } catch { status('Enregistrement impossible : rechargez la page. / تعذر الحفظ، أعد تحميل الصفحة.', true); }
+};
 $('sync').onclick = async () => {
     try {
         const current = await session();
         if (current.owner_id !== vault.owner_id) throw new Error('owner');
         for (const draft of [...vault.drafts]) {
             if (draft.conflict) continue;
-            const endpoint = draft.kind === 'snag' ? 'snags' : 'progress';
-            const response = await fetch(`/offline/projects/${draft.project_id}/${endpoint}`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': current.csrf_token }, body: JSON.stringify(draft) });
+            const endpoint = draft.kind === 'photo' ? 'photos' : draft.kind === 'snag' ? 'snags' : 'progress';
+            const headers = { Accept: 'application/json', 'X-CSRF-TOKEN': current.csrf_token };
+            let body;
+            if (draft.kind === 'photo') {
+                if (!/^data:image\/(jpeg|png|webp);base64,/.test(draft.photo_data)) throw new Error('photo');
+                body = new FormData();
+                body.append('photo', await (await fetch(draft.photo_data)).blob(), draft.filename);
+                body.append('operation_id', draft.operation_id); body.append('owner_id', String(draft.owner_id));
+                if (draft.caption) body.append('caption', draft.caption);
+                if (draft.taken_on) body.append('taken_on', draft.taken_on);
+            } else {
+                headers['Content-Type'] = 'application/json'; body = JSON.stringify(draft);
+            }
+            const response = await fetch(`/offline/projects/${draft.project_id}/${endpoint}`, { method: 'POST', credentials: 'same-origin', headers, body });
             if (response.status === 409) { draft.conflict = true; await save(); continue; }
             if (!response.ok) throw new Error('sync');
             const result = await response.json();
             vault.drafts = vault.drafts.filter(item => item.operation_id !== draft.operation_id);
             const project = vault.projects.find(item => item.id === draft.project_id);
-            if (project && draft.kind !== 'snag') project.base_revision = result.id;
+            if (project && draft.kind !== 'snag' && draft.kind !== 'photo') project.base_revision = result.id;
             await save();
         }
         draw(); status('Synchronisation terminée. Vérifiez les éventuels conflits. / انتهت المزامنة. تحقق من التعارضات.');

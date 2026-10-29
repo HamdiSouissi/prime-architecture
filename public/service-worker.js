@@ -1,5 +1,5 @@
 /* Only static, public offline resources are cached, never authenticated responses. */
-const CACHE = 'archi-offline-shell-v3';
+const CACHE = 'archi-offline-shell-v4';
 const SHELL = '/pwa/offline.html';
 const SCRIPT = '/pwa/offline.js';
 self.addEventListener('install', event => {
