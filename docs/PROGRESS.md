@@ -30,7 +30,7 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
 | 10 | Permis et urbanisme | Dossiers, étapes, documents et rappels développés ; recette humaine à réaliser |
 | 11 | Portail client | En cours : périmètre de base développé, recette et vérifications à poursuivre |
-| 12 | PWA et hors-ligne | Relevés, création de réserves et photos chiffrés ; modification des réserves et consultation générale hors ligne à réaliser |
+| 12 | PWA et hors-ligne | Relevés, réserves préparées et photos chiffrés ; consultation générale hors ligne à réaliser |
 | 13–14 | Sauvegardes et recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
@@ -143,7 +143,7 @@ brouillon conservé en conflit). La synchronisation nécessite une session valid
 phrase du coffre ; aucune synchronisation automatique en arrière-plan. Les réserves et photos sont synchronisées de façon idempotente et selon les policies de chantier ; les photos restent internes et non rattachées. CI complète verte
 sur `3d00b9c`, dont test navigateur déconnecté, chiffrement et reprise.
 
-La modification des réserves existantes et la consultation générale hors ligne ne sont pas implémentées. Les originaux photo, EXIF compris, restent chiffrés localement jusqu’à synchronisation.
+Les réserves existantes peuvent être préparées (500 maximum par projet), consultées et modifiées hors ligne ; révision vérifiée sous verrou, conflit conservé localement et priorité serveur. Les réserves validées restent figées. Après synchronisation, préparer à nouveau pour récupérer la version courante. Tests PHP et navigateur déconnecté en CI verte sur `24b8cc3` (run `40948226484`). La consultation générale hors ligne reste à réaliser. Les originaux photo, EXIF compris, restent chiffrés localement jusqu’à synchronisation.
 Prévoir tests complémentaires de concurrence, revue de sécurité et recette humaine ;
 la perte de phrase ou la purge navigateur rend les données locales irrécupérables.
 Les sauvegardes et la recette finale restent à développer (phases 13 et 14).

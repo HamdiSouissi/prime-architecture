@@ -429,6 +429,9 @@ pendant l'utilisation sur l'appareil ; éviter les appareils partagés ou compro
 purger le coffre après usage. Les photos sont synchronisées comme photos internes non rattachées ; elles ne sont pas
 publiées automatiquement. Le fichier original et ses métadonnées restent chiffrés dans
 le coffre jusqu'à synchronisation, puis le serveur ré-encode l'image et supprime EXIF.
-La modification de réserves existantes et la consultation générale hors ligne ne sont
-**pas encore disponibles**. Une recette humaine et une revue de sécurité
+Les réserves existantes peuvent être préparées en ligne (500 maximum par projet),
+consultées et modifiées hors ligne selon les permissions. Une version périmée est
+refusée : le serveur reste prioritaire et le brouillon est conservé en conflit. Les
+réserves validées sont figées. Après synchronisation, préparez à nouveau la liste pour
+obtenir les données courantes. La consultation générale hors ligne reste **à réaliser**. Une recette humaine et une revue de sécurité
 dédiée restent nécessaires.
