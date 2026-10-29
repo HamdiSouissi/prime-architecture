@@ -41,6 +41,7 @@ async function check(path, locale, width) {
 }
 try {
     for (const path of ['/login', '/forgot-password', '/reset-password/example?email=test@example.com']) await check(path, 'fr', 1440);
+    await page.goto(`${base}/login`);
     await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
     await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
     await Promise.all([page.waitForURL('**/dashboard'), page.locator('form[action$="/login"] button[type="submit"]').click()]);
