@@ -36,7 +36,7 @@ return [
     'week' => 'Semaine',
     'day' => 'Jour',
     'filter' => 'Filtrer',
-    'gantt_readonly' => 'Gantt en lecture seule. Le fond coloré repère la période actuelle ; ouvrez une tâche pour la modifier.',
+    'gantt_readonly' => 'Gantt en lecture seule : les tâches sans dates ne sont pas affichées. Le fond coloré repère la période actuelle si elle est visible ; ouvrez une tâche pour la modifier.',
     'gantt_truncated' => 'Affichage limité : certains éléments ne sont pas représentés.',
     'gantt_failed' => 'Impossible de charger le Gantt.',
     'gantt_requires_js' => 'JavaScript est nécessaire pour le Gantt ; utilisez la liste.',
