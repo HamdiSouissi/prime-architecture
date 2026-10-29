@@ -123,3 +123,49 @@ jobs:
       - name: Clean up
         if: always()
         run: docker compose down -v
+  laravel-upgrade:
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: CI-admin-password-123
+      PASSWORD_CHECK_COMPROMISED: 'false'
+      COMPOSE_PROJECT_NAME: archi-upgrade
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare Laravel 11 baseline without changing branches
+        run: |
+          mkdir -p "$RUNNER_TEMP/archi-laravel11"
+          git archive 60e487939bbd1baa98098c5e9020c7a8c579185a | tar -x -C "$RUNNER_TEMP/archi-laravel11"
+      - name: Start baseline and create existing data
+        run: |
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" up -d --build --wait
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan migrate --force --no-interaction
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app php artisan db:seed --class=InitialAdminSeeder --force
+          python3 tests/smoke/docker_phase2.py
+          python3 tests/smoke/laravel_upgrade.py seed
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" exec -T -u www-data app sh -c "grep '^APP_KEY=' /var/www/runtime/.env | sha256sum" > "$RUNNER_TEMP/old-key-hash"
+      - name: Upgrade using existing volumes
+        run: |
+          docker compose -f "$RUNNER_TEMP/archi-laravel11/docker-compose.yml" down
+          docker compose up -d --build --wait
+          docker compose exec -T -u www-data app php artisan migrate --force --no-interaction
+          docker compose exec -T -u www-data app php artisan optimize:clear
+          docker compose exec -T -u www-data app php artisan --version | grep -F 'Laravel Framework 12.'
+          docker compose exec -T -u www-data app sh -c "grep '^APP_KEY=' /var/www/runtime/.env | sha256sum" > "$RUNNER_TEMP/new-key-hash"
+          cmp "$RUNNER_TEMP/old-key-hash" "$RUNNER_TEMP/new-key-hash"
+      - name: Verify existing session, credentials and profile
+        run: |
+          if ! python3 tests/smoke/laravel_upgrade.py verify > upgrade-result.txt 2>&1; then
+            cat upgrade-result.txt
+            echo "::error title=Laravel upgrade::$(tail -c 2000 upgrade-result.txt | tr '\r\n' '  ')"
+            exit 1
+          fi
+      - name: Collect application logs on failure
+        if: failure()
+        run: docker compose logs --no-color app web mailpit || true
+      - name: Clean up test volumes
+        if: always()
+        run: docker compose down -v
