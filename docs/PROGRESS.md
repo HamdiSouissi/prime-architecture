@@ -27,7 +27,8 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 6 | Devis, factures, avoirs, paiements, retenues, PDF FR/AR, interface | Livré avec réserves (PDF arabe, fiscalité, revue humaine) |
 | 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
 | 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Livré, CI verte (`aadee8c`), en attente de validation |
-| 9 et suivantes | Non commencées | — |
+| 9 | Base de prix et métré | Socle catalogue et historique seulement ; interface, droits, métrés et transfert à réaliser |
+| 10–14 | Urbanisme, portail, PWA, sauvegardes, recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
@@ -101,3 +102,7 @@ Le détail des réserves et la liste de corrections sont dans
 Engager la phase 9 (base de prix et métré), puis poursuivre les phases suivantes selon
 [`docs/phases-9-14-plan.md`](phases-9-14-plan.md). Les phases 1 à 7 restent à fusionner selon le
 processus prévu ; aucune branche `develop` n'est touchée par cette session.
+
+## Reprise phase 9
+
+Le socle `PriceItem`, `PriceItemPrice`, `PriceCatalog` et leur migration historisent les prix de manière transactionnelle. Aucune interface ni route ne les expose encore. À réaliser : droits, interface FR/AR, métrés liés aux prix courants, transfert sûr vers devis brouillon et tests associés.

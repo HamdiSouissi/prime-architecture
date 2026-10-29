@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -27,8 +28,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (\Illuminate\Support\Facades\DB::table('price_items')->exists()) {
-            throw new \RuntimeException('Cannot roll back a non-empty price catalog.');
+        if (DB::table('price_items')->exists()) {
+            throw new RuntimeException('Cannot roll back a non-empty price catalog.');
         }
         Schema::dropIfExists('price_item_prices');
         Schema::dropIfExists('price_items');
