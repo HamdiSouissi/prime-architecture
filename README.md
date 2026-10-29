@@ -1,6 +1,6 @@
 # Archi TN
 
-Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette version comprend l’authentification, les rôles, les clients, les projets et les documents versionnés. La planification et la facturation restent hors périmètre.
+Socle de gestion pour cabinets d'architecture en Tunisie : Laravel 12 / PHP 8.2+, MySQL 8, Blade, Tailwind, Alpine, FR/AR et RTL. Cette version comprend l’authentification, les rôles, les clients, les projets, les documents versionnés et la planification. La phase de facturation et la refonte graphique sont en cours : leurs fondations ne constituent pas encore un module de facturation utilisable.
 
 > **Support et déploiement :** Laravel 12 reçoit des correctifs de sécurité jusqu’au 24 février 2027 ; ses correctifs fonctionnels se sont arrêtés le 13 août 2026. Prévoir la mise à niveau suivante avant la fin de support. Exécuter `composer audit` et traiter ses alertes ; Docker Compose est réservé au développement local.
 
@@ -161,7 +161,7 @@ Les clients, contacts, projets et notes sont supprimés logiquement. Archiver un
 
 Les références ont par défaut la forme `2026-001` : l’année est calculée en fuseau `Africa/Tunis`, le compteur est verrouillé en transaction et la référence reste unique même après archivage. `PROJECT_REFERENCE_FORMAT` doit contenir une fois chacun `{year}` et `{sequence}` ; `PROJECT_REFERENCE_PADDING` définit le nombre **minimum** de chiffres (1 à 12), sans limite à 999. `PROJECT_REFERENCE_TIMEZONE` permet de modifier le fuseau. Les modifications de format ne doivent pas produire de référence existante.
 
-La CIN est une chaîne de huit chiffres. Les téléphones tunisiens sont contrôlés sur leur structure à huit chiffres puis stockés sous `+216XXXXXXXX`, avec ou sans indicatif en entrée ; l’attribution effective du numéro n’est pas vérifiée. Le matricule fiscal est contrôlé **syntaxiquement seulement** : par défaut sept chiffres, trois lettres et trois chiffres, par exemple `1234567/A/A/M/000`. La règle est configurable dans `config/projects.php` (`CLIENT_TAX_ID_PATTERN`). **Ce format et les catégories acceptées doivent être confirmés auprès de l’administration compétente** ; aucun contrôle de validité officiel ou d’existence n’est effectué. Les champs financiers sont indicatifs, en TND avec trois décimales ; aucune logique de facturation n’est incluse.
+La CIN est une chaîne de huit chiffres. Les téléphones tunisiens sont contrôlés sur leur structure à huit chiffres puis stockés sous `+216XXXXXXXX`, avec ou sans indicatif en entrée ; l’attribution effective du numéro n’est pas vérifiée. Le matricule fiscal est contrôlé **syntaxiquement seulement** : par défaut sept chiffres, trois lettres et trois chiffres, par exemple `1234567/A/A/M/000`. La règle est configurable dans `config/projects.php` (`CLIENT_TAX_ID_PATTERN`). **Ce format et les catégories acceptées doivent être confirmés auprès de l’administration compétente** ; aucun contrôle de validité officiel ou d’existence n’est effectué. Les champs financiers du projet sont indicatifs, en TND avec trois décimales ; ils ne constituent pas une facture.
 
 Le tableau Kanban est en lecture seule et porte sur la page de résultats courante. Le statut initial (`PROJECT_INITIAL_STATUS`, `sketch` par défaut) et les états actifs du tableau de bord sont configurés dans `config/projects.php`. Pour protéger les données internes, les clients ne reçoivent ni notes ni historique détaillé, et les listes sont filtrées en base avant pagination.
 
@@ -250,3 +250,28 @@ En production, exécuter `schedule:run` chaque minute sous l'utilisateur applica
 ```
 
 Le rappel est programmé à `PLANNING_REMINDER_TIME` (08:00 par défaut), dans `PLANNING_TIMEZONE`, avec une fenêtre de jalon `PLANNING_MILESTONE_REMINDER_DAYS` (7 par défaut). En environnement multisite, utiliser un cache partagé pour le verrou du scheduler. Une entrée `processing`, `sent` ou `failed` interdit une seconde tentative automatique le même jour ; consulter les journaux Laravel et `planning_daily_digests` après un échec. Les emails utilisent le transport configuré (Mailpit en développement). Une panne SMTP ambiguë peut avoir livré un message avant l'erreur : l'exactement-une-fois n'est pas garanti et une relance manuelle doit être examinée avant intervention. Les emails restent optionnels par utilisateur ; la base reste la source du centre de notifications.
+
+
+## Phase 6 — fondations en cours, non utilisables pour facturer
+
+Les migrations `000008` et `000009` préparent les paramètres fiscaux historisés, TVA et retenues, formats et compteurs annuels, profils de cabinet, devis et lignes, factures et lignes, paiements, justificatifs de retenue, avoirs et honoraires. Les modèles, policies, calculs et numérotation sont des fondations : **ne pas émettre de documents ni utiliser ces tables comme système financier en production**. Il manque notamment les services et écrans métier, l’application effective de l’immutabilité, la gestion des paiements et avoirs, les PDF et les tests de bout en bout. Les policies seules ne protègent pas les écritures directes en base ou les appels Eloquent hors des futurs services.
+
+Les calculs utilisent BCMath et des chaînes décimales, jamais de `float`. Les lignes sont arrondies au millime après les remises de ligne et de document ; la TVA est calculée et arrondie par groupe de taux, avec un arrondi demi-supérieur. L’assiette de la retenue et l’inclusion du timbre sont paramétrables. La retenue prévue est distincte des justificatifs effectivement reçus ; aucune règle fiscale tunisienne n’est garantie par ce code.
+
+Le seeder facultatif `TaxSettingsSeeder` fournit des taux **indicatifs non vérifiés** de 19 %, 13 % et 7 %, et un montant de timbre de 1,000 TND ; il ne configure pas les retenues. Le déclenchement du timbre est désactivé dans ces valeurs d’exemple. Avant tout usage réel, les taux, assiettes, retenues, timbre et modalités d’avoirs doivent être validés par un comptable au regard des textes applicables. L’exécution n’active aucun parcours de facturation :
+
+```sh
+docker compose exec -u www-data app php artisan migrate --force
+docker compose exec -u www-data app php artisan db:seed --class=RolePermissionSeeder --force
+docker compose exec -u www-data app php artisan db:seed --class=TaxSettingsSeeder --force
+```
+
+`RolePermissionSeeder` synchronise les permissions des rôles suivant `config/access.php`. Les permissions financières sont attribuées aux administrateurs et architectes ; un collaborateur doit recevoir une permission dédiée et être membre du projet, avec `viewer` en lecture seule. Clients et entreprises sont exclus. Aucun écran financier n’est encore exposé.
+
+`DocumentNumberGenerator` exige une transaction et verrouille un compteur par type et année. L’application future devra attribuer le numéro uniquement lors de l’émission dans cette même transaction et conserver les documents annulés. La continuité ne couvre pas les modifications manuelles ni les restaurations de sauvegardes. La concurrence des numéros financiers n’a pas encore été validée.
+
+### Socle graphique
+
+Les tokens Tailwind définissent le fond clair `#F6F8FC`, le texte `#172033`, l’indigo `#4338CA` et les couleurs sémantiques. Inter et Cairo sont distribuées localement sous SIL OFL et les icônes Heroicons sous MIT ; leurs licences sont dans `resources/licenses`. Le layout propose une navigation claire, un menu mobile et une direction FR/AR. Les composants boutons, cartes et champs ont été mis à jour ; le reste des composants et la refonte de chaque page restent à terminer. La conformité AA et le responsive de toutes les pages ne sont pas encore certifiés.
+
+Pour vérifier les changements disponibles : `npm ci && npm run build`, `php artisan test`, `vendor/bin/pint --test`, `vendor/bin/phpstan analyse`. Les commandes PHP nécessitent l’environnement PHP/Composer du projet ; les tests navigateur et Docker de la CI nécessitent aussi Docker et Chrome.
