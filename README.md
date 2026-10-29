@@ -415,7 +415,17 @@ accessibilité restent à vérifier ; limites PDF arabe déjà documentées en p
 
 ## Phase 12 — PWA (socle seulement)
 
-Un manifeste permet l'installation et un service worker affiche un message public en
-cas de perte de réseau, sans mettre en cache les pages ou données privées. Le coffre
-local chiffré et la consultation, la saisie et la synchronisation hors ligne ne sont
-**pas encore disponibles**.
+Un manifeste permet l'installation et le service worker ne met en cache que l'écran
+public et son script, jamais les pages authentifiées. Un coffre local AES-GCM (clé
+issue d'une phrase secrète via PBKDF2) permet de préparer les projets en ligne et de
+saisir un relevé d'avancement hors ligne. La synchronisation manuelle nécessite une
+session du même utilisateur et réapplique les autorisations. Les opérations sont
+idempotentes ; si un nouveau relevé serveur est intervenu, la version serveur est
+conservée et le brouillon local marqué en conflit. Un seul relevé en attente par projet.
+
+La phrase secrète n'est pas transmise ni récupérable ; sa perte ou l'effacement des
+données du navigateur rend les brouillons irrécupérables. Les données sont déchiffrées
+pendant l'utilisation sur l'appareil ; éviter les appareils partagés ou compromis et
+purger le coffre après usage. Les réserves, photos et la consultation générale hors
+ligne ne sont **pas encore disponibles**. Une recette humaine et une revue de sécurité
+dédiée restent nécessaires.

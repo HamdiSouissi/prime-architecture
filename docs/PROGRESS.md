@@ -30,7 +30,7 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
 | 10 | Permis et urbanisme | Dossiers, étapes, documents et rappels développés ; recette humaine à réaliser |
 | 11 | Portail client | En cours : périmètre de base développé, recette et vérifications à poursuivre |
-| 12 | PWA et hors-ligne | Socle installable et page hors-ligne publique ; synchronisation et coffre chiffré non réalisés |
+| 12 | PWA et hors-ligne | Relevés chiffrés et synchronisation développés ; réserves, photos et consultation hors ligne à réaliser |
 | 13–14 | Sauvegardes et recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
@@ -134,7 +134,16 @@ installé. Recette humaine et tests de bout en bout complémentaires à réalise
 
 ## Reprise phase 12
 
-Manifeste et service worker : seul un écran hors-ligne public est mis en cache ; les
-réponses authentifiées ne le sont jamais. La consultation de données privées hors
-ligne, le coffre chiffré et les écritures/synchronisations ne sont **pas implémentés**.
-Ils restent à construire et tester avant d'annoncer la PWA hors ligne fonctionnelle.
+Manifeste et service worker : seul l'écran hors-ligne public et son script sont mis en
+cache. `public/pwa/offline.js` chiffre les projets préparés et les relevés dans IndexedDB
+(AES-GCM, PBKDF2, phrase non stockée) ; une seule opération en attente par projet.
+`OfflineProgressSync` applique les relevés sous verrou, vérifie l'utilisateur et les
+permissions, déduplique les reprises et refuse les révisions périmées (serveur prioritaire,
+brouillon conservé en conflit). La synchronisation nécessite une session valide et la
+phrase du coffre ; aucune synchronisation automatique en arrière-plan. CI complète verte
+sur `0b791c7`, dont test navigateur déconnecté, chiffrement et reprise.
+
+Les réserves, photos et la consultation générale hors ligne ne sont pas implémentées.
+Prévoir tests complémentaires de concurrence, revue de sécurité et recette humaine ;
+la perte de phrase ou la purge navigateur rend les données locales irrécupérables.
+Les sauvegardes et la recette finale restent à développer (phases 13 et 14).
