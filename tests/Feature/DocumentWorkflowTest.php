@@ -100,13 +100,16 @@ class DocumentWorkflowTest extends TestCase
         $clientUser = $this->user('client');
         $this->project->client->update(['user_id' => $clientUser->id]);
         $visible = $this->createDocument(true);
-        $private = Document::factory()->create(['project_id' => $this->project->id, 'category_id' => $this->category->id, 'title' => 'Private', 'visible_to_client' => false]);
+        $this->post(route('documents.store', $this->project), ['title' => 'Private', 'category_id' => $this->category->id, 'file' => $this->pdf('private')])->assertSessionHasNoErrors();
+        $private = Document::where('title', 'Private')->firstOrFail();
         $version = $visible->currentVersion;
         $this->post(route('documents.comments.store', [$this->project, $visible]), ['body' => 'SECRET INTERNAL', 'is_internal' => 1])->assertSessionHasNoErrors();
         $this->post(route('documents.comments.store', [$this->project, $visible]), ['body' => 'Public comment', 'is_internal' => 0])->assertSessionHasNoErrors();
         $this->actingAs($clientUser)->get(route('documents.index', $this->project))->assertOk()->assertSee('Plan')->assertDontSee('Private');
         $this->get(route('documents.show', [$this->project, $visible]))->assertOk()->assertSee('Public comment')->assertDontSee('SECRET INTERNAL');
         $this->get(route('documents.show', [$this->project, $private]))->assertForbidden();
+        $this->get(route('documents.versions.download', [$this->project, $private, $private->currentVersion]))->assertForbidden();
+        $this->get(route('documents.versions.preview', [$this->project, $private, $private->currentVersion]))->assertForbidden();
         $this->get(route('documents.versions.download', [$this->project, $visible, $version]))->assertOk();
         $this->post(route('documents.comments.store', [$this->project, $visible]), ['body' => 'Client comment', 'is_internal' => 1])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('document_comments', ['body' => 'Client comment', 'is_internal' => false]);
@@ -159,6 +162,44 @@ class DocumentWorkflowTest extends TestCase
         $this->assertDatabaseCount('documents', 0);
         $this->assertDatabaseCount('document_versions', 0);
         $this->assertDatabaseCount('document_upload_intents', 0);
+    }
+
+    public function test_assigned_collaborator_can_upload_but_viewer_cannot_modify_or_comment(): void
+    {
+        $document = $this->createDocument();
+        $collaborator = $this->user('collaborator');
+        $this->project->members()->attach($collaborator->id, ['project_role' => 'collaborator']);
+        $this->actingAs($collaborator)->post(route('documents.versions.store', [$this->project, $document]), ['file' => $this->pdf('collaborator')])->assertSessionHasNoErrors();
+        $this->delete(route('documents.destroy', [$this->project, $document]))->assertForbidden();
+        $viewer = $this->user('collaborator');
+        $this->project->members()->attach($viewer->id, ['project_role' => 'viewer']);
+        $this->actingAs($viewer)->get(route('documents.show', [$this->project, $document]))->assertOk();
+        $this->post(route('documents.versions.store', [$this->project, $document]), ['file' => $this->pdf('viewer')])->assertForbidden();
+        $this->post(route('documents.comments.store', [$this->project, $document]), ['body' => 'viewer'])->assertForbidden();
+    }
+
+    public function test_dxf_download_is_forced_and_not_previewed(): void
+    {
+        $this->post(route('documents.store', $this->project), ['title' => 'DXF', 'category_id' => $this->category->id, 'file' => UploadedFile::fake()->createWithContent('plan.dxf', "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nEOF\n")])->assertSessionHasNoErrors();
+        $document = Document::where('title', 'DXF')->firstOrFail();
+        $response = $this->get(route('documents.versions.download', [$this->project, $document, $document->currentVersion]))->assertOk();
+        $this->assertStringStartsWith('attachment;', $response->headers->get('Content-Disposition'));
+        $this->get(route('documents.versions.preview', [$this->project, $document, $document->currentVersion]))->assertNotFound();
+    }
+
+    public function test_document_list_query_count_does_not_grow_with_rows(): void
+    {
+        Document::factory()->create(['project_id' => $this->project->id, 'category_id' => $this->category->id, 'created_by' => $this->architect->id]);
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) { $queries[] = $query->sql; });
+        $this->get(route('documents.index', $this->project))->assertOk();
+        $queries = [];
+        $this->get(route('documents.index', $this->project))->assertOk();
+        $single = count($queries);
+        Document::factory()->count(14)->create(['project_id' => $this->project->id, 'category_id' => $this->category->id, 'created_by' => $this->architect->id]);
+        $queries = [];
+        $this->get(route('documents.index', $this->project))->assertOk();
+        $this->assertLessThanOrEqual($single + 1, count($queries));
     }
 
     public function test_views_are_translated_and_category_in_use_is_not_deleted(): void

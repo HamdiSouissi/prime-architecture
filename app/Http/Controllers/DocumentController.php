@@ -95,7 +95,7 @@ class DocumentController extends Controller
         $this->checkProject($project, $document);
         Gate::authorize('update', $document);
 
-        return view('documents.form', ['project' => $project, 'document' => $document, 'categories' => DocumentCategory::where('is_active', true)->orWhereKey($document->category_id)->orderBy('sort_order')->get()]);
+        return view('documents.form', ['project' => $project, 'document' => $document, 'categories' => DocumentCategory::where('is_active', true)->orWhere('id', $document->category_id)->orderBy('sort_order')->get()]);
     }
 
     public function update(DocumentRequest $request, Project $project, Document $document): RedirectResponse
