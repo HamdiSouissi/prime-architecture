@@ -2,7 +2,7 @@
 
 Ce document rassemble les preuves disponibles et les réserves **non levées**. Il ne constitue ni une certification d’accessibilité WCAG, ni un avis fiscal, ni une garantie de conformité réglementaire.
 
-Dernière mise à jour : commit `c05d90e` (branche `arena/a7217585-prime-architecture`).
+Dernière mise à jour : commit `1f8694b` (branche `arena/a7217585-prime-architecture`).
 
 ## 1. Refonte et couverture des écrans
 
@@ -10,6 +10,9 @@ Dernière mise à jour : commit `c05d90e` (branche `arena/a7217585-prime-archite
 - Les écrans financiers, documents, planning, utilisateurs, profil, authentification, erreurs et tableau de bord utilisent les tokens de la palette approuvée, des cartes, des alertes typées, des états vides et des tableaux à en-têtes explicites.
 - Les écrans restants (catégories de documents, modèles et aperçus planning, calendrier administratif, notifications) partagent désormais le même en-tête, la même hiérarchie et les mêmes espacements.
 - Les états interactifs suivants sont vérifiés automatiquement : sections repliables ouvertes, erreurs de validation sur six formulaires (clients, projets, utilisateurs, tâche, document, devis), menu de navigation mobile ouvert, page 404.
+- La structure est contrôlée sur chaque page auditée : un seul titre de niveau 1 non vide, un repère `<main id="main-content"›`, `lang` et `dir` conformes à la langue testée.
+- Le parcours clavier est vérifié sur le formulaire projet : huit tabulations successives, focus conservé et indicateur visible.
+- Cinq écrans sont rejoués à 320 px de large pour contrôler le remaillage sans débordement.
 - **Non couvert** : tous les rôles (l’audit utilise un administrateur), les modales, les notifications éphémères, la pagination avancée, les écrans 403/410/419/429/500 en situation réelle, les courriels, les PDF.
 
 ## 2. Accessibilité — preuves automatisées
@@ -18,6 +21,7 @@ Dernière mise à jour : commit `c05d90e` (branche `arena/a7217585-prime-archite
 - Le script vérifie aussi l’absence de débordement horizontal, l’unicité des identifiants, l’état replié/déplié, les erreurs de validation, le menu mobile et le 404.
 - `tests/smoke/contrast_tokens.mjs` vérifie 15 paires de couleurs du design system avec les seuils 4,5:1 (texte), 3:1 (indicateur de focus) et documente les bordures décoratives. Les valeurs mesurées sont supérieures aux seuils ; les rapports exacts sont imprimés par le script et rejoués en CI.
 - Le layout fournit un lien d’évitement vers `#main-content`, un repère `<main>`, une navigation étiquetée, un fil d’Ariane et un contour de focus visible global (`:focus-visible`).
+- Résultats au commit `1f8694b` : [CI complète verte](https://github.com/HamdiSouissi/prime-architecture/actions/runs/40902240559), y compris les 43 routes, les six états de validation, le menu mobile, le 404, le clavier, le remaillage à 320 px et le contraste des tokens.
 - La CI exécute ces contrôles ; un échec bloque la fusion.
 
 ## 3. Accessibilité — ce qui reste à faire humainement
