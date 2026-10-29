@@ -26,6 +26,13 @@ try {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`${base}/projects`);
     await page.locator('tr').filter({ hasText: 'Projet UI Delegation' }).locator('a').click();
+    const overviewTab = page.locator('#project-tab-overview');
+    await overviewTab.focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.locator('#project-tab-team').getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#project-panel-team').isVisible(), true);
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await overviewTab.getAttribute('aria-selected'), 'true');
     await page.getByRole('link', { name: 'Planning', exact: true }).click();
     await page.getByRole('link', { name: 'Nouvelle tâche' }).click();
     await page.locator('#title').fill('Planning UI test');
