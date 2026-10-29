@@ -12,6 +12,7 @@ use App\Models\SiteReport;
 use App\Models\Snag;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\SitePhotoService;
 use App\Services\SiteProgressService;
 use App\Services\SiteSupervisionService;
 use Database\Seeders\RolePermissionSeeder;
@@ -222,12 +223,15 @@ class PhaseEightTest extends TestCase
         $project->client->update(['user_id' => $client->id]);
         $report = $this->draftReport($project, $architect);
 
+        // Surface any exception instead of an opaque 500 during the upload.
+        $this->withoutExceptionHandling();
         $this->actingAs($architect)->post(route('site.photos.store', $project), [
             'photo' => UploadedFile::fake()->image('chantier.jpg', 2000, 1200),
             'caption' => 'Ferraillage dalle R+1',
             'taken_on' => today()->toDateString(),
             'site_report_id' => $report->id,
         ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->withExceptionHandling();
 
         $photo = SitePhoto::query()->firstOrFail();
         $this->assertSame('image/jpeg', $photo->mime_type);
@@ -254,6 +258,25 @@ class PhaseEightTest extends TestCase
 
         // A photo published with a finalised report belongs to the archive.
         $this->actingAs($architect)->delete(route('site.photos.destroy', [$project, $photo]))->assertForbidden();
+    }
+
+    public function test_the_photo_pipeline_resizes_and_stores_private_files(): void
+    {
+        $project = $this->project();
+        $architect = $this->member($project, 'architect');
+
+        $photo = app(SitePhotoService::class)->store($project, $architect, UploadedFile::fake()->image('chantier.jpg', 2400, 1600), [
+            'caption' => 'Dalle R+1',
+            'taken_on' => today()->toDateString(),
+        ]);
+
+        $this->assertSame(1600, $photo->width);
+        $this->assertSame(1066, $photo->height);
+        $this->assertSame('image/jpeg', $photo->mime_type);
+        $this->assertSame(strlen((string) Storage::disk($this->disk)->get($photo->path)), $photo->size_bytes);
+        $this->assertSame(hash('sha256', (string) Storage::disk($this->disk)->get($photo->path)), $photo->checksum_sha256);
+        $this->assertNotSame($photo->path, $photo->thumbnail_path);
+        $this->assertTrue(Storage::disk($this->disk)->exists((string) $photo->thumbnail_path));
     }
 
     public function test_site_report_pdf_uses_the_private_renderer(): void
