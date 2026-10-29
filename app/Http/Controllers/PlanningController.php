@@ -37,7 +37,7 @@ class PlanningController extends Controller
             $query->with('assignees:id,name');
         }
         $tasks = $query->orderBy($data['sort'] ?? 'due_date')->orderBy('id')->paginate(100)->withQueryString();
-        $milestones = $project->milestones()->when($view === 'calendar', fn ($q) => $q->whereBetween('due_date', [$start->toDateString(), $end->toDateString()]))->orderBy('due_date')->paginate(50, ['*'], 'milestones_page')->withQueryString();
+        $milestones = $project->milestones()->when($view === 'calendar', fn ($q) => $q->whereBetween('due_date', [$start->toDateString(), $end->toDateString()]))->orderBy('due_date')->orderBy('id')->paginate(50, ['*'], 'milestones_page')->withQueryString();
         $members = $internal ? $project->members()->orderBy('users.name')->get(['users.id', 'users.name']) : collect();
         $archivedTasks = $request->user()->hasAnyRole(['admin', 'architect']) && $request->user()->can('tasks.delete') ? Task::onlyTrashed()->where('project_id', $project->id)->latest('id')->limit(100)->get() : collect();
         $statuses = TaskStatus::cases();
