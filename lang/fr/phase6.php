@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'demo_only' => 'DÉMONSTRATION — DOCUMENT FICTIF SANS VALEUR FISCALE',
     'pdf_view' => 'Voir le PDF',
     'pdf_download' => 'Télécharger le PDF',
     'fiscal_not_ready' => 'Les paramètres fiscaux applicables doivent être validés avant émission.',

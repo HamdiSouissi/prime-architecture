@@ -465,3 +465,5 @@ indicatifs et non validés : si un taux fiscal applicable est configuré, un dev
 configurer le profil du cabinet (dont le logo) et faire valider les paramètres fiscaux ;
 seuls les documents émis sont exportables. L'identité et le logo sont figés à l'émission :
 changer le profil ne modifie pas les PDF des documents déjà émis.
+
+Pour une simulation complète isolée (clients, projets, planning, devis, factures et accès), voir [`docs/README-DEMO.md`](docs/README-DEMO.md).
