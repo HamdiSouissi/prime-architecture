@@ -36,8 +36,8 @@ class DocumentDemoSeeder extends Seeder
                 throw new RuntimeException('Cannot create demo file.');
             }
             try {
-                file_put_contents($path, "%PDF-1.4\n% Demo document ".$project->id."\n%%EOF\n");
-                $file = new UploadedFile($path, 'demonstration.pdf', 'application/pdf', null, true);
+                file_put_contents($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', true));
+                $file = new UploadedFile($path, 'demonstration.png', 'image/png', null, true);
                 $service->create($project, $actor, ['title' => $title, 'category_id' => $category->id, 'description' => null, 'visible_to_client' => false], $file);
             } finally {
                 @unlink($path);

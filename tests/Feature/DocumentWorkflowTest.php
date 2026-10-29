@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectAdministration;
 use Database\Seeders\DocumentCategorySeeder;
+use Database\Seeders\DocumentDemoSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -202,6 +203,17 @@ class DocumentWorkflowTest extends TestCase
         $queries = [];
         $this->get(route('documents.index', $this->project))->assertOk();
         $this->assertLessThanOrEqual($single + 1, count($queries));
+    }
+
+    public function test_demo_seeder_is_repeatable_and_creates_a_real_image(): void
+    {
+        $this->seed(DocumentDemoSeeder::class);
+        $this->seed(DocumentDemoSeeder::class);
+        $documents = Document::where('project_id', $this->project->id)->where('title', 'DEMO — Plan de façade')->get();
+        $this->assertCount(1, $documents);
+        $version = $documents->first()->currentVersion;
+        $this->assertSame('image/png', $version->mime_type);
+        Storage::disk('documents')->assertExists($version->path);
     }
 
     public function test_views_are_translated_and_category_in_use_is_not_deleted(): void
