@@ -4,9 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use LogicException;
 
 class QuoteLine extends Model
 {
+    protected static function booted(): void
+    {
+        $check = function (self $line): void {
+            if (DB::table('quotes')->where('id', $line->quote_id)->whereNotNull('issued_at')->exists()) {
+                throw new LogicException('Lines of an issued financial document cannot be edited.');
+            }
+        };
+        static::saving($check);
+        static::deleting($check);
+    }
+
     protected $fillable = ['description', 'unit', 'quantity', 'unit_price', 'discount_percent', 'tax_rate', 'total_ht', 'sort_order'];
 
     protected function casts(): array

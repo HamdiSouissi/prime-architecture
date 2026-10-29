@@ -7,10 +7,25 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 /** @property InvoiceStatus $status */
 class Invoice extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(function (self $document): void {
+            if ($document->getRawOriginal('issued_at') !== null && array_diff(array_keys($document->getDirty()), ['status', 'updated_at']) !== []) {
+                throw new LogicException('Issued financial documents cannot be edited.');
+            }
+        });
+        static::deleting(function (self $document): void {
+            if ($document->getRawOriginal('issued_at') !== null) {
+                throw new LogicException('Issued financial documents cannot be deleted.');
+            }
+        });
+    }
+
     protected $fillable = ['project_id', 'client_id', 'quote_id', 'created_by', 'number', 'status', 'document_date', 'due_date', 'discount_percent', 'total_ht', 'total_discount', 'total_tax', 'stamp_amount', 'withholding_amount', 'total_ttc', 'net_due', 'snapshot', 'issued_at', 'withholding_rate_id'];
 
     protected function casts(): array
