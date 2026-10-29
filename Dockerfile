@@ -13,9 +13,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends git unzip libzi
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer-bin /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
+# Composer's cURL timeout follows PHP's default_socket_timeout (minimum 300 s),
+# not COMPOSER_PROCESS_TIMEOUT. Keep dev packages available for tests and analysis.
+ARG COMPOSER_HTTP_TIMEOUT=1200
+ARG COMPOSER_MAX_PARALLEL_HTTP=4
+COPY composer.json composer.lock ./
+RUN --mount=type=cache,target=/tmp/composer-cache,sharing=locked \
+    COMPOSER_CACHE_DIR=/tmp/composer-cache COMPOSER_MAX_PARALLEL_HTTP="${COMPOSER_MAX_PARALLEL_HTTP}" \
+    php -d "default_socket_timeout=${COMPOSER_HTTP_TIMEOUT}" /usr/local/bin/composer install --no-interaction --prefer-dist --no-progress --no-scripts --no-autoloader
 COPY . .
 RUN mkdir -p /var/www/runtime storage/framework/sessions storage/framework/views storage/framework/cache/data storage/logs bootstrap/cache \
-    && composer install --no-interaction --prefer-dist --no-progress \
+    && composer dump-autoload --no-interaction --optimize \
     && rm -f .env && ln -s /var/www/runtime/.env .env \
     && chown -R www-data:www-data storage bootstrap/cache /var/www/runtime
 COPY --from=assets /app/public/build public/build

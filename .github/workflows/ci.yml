@@ -89,6 +89,10 @@ jobs:
         run: docker compose up -d --build --wait
       - name: Apply migrations
         run: docker compose exec -T -u www-data app php artisan migrate --force --no-interaction
+      - name: Verify Composer development tools in image
+        run: |
+          docker compose exec -T -u www-data app vendor/bin/phpstan --version
+          docker compose exec -T -u www-data app vendor/bin/pint --version
       - name: Verify French and Arabic pages
         run: |
           curl --fail --silent --show-error -c cookies.txt http://localhost:8080/ > home.html

@@ -18,6 +18,24 @@ docker compose exec -u www-data app php artisan migrate --force
 
 Les sessions utilisent MySQL : la migration est indispensable avant la première requête. Exécuter les commandes Artisan et Composer avec `-u www-data` pour éviter de créer des fichiers de cache appartenant à root, que PHP-FPM ne pourrait pas modifier. Accéder à <http://localhost:8080>. Le code est intégré aux images : après une modification, reconstruire avec `docker compose up -d --build`.
 
+### Téléchargements Composer lents pendant le build Docker
+
+Si `composer install` échoue avec `curl error 28` sur `codeload.github.com`, il s’agit d’un délai réseau dépassé : ce n’est pas une erreur de migration. Le build utilise BuildKit pour conserver les archives Composer déjà téléchargées et accorde par défaut 1 200 secondes par transfert, avec quatre téléchargements simultanés. Relancer simplement :
+
+```sh
+docker compose build app web
+docker compose up -d
+```
+
+Sur une connexion particulièrement lente, augmenter la limite pour cette construction :
+
+```sh
+docker compose build --build-arg COMPOSER_HTTP_TIMEOUT=2400 --build-arg COMPOSER_MAX_PARALLEL_HTTP=2 app web
+docker compose up -d
+```
+
+Le délai concerne les transferts HTTP de Composer (`default_socket_timeout`), distinct de `COMPOSER_PROCESS_TIMEOUT`, qui concerne les processus externes. Le cache BuildKit accélère les nouvelles tentatives, sans les rendre possibles hors ligne si une archive manque. Vérifier aussi l’accès à `github.com` et `codeload.github.com`, ainsi que le proxy ou VPN éventuel. Les outils de développement restent installés. Ne pas supprimer les volumes ni lancer `docker compose down -v` pour résoudre ce problème.
+
 ### Mise à niveau depuis Laravel 11
 
 Avant toute mise à niveau, sauvegarder et tester la restauration de MySQL, du volume `app_runtime` (notamment la clé d’application) et des fichiers persistants. Mettre le service en maintenance pendant la mise à niveau. Après récupération de la version Laravel 12, reconstruire l’image puis appliquer les migrations et vider les caches :
