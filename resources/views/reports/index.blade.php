@@ -48,7 +48,7 @@
             <p class="mt-1 text-sm text-slate-600">{{ __('phase7.no_rows_hint') }}</p>
         </div>
     @else
-        <div class="mt-4 overflow-x-auto">
+        <div class="mt-4 overflow-x-auto" role="region" aria-label="{{ __('phase7.report_sheet') }}" tabindex="0">
             <table class="w-full min-w-[820px] text-sm">
                 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
                     <tr>

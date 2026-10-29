@@ -69,7 +69,7 @@
         <section class="mt-8 grid gap-6 xl:grid-cols-2">
             <div class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                 <h2 class="section-title">{{ __('phase7.billed') }} / {{ __('phase7.collected') }}</h2>
-                <div class="mt-4 overflow-x-auto">
+                <div class="mt-4 overflow-x-auto" role="region" aria-label="{{ __('phase7.billed') }} / {{ __('phase7.collected') }}" tabindex="0">
                     <table class="w-full text-sm">
                         <thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.period_label') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
                         <tbody>
@@ -102,7 +102,7 @@
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
-                        <div class="overflow-x-auto"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.month') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
+                        <div class="overflow-x-auto" role="region" aria-label="{{ __('phase7.chart_trend') }}" tabindex="0"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.month') }}</th><th scope="col" class="text-end">{{ __('phase7.billed') }}</th><th scope="col" class="text-end">{{ __('phase7.collected') }}</th></tr></thead>
                             <tbody>@foreach($trend['labels'] as $index => $label)<tr><th scope="row" class="font-semibold">{{ $label }}</th><td class="text-end" dir="ltr">{{ number_format($trend['billed'][$index], 3, ',', ' ') }}</td><td class="text-end" dir="ltr">{{ number_format($trend['collected'][$index], 3, ',', ' ') }}</td></tr>@endforeach</tbody>
                         </table></div>
                     </details>
@@ -118,7 +118,7 @@
                     </div>
                     <details class="mt-4 text-sm">
                         <summary class="cursor-pointer font-semibold text-brand-700">{{ __('phase7.chart_alternative') }}</summary>
-                        <div class="overflow-x-auto"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.label') }}</th><th scope="col" class="text-end">{{ __('phase7.count') }}</th></tr></thead>
+                        <div class="overflow-x-auto" role="region" aria-label="{{ __('phase7.chart_status') }}" tabindex="0"><table class="mt-3 w-full"><thead class="text-xs uppercase tracking-wide text-slate-600"><tr><th scope="col">{{ __('phase7.label') }}</th><th scope="col" class="text-end">{{ __('phase7.count') }}</th></tr></thead>
                             <tbody>@foreach($overview['projects_by_status'] as $status => $total)<tr><th scope="row" class="font-semibold">{{ __('phase3.'.$status) }}</th><td class="text-end">{{ $total }}</td></tr>@endforeach</tbody>
                         </table></div>
                     </details>

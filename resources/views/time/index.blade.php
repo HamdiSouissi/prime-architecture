@@ -91,7 +91,7 @@
             <p class="mt-1 text-sm text-slate-600">{{ __('phase7.empty_time_hint') }}</p>
         </div>
     @else
-        <div class="mt-4 overflow-x-auto">
+        <div class="mt-4 overflow-x-auto" role="region" aria-label="{{ __('phase7.week_of') }} {{ $weekStart->format('d/m/Y') }}" tabindex="0">
             <table class="w-full min-w-[720px] text-sm">
                 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
                     <tr>
