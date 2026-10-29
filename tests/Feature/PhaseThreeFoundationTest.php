@@ -35,12 +35,12 @@ class PhaseThreeFoundationTest extends TestCase
         $this->assertSame('2027-001', DB::transaction(fn () => $generator->next()));
     }
 
-    public function test_geography_seeding_is_idempotent_and_does_not_invent_delegations(): void
+    public function test_geography_seeding_is_idempotent(): void
     {
         $this->seed(GeographySeeder::class);
         $this->seed(GeographySeeder::class);
         $this->assertDatabaseCount('governorates', 24);
-        $this->assertDatabaseCount('delegations', 0);
+        $this->assertDatabaseCount('delegations', 279);
     }
 
     public function test_phone_normalization_rejects_other_country_codes(): void
