@@ -100,6 +100,7 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame('AVR-2026-0001', $credit->number);
         $this->assertSame('119.000', json_decode($credit->snapshot, true)['invoice']['totals']['total_ttc']);
     }
+
     public function test_scheduler_marks_only_issued_unpaid_documents_as_overdue_or_expired(): void
     {
         $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));
@@ -116,5 +117,4 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame(QuoteStatus::Expired, $quote->fresh()->status);
         $this->assertSame(1, DB::table('activity_log')->where('event', 'invoice.overdue')->count());
     }
-
 }

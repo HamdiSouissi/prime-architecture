@@ -6,6 +6,7 @@
 @if(session('status'))<x-alert class="mt-3">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="my-3"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <div class="my-4 flex flex-wrap gap-3">
+@can('viewAny', \App\Models\Quote::class)<a href="{{ route('billing.index') }}" class="underline">{{ __('phase6.billing') }}</a> @can('create', [\App\Models\Quote::class, $project])<a href="{{ route('billing.quotes.create', $project) }}" class="underline">{{ __('phase6.new_quote') }}</a>@endcan @can('create', [\App\Models\Invoice::class, $project])<a href="{{ route('billing.invoices.create', $project) }}" class="underline">{{ __('phase6.new_invoice') }}</a>@endcan @endcan
 @can('viewAny', [\App\Models\Task::class, $project])<a href="{{ route('planning.index', $project) }}" class="underline">{{ __('phase5.planning') }}</a>@endcan
 @can('viewAny', [\App\Models\Document::class, $project])<a href="{{ route('documents.index', $project) }}" class="underline">{{ __('phase4.documents') }}</a>@endcan
 </div>

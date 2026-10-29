@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Quote;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class BillingIssue
 {
@@ -18,6 +19,8 @@ class BillingIssue
         if (! $document->document_date->isSameDay($today)) {
             throw ValidationException::withMessages(['document_date' => __('phase6.issue_date_today')]);
         }
+        DB::table('billing_number_counters')->insertOrIgnore(['document_type' => 'tax_config', 'year' => 0, 'last_number' => 0]);
+        DB::table('billing_number_counters')->where('document_type', 'tax_config')->where('year', 0)->lockForUpdate()->firstOrFail();
         $document->load('lines', 'project.client');
         if ($document->client_id !== $document->project->client_id) {
             throw ValidationException::withMessages(['project' => __('phase6.client_unavailable')]);

@@ -41,6 +41,7 @@
                     @canany(['dashboard.internal.view', 'dashboard.client.view'])<a href="{{ route('dashboard') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('dashboard')])><x-icon name="squares-2x2" />{{ __('common.dashboard') }}</a>@endcanany
                     @can('clients.view')<a href="{{ route('clients.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('clients.*')])><x-icon name="users" />{{ __('phase3.clients') }}</a>@endcan
                     @can('projects.view')<a href="{{ route('projects.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('projects.*')])><x-icon name="folder-open" />{{ __('phase3.projects') }}</a>@endcan
+                    @can('viewAny', \App\Models\Quote::class)<a href="{{ route('billing.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('billing.*')])><x-icon name="rectangle-stack" />{{ __('phase6.billing') }}</a>@endcan
                     <div class="nav-divider"></div><p class="nav-caption">{{ __('common.manage_section') }}</p>
                     <a href="{{ route('profile.edit') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('profile.*')])><x-icon name="user-circle" />{{ __('common.profile') }}</a>
                     @can('users.manage')<a href="{{ route('users.index') }}" @class(['app-nav-link', 'app-nav-link-active' => request()->routeIs('users.*')])><x-icon name="users" />{{ __('common.users') }}</a>@endcan

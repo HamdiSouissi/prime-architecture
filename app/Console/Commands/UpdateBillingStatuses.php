@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\QuoteStatus;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Services\InvoiceService;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class UpdateBillingStatuses extends Command
                     if (! $invoice || ! in_array($invoice->status, [InvoiceStatus::Sent, InvoiceStatus::PartiallyPaid], true) || $invoice->due_date->toDateString() >= $today || $invoice->issued_at === null) {
                         return;
                     }
-                    if (bccomp(app(\App\Services\InvoiceService::class)->balance($invoice), '0', 3) > 0) {
+                    if (bccomp(app(InvoiceService::class)->balance($invoice), '0', 3) > 0) {
                         $invoice->update(['status' => InvoiceStatus::Overdue]);
                         activity('billing')->causedByAnonymous()->performedOn($invoice)->event('invoice.overdue')->log('invoice.overdue');
                     }

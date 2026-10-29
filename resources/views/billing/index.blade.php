@@ -1,0 +1,14 @@
+@extends('layouts.app')
+@section('title', __('phase6.billing'))
+@section('content')
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow">{{ __('common.workspace_section') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ __('phase6.billing') }}</h1></div>@role('admin')@can('billing.configure')<a href="{{ route('billing.settings.index') }}" class="inline-flex min-h-11 items-center rounded-xl border border-slate-300 bg-white px-4 font-semibold text-ink hover:bg-slate-50">{{ __('phase6.settings') }}</a>@endcan @endrole</div>
+<x-alert class="mb-6">{{ __('phase6.fiscal_warning') }}</x-alert>
+@if(session('status'))<x-alert class="mb-4">{{ session('status') }}</x-alert>@endif
+<form method="GET" class="mb-6 flex flex-wrap items-end gap-3"><x-form-field name="search" :label="__('common.search')" :value="$search" /><x-button type="submit">{{ __('common.filter') }}</x-button></form>
+@foreach([['quotes', $quotes], ['invoices', $invoices]] as [$kind, $items])
+<section class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7"><h2 class="section-title mb-4">{{ __('phase6.'.$kind) }}</h2>
+<div class="overflow-x-auto"><table><thead><tr><th scope="col">{{ __('phase6.document_number') }}</th><th scope="col">{{ __('phase6.project') }}</th><th scope="col">{{ __('common.date') }}</th><th scope="col">{{ __('common.status') }}</th><th scope="col">{{ __('phase6.total_ttc') }}</th></tr></thead><tbody>
+@forelse($items as $item)<tr><td><a class="font-semibold text-brand-700 hover:underline" href="{{ route('billing.'.$kind.'.show', $item) }}">{{ $item->number ?? __('phase6.draft').' #'.$item->id }}</a></td><td>{{ $item->project?->name }}</td><td>{{ $item->document_date->format('Y-m-d') }}</td><td><span class="billing-badge">{{ __('phase6.'.$item->status->value) }}</span></td><td dir="ltr" class="text-start tabular-nums">{{ $item->total_ttc }} TND</td></tr>@empty<tr><td colspan="5">{{ __('phase6.empty') }}</td></tr>@endforelse
+</tbody></table></div><div class="mt-5">{{ $items->links() }}</div></section>
+@endforeach
+@endsection
