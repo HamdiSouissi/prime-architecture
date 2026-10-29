@@ -50,6 +50,8 @@ class PlanningWebTest extends TestCase
         $this->get(route('planning.tasks.show', [$project, $private]))->assertForbidden();
         $this->get(route('planning.gantt', $project))->assertOk()->assertDontSee('Private task')->assertDontSee('9876')->assertDontSee('SECRET COMMENT');
         $this->post(route('planning.tasks.comments.store', [$project, $visible]), ['body' => 'Client comment'])->assertForbidden();
+        $viewerComment = $visible->comments()->create(['user_id' => $viewer->id, 'body' => 'Existing viewer comment']);
+        $this->actingAs($viewer)->delete(route('planning.tasks.comments.destroy', [$project, $visible, $viewerComment]))->assertForbidden();
         $this->actingAs($viewer)->post(route('planning.tasks.status', [$project, $visible]), ['status' => 'done'])->assertForbidden();
         $this->actingAs($member)->post(route('planning.tasks.status', [$project, $private]), ['status' => 'done'])->assertForbidden();
         $this->post(route('planning.tasks.status', [$project, $visible]), ['status' => 'done'])->assertSessionHasNoErrors();

@@ -195,7 +195,7 @@ class PlanningTaskController extends Controller
         DB::transaction(function () use ($project, $task, $comment) {
             Project::query()->lockForUpdate()->findOrFail($project->id);
             $task = Task::query()->lockForUpdate()->findOrFail($task->id);
-            Gate::authorize('view', $task);
+            Gate::authorize('update', $task);
             abort_if(request()->user()->hasRole('client') && ! request()->user()->hasAnyRole(['admin', 'architect', 'collaborator']), 403);
             $comment = TaskComment::query()->lockForUpdate()->findOrFail($comment->id);
             abort_unless($comment->task_id === $task->id && ($comment->user_id === request()->user()->id || request()->user()->hasRole('admin')), 403);
