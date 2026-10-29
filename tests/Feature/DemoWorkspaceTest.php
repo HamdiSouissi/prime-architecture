@@ -22,6 +22,8 @@ class DemoWorkspaceTest extends TestCase
         $this->assertDatabaseCount('users', 5);
         $this->assertDatabaseCount('clients', 15);
         $this->assertDatabaseCount('projects', 30);
+        $this->assertDatabaseHas('quotes', ['status' => 'draft']);
+        $this->assertDatabaseHas('invoices', ['status' => 'draft']);
         $admin = User::where('email', 'demo-admin@example.test')->firstOrFail();
         $client = User::where('email', 'demo-client@example.test')->firstOrFail();
         $this->assertTrue(Hash::check('local-demo-password-123', $admin->password));

@@ -6,6 +6,9 @@ use App\Models\Client;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ClientPortalAccess;
+use App\Services\InvoiceService;
+use App\Services\QuoteService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 use LogicException;
 
@@ -24,7 +27,7 @@ class DemoWorkspaceSeeder extends Seeder
         if (User::withTrashed()->exists() || Client::withTrashed()->exists() || Project::withTrashed()->exists()) {
             throw new LogicException('Demo seeding requires an empty workspace; existing accounts and data are never overwritten.');
         }
-        $this->call(RolePermissionSeeder::class);
+        $this->call([RolePermissionSeeder::class, TaxSettingsSeeder::class]);
         $users = [];
         foreach (['admin', 'architect', 'collaborator', 'client', 'contractor'] as $role) {
             $user = User::create(['name' => 'Démo '.ucfirst($role), 'email' => 'demo-'.$role.'@example.test', 'password' => $password]);
@@ -41,5 +44,17 @@ class DemoWorkspaceSeeder extends Seeder
         }
         $client = Client::where('email', 'demo-client-1@example.test')->firstOrFail();
         app(ClientPortalAccess::class)->grant($client, $users['admin'], $users['client'], true);
+        $project = $client->projects()->firstOrFail();
+        $taxSetting = DB::table('tax_settings')->whereDate('effective_from', '<=', today())->orderByDesc('effective_from')->orderByDesc('id')->first();
+        $rate = DB::table('tax_rates')->where('tax_setting_id', $taxSetting->id)->orderByDesc('is_default')->orderBy('id')->value('rate');
+        if ($rate === null) {
+            throw new LogicException('No tax rate configured for the demo drafts.');
+        }
+        $draft = [
+            'document_date' => today()->toDateString(), 'discount_percent' => '0',
+            'lines' => [['description' => 'DÉMONSTRATION — Étude architecturale', 'quantity' => '1', 'unit_price' => '1000.000', 'discount_percent' => '0', 'tax_rate' => (string) $rate]],
+        ];
+        app(QuoteService::class)->create($project, $users['admin'], $draft);
+        app(InvoiceService::class)->create($project, $users['admin'], $draft + ['due_date' => today()->toDateString()]);
     }
 }

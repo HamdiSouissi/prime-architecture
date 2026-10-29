@@ -455,7 +455,7 @@ clients et 30 projets fictifs. Les comptes sont :
 | `demo-contractor@example.test` | Tableau de bord limité, selon les permissions existantes |
 
 Tous utilisent le mot de passe choisi dans `DEMO_PASSWORD`. Les taux initiaux restent
-indicatifs et non validés : aucun document fiscal émis n'est fabriqué. Pour les PDF,
+indicatifs et non validés : un devis et une facture fictifs sont créés en brouillon, mais aucun document fiscal émis n'est fabriqué. Pour les PDF,
 configurer le profil du cabinet (dont le logo) et faire valider les paramètres fiscaux ;
 seuls les documents émis sont exportables. L'identité et le logo sont figés à l'émission :
 changer le profil ne modifie pas les PDF des documents déjà émis.
