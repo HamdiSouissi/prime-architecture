@@ -191,7 +191,9 @@ class DocumentWorkflowTest extends TestCase
     {
         Document::factory()->create(['project_id' => $this->project->id, 'category_id' => $this->category->id, 'created_by' => $this->architect->id]);
         $queries = [];
-        DB::listen(function ($query) use (&$queries) { $queries[] = $query->sql; });
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
         $this->get(route('documents.index', $this->project))->assertOk();
         $queries = [];
         $this->get(route('documents.index', $this->project))->assertOk();

@@ -65,8 +65,6 @@ jobs:
       - name: Verify concurrent document version allocation
         run: php tests/smoke/concurrent_document_versions.php
       - name: Check PHP formatting
-        id: formatting
-        continue-on-error: true
         run: |
           if ! vendor/bin/pint --test --format=json > pint-result.json 2>&1; then
             head -c 8000 pint-result.json
@@ -74,25 +72,13 @@ jobs:
             echo "::error title=Pint::$(head -c 4000 pint-result.json | tr '\r\n' '  ')"
             exit 1
           fi
-      - name: Produce Pint diagnostic patch
-        if: steps.formatting.outcome == 'failure'
-        continue-on-error: true
-        run: |
-          vendor/bin/pint --format=json || true
-          echo
-          python3 -c 'import subprocess,zlib,base64; s=base64.b64encode(zlib.compress(subprocess.check_output(["git","diff"]))).decode(); [print("::error title=PINTPART%03d::" % i + s[i*1500:(i+1)*1500]) for i in range((len(s)+1499)//1500)]'
       - name: Analyse PHP
-        id: analysis
-        continue-on-error: true
         run: |
           if ! vendor/bin/phpstan analyse --no-progress --error-format=raw > phpstan-result.txt 2>&1; then
             cat phpstan-result.txt
             echo "::error title=PHPStan::$(head -c 4000 phpstan-result.txt | tr '\r\n' '  ')"
             exit 1
           fi
-      - name: Enforce quality checks
-        if: steps.formatting.outcome == 'failure' || steps.analysis.outcome == 'failure'
-        run: exit 1
   docker-smoke:
     runs-on: ubuntu-latest
     env:

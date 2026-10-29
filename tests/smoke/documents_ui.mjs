@@ -30,7 +30,7 @@ try {
     assert.equal(preview.headers()['x-content-type-options'], 'nosniff');
     await page.locator('input[name="file"]').setInputFiles({
         name: 'image.png', mimeType: 'image/png',
-        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+n42UAAAAASUVORK5CYII=', 'base64'),
+        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
     });
     await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[enctype="multipart/form-data"] button[type="submit"]').click()]);
     assert.equal(await page.locator('section table tbody tr').count(), 4);
@@ -55,6 +55,10 @@ try {
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.ok(await page.getByRole('link', { name: 'تنزيل' }).count() >= 3);
     console.log('Document browser smoke: upload, versions, preview and Arabic passed.');
+} catch (error) {
+    const message = String(error.stack ?? error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+    console.error(`::error title=Document browser::${message}`);
+    process.exitCode = 1;
 } finally {
     await browser.close();
 }

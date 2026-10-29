@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Document;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
