@@ -1,0 +1,21 @@
+<?php
+
+return [
+    'planning' => 'Planning', 'tasks' => 'Tâches', 'task' => 'Tâche', 'new_task' => 'Nouvelle tâche', 'milestones' => 'Jalons', 'milestone' => 'Jalon',
+    'title' => 'Titre', 'description' => 'Description', 'priority' => 'Priorité', 'start_date' => 'Début', 'due_date' => 'Échéance',
+    'estimated_hours' => 'Heures estimées', 'spent_hours' => 'Heures réelles', 'assignees' => 'Responsables', 'parent' => 'Tâche parente',
+    'visible_to_client' => 'Visible par le client', 'project_phase' => 'Phase du projet', 'comments' => 'Commentaires internes',
+    'todo' => 'À faire', 'in_progress' => 'En cours', 'blocked' => 'Bloquée', 'in_review' => 'À vérifier', 'done' => 'Terminée', 'cancelled' => 'Annulée',
+    'low' => 'Basse', 'normal' => 'Normale', 'high' => 'Haute', 'urgent' => 'Urgente', 'overdue' => 'En retard', 'today' => 'Aujourd’hui',
+    'this_week' => 'Cette semaine', 'later' => 'Plus tard', 'without_due_date' => 'Sans échéance', 'my_tasks' => 'Mes tâches',
+    'invalid_parent' => 'La tâche parente doit appartenir au projet et ne peut pas elle-même être une sous-tâche.',
+    'invalid_assignee' => 'Les responsables doivent être des membres actifs de l’équipe du projet.',
+    'cycle' => 'Cette dépendance crée un cycle.', 'same_project' => 'Les tâches doivent appartenir au même projet.',
+    'dependency_dates' => 'La tâche doit commencer après la fin de tous ses prédécesseurs, au prochain jour ouvré.',
+    'date_preview_required' => 'Utilisez l’aperçu de décalage pour modifier les dates.',
+    'date_missing' => 'Les tâches liées doivent avoir des dates de début et de fin pour calculer le décalage.',
+    'stale_preview' => 'Le planning ou le calendrier a changé. Générez un nouvel aperçu.',
+    'no_workdays' => 'Le calendrier ne contient aucun jour ouvré utilisable.', 'invalid_duration' => 'La durée ou les dates ne sont pas valides.',
+    'member_has_tasks' => 'Réaffectez les tâches et retirez les abonnements de ce membre avant de le retirer du projet, y compris pour les tâches archivées.',
+    'duplicate_dependency' => 'Cette dépendance existe déjà.', 'template_invalid' => 'Le modèle contient des éléments ou dépendances invalides.',
+];

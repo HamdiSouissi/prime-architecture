@@ -81,6 +81,18 @@ class Project extends Model
         return $this->hasMany(Document::class);
     }
 
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /** @return HasMany<Milestone, $this> */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(Milestone::class);
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(ProjectNote::class)->orderByDesc('id');

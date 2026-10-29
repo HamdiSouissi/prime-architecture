@@ -57,6 +57,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'planning_email_enabled' => 'boolean',
             'password' => 'hashed',
         ];
     }
