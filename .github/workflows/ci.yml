@@ -64,6 +64,8 @@ jobs:
         run: php tests/smoke/concurrent_references.php
       - name: Verify concurrent document version allocation
         run: php tests/smoke/concurrent_document_versions.php
+      - name: Verify concurrent billing number allocation
+        run: php tests/smoke/concurrent_billing_numbers.php
       - name: Check PHP formatting
         if: success() || failure()
         run: |
