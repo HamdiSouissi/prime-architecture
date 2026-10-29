@@ -21,6 +21,16 @@ async function check(path, locale, width) {
     await page.evaluate(() => document.fonts.ready);
     const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
     if (overflow.scroll > overflow.viewport + 1) add('horizontal-overflow', `${locale}/${width} ${path}: ${overflow.scroll} > ${overflow.viewport}`);
+    const duplicateIds = await page.evaluate(() => {
+        const seen = new Set();
+        const duplicates = new Set();
+        for (const element of document.querySelectorAll('[id]')) {
+            if (seen.has(element.id)) duplicates.add(element.id);
+            seen.add(element.id);
+        }
+        return [...duplicates];
+    });
+    for (const id of duplicateIds) add('duplicate-id', `${locale}/${width} ${path}: #${id}`, `${path}#${id}`);
     await page.addScriptTag({ content: axe.source });
     const result = await page.evaluate(async () => window.axe.run(document, {
         runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
