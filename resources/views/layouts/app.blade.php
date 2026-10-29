@@ -55,7 +55,7 @@
             </div>
         </nav>
         <main id="main-content" class="min-w-0 flex-1 px-4 py-5 sm:px-7 sm:py-7">
-            <nav aria-label="{{ __('common.breadcrumb') }}" class="mb-6 text-sm text-slate-500"><a href="{{ route('home') }}" class="hover:text-brand-700">{{ __('common.home') }}</a><span aria-hidden="true" class="mx-2">/</span><span aria-current="page">{{ $__env->yieldContent('title', __('common.app_name')) }}</span></nav>
+            <nav aria-label="{{ __('common.breadcrumb') }}" class="mb-6 text-sm text-slate-600"><a href="{{ route('home') }}" class="hover:text-brand-700">{{ __('common.home') }}</a><span aria-hidden="true" class="mx-2">/</span><span aria-current="page">{{ $__env->yieldContent('title', __('common.app_name')) }}</span></nav>
             @yield('content')
         </main>
     </div>

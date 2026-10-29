@@ -8,10 +8,10 @@ const base = 'http://localhost:8080';
 const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const findings = new Map();
-function add(key, value) {
-    const entry = findings.get(key) ?? { count: 0, examples: [] };
+function add(key, value, identity = value) {
+    const entry = findings.get(key) ?? { count: 0, examples: [], identities: new Set() };
     entry.count++;
-    if (entry.examples.length < 5 && !entry.examples.includes(value)) entry.examples.push(value);
+    if (entry.examples.length < 25 && !entry.identities.has(identity)) { entry.examples.push(value); entry.identities.add(identity); }
     findings.set(key, entry);
 }
 async function check(path, locale, width) {
@@ -26,7 +26,7 @@ async function check(path, locale, width) {
         runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
     }));
     for (const violation of result.violations) {
-        for (const node of violation.nodes) add(violation.id, `${locale}/${width} ${path}: ${node.target.join(' ')} (${violation.impact})`);
+        for (const node of violation.nodes) add(violation.id, `${locale}/${width} ${path}: ${node.target.join(' ')} (${violation.impact})`, node.target.join(' '));
     }
 }
 try {

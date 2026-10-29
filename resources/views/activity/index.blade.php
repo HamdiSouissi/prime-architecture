@@ -9,7 +9,7 @@
         <x-form-field name="date_to" type="date" :label="__('common.date_to')" value="{{ request('date_to') }}" />
         <x-button type="submit">{{ __('common.filter') }}</x-button>
     </form>
-    <div class="overflow-x-auto"><table class="w-full"><thead><tr><th class="text-start">{{ __('common.date') }}</th><th class="text-start">{{ __('common.actor') }}</th><th class="text-start">{{ __('common.action') }}</th></tr></thead><tbody>
+    <div class="overflow-x-auto" tabindex="0" role="region" aria-label="{{ __('common.activity') }}"><table class="w-full"><thead><tr><th class="text-start">{{ __('common.date') }}</th><th class="text-start">{{ __('common.actor') }}</th><th class="text-start">{{ __('common.action') }}</th></tr></thead><tbody>
     @foreach($activities as $activity)<tr class="border-t"><td class="py-2">{{ $activity->created_at }}</td><td>{{ $activity->causer?->name ?? __('common.system') }}</td><td>{{ __('common.event_'.str_replace('.', '_', $activity->event ?? '')) }}</td></tr>@endforeach
     </tbody></table></div><div class="mt-4">{{ $activities->links() }}</div>
 </x-card>
