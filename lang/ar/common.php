@@ -1,6 +1,19 @@
 <?php
 
 return [
+    'event_document_created' => 'تم إنشاء الوثيقة',
+    'event_document_version_created' => 'تم رفع نسخة جديدة',
+    'event_document_version_copied' => 'تم نسخ نسخة سابقة',
+    'event_document_downloaded' => 'تم تنزيل الوثيقة',
+    'event_document_previewed' => 'تمت معاينة الوثيقة',
+    'event_document_updated' => 'تم تعديل الوثيقة',
+    'event_document_visibility_changed' => 'تم تغيير رؤية الوثيقة',
+    'event_document_archived' => 'تمت أرشفة الوثيقة',
+    'event_document_restored' => 'تمت استعادة الوثيقة',
+    'event_document_version_archived' => 'تمت أرشفة النسخة',
+    'event_document_version_restored' => 'تمت استعادة النسخة',
+    'event_document_comment_created' => 'تمت إضافة تعليق',
+    'event_document_comment_deleted' => 'تم حذف التعليق',
     'error_410_title' => 'الرابط منتهي الصلاحية أو مستخدم',
     'error_410_text' => 'اطلب دعوة جديدة من مدير النظام.',
     'error_419_title' => 'انتهت صلاحية الجلسة',

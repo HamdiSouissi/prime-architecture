@@ -23,7 +23,8 @@
         </tbody></table></div>
         @unless(request('archived'))<x-button type="submit">{{ __('phase4.zip') }}</x-button>@endunless
     </form>
-    @if(request('archived'))@foreach($documents as $document)<form method="POST" action="{{ route('documents.restore', [$project, $document]) }}" class="mt-2">@csrf<span>{{ $document->title }}</span> <button class="underline" type="submit">{{ __('phase4.restore_document') }}</button></form>@endforeach@endif
+    @if(request('archived'))@foreach($documents as $document)<form method="POST" action="{{ route('documents.restore', [$project, $document]) }}" class="mt-2">@csrf<span>{{ $document->title }}</span> <button class="underline" type="submit">{{ __('phase4.restore_document') }}</button></form>@endforeach
+    @endif
     <div class="mt-4">{{ $documents->links() }}</div>
 </x-card>
 @endsection

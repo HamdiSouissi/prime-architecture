@@ -1,6 +1,19 @@
 <?php
 
 return [
+    'event_document_created' => 'Document créé',
+    'event_document_version_created' => 'Nouvelle version déposée',
+    'event_document_version_copied' => 'Ancienne version copiée',
+    'event_document_downloaded' => 'Document téléchargé',
+    'event_document_previewed' => 'Document prévisualisé',
+    'event_document_updated' => 'Document modifié',
+    'event_document_visibility_changed' => 'Visibilité du document modifiée',
+    'event_document_archived' => 'Document archivé',
+    'event_document_restored' => 'Document restauré',
+    'event_document_version_archived' => 'Version archivée',
+    'event_document_version_restored' => 'Version restaurée',
+    'event_document_comment_created' => 'Commentaire ajouté',
+    'event_document_comment_deleted' => 'Commentaire supprimé',
     'error_410_title' => 'Lien expiré ou déjà utilisé',
     'error_410_text' => 'Demandez une nouvelle invitation à votre administrateur.',
     'error_419_title' => 'Session expirée',
