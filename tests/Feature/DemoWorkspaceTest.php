@@ -45,6 +45,7 @@ class DemoWorkspaceTest extends TestCase
         $this->expectException(LogicException::class);
         $this->seed(DemoWorkspaceSeeder::class);
     }
+
     public function test_demo_can_be_added_without_changing_existing_records_after_explicit_acknowledgement(): void
     {
         $this->seed([RolePermissionSeeder::class, TaxSettingsSeeder::class]);
