@@ -100,7 +100,11 @@ class PhaseSevenTest extends TestCase
 
         $client = $this->userWithRole('client');
         $project->client->update(['user_id' => $client->id]);
-        $this->actingAs($client)->get('/dashboard')->assertOk()->assertDontSee(__('phase7.outstanding'));
+        $this->actingAs($client)->get('/dashboard')
+            ->assertOk()
+            // The phase 2 client welcome must survive the phase 7 rewrite.
+            ->assertSee(__('common.welcome_client'))
+            ->assertDontSee(__('phase7.outstanding'));
         $this->actingAs($client)->get('/reports')->assertForbidden();
         $this->actingAs($client)->get('/time')->assertForbidden();
         $this->actingAs($client)->get('/reports/export.xlsx')->assertForbidden();

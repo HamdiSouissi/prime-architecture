@@ -2,9 +2,10 @@
 @section('title', __('common.dashboard'))
 @section('content')
 @if(! $internal)
-    <x-page-header :title="__('common.dashboard')" :description="__('phase7.client_dashboard_intro')" />
+    <x-page-header :title="__('common.dashboard')" :description="__('common.welcome_client')" />
     <x-card>
-        <h2 class="section-title">{{ __('phase3.projects') }}</h2>
+        <p class="text-sm leading-6 text-slate-600">{{ __('phase7.client_dashboard_intro') }}</p>
+        <h2 class="section-title mt-4">{{ __('phase3.projects') }}</h2>
         <ul class="mt-4 divide-y divide-slate-100">
             @forelse($clientProjects as $project)
                 <li><a class="flex min-h-14 items-center justify-between gap-3 rounded-xl px-2 py-3 hover:bg-slate-50" href="{{ route('projects.show', $project) }}"><span class="min-w-0"><span class="block truncate font-semibold">{{ $project->name }}</span><span class="text-xs text-slate-500">{{ $project->reference }}</span></span><span class="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">{{ __('phase3.'.$project->status->value) }}</span></a></li>
