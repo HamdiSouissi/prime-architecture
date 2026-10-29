@@ -47,11 +47,18 @@ class BillingWebTest extends TestCase
         $this->put(route('billing.quotes.update', $quote), $input)->assertForbidden();
         $this->post(route('billing.quotes.decide', $quote), ['status' => 'accepted'])->assertSessionHasNoErrors();
         $this->assertSame(QuoteStatus::Accepted, $quote->fresh()->status);
+        $this->post(route('billing.quotes.duplicate', $quote))->assertSessionHasNoErrors();
+        $copy = Quote::whereKeyNot($quote->id)->firstOrFail();
+        $this->assertNull($copy->number);
+        $this->assertSame(QuoteStatus::Draft, $copy->status);
         $this->post(route('billing.quotes.convert', $quote), ['due_date' => '2026-11-30'])->assertSessionHasNoErrors();
         $invoice = Invoice::firstOrFail();
         $this->get(route('billing.invoices.show', $invoice))->assertOk();
         $this->post(route('billing.invoices.issue', $invoice))->assertSessionHasNoErrors();
         $this->post(route('billing.invoices.pay', $invoice), ['amount' => '119.000', 'payment_date' => '2026-11-02', 'method' => 'cash'])->assertSessionHasNoErrors();
+        $payment = DB::table('payments')->where('invoice_id', $invoice->id)->first();
+        $this->get(route('billing.invoices.receipt-pdf', [$invoice, $payment->id, 'fr']))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->get(route('billing.invoices.receipt-pdf', [$invoice, $payment->id + 10000, 'fr']))->assertNotFound();
         $external = User::factory()->create();
         $external->assignRole('client');
         $project->client->update(['user_id' => $external->id]);
@@ -83,6 +90,7 @@ class BillingWebTest extends TestCase
         unset($data['verified']);
         $this->post(route('billing.settings.tax'), $data)->assertSessionHasErrors('verified');
     }
+
     public function test_fee_schedules_are_project_scoped_and_exact(): void
     {
         $this->withoutVite();
@@ -103,5 +111,4 @@ class BillingWebTest extends TestCase
         $this->actingAs($client)->get(route('billing.fees.index', $project))->assertForbidden();
         $this->post(route('billing.fees.store', $project), $data)->assertForbidden();
     }
-
 }

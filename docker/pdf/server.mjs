@@ -12,6 +12,7 @@ const maxBody = 2 * 1024 * 1024;
 const server = http.createServer(async (req, res) => {
     const auth = Buffer.from(req.headers.authorization ?? '');
     if (auth.length !== expected.length || !timingSafeEqual(auth, expected)) { res.writeHead(403).end(); return; }
+    if (req.method === 'GET' && req.url === '/health') { res.writeHead(200).end(); return; }
     if (req.method !== 'POST' || req.url !== '/render') { res.writeHead(404).end(); return; }
     if (active >= 2) { res.writeHead(503).end(); return; }
     active++;

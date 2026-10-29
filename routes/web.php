@@ -149,6 +149,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/billing/quotes/{quote}/preview', [BillingController::class, 'previewQuoteEdit'])->name('billing.quotes.preview-edit');
         Route::post('/billing/invoices/{invoice}/preview', [BillingController::class, 'previewInvoiceEdit'])->name('billing.invoices.preview-edit');
         Route::get('/billing/quotes/{quote}/pdf/{language}', [BillingPdfController::class, 'quote'])->whereIn('language', ['fr', 'ar'])->name('billing.quotes.pdf');
+        Route::get('/billing/invoices/{invoice}/credit/pdf/{language}', [BillingPdfController::class, 'credit'])->whereIn('language', ['fr', 'ar'])->name('billing.invoices.credit-pdf');
+        Route::get('/billing/invoices/{invoice}/payments/{payment}/pdf/{language}', [BillingPdfController::class, 'receipt'])->whereNumber('payment')->whereIn('language', ['fr', 'ar'])->name('billing.invoices.receipt-pdf');
         Route::get('/billing/invoices/{invoice}/pdf/{language}', [BillingPdfController::class, 'invoice'])->whereIn('language', ['fr', 'ar'])->name('billing.invoices.pdf');
         Route::get('/billing/quotes/{quote}', [BillingController::class, 'showQuote'])->name('billing.quotes.show');
         Route::get('/billing/quotes/{quote}/edit', [BillingController::class, 'editQuote'])->name('billing.quotes.edit');

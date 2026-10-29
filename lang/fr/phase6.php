@@ -142,4 +142,6 @@ return [
     'fee_total' => 'Honoraires calculés',
     'fee_add' => 'Ajouter une phase',
     'fee_help' => 'Les honoraires sont indicatifs ; les factures utilisent leurs propres lignes et montants figés.',
+    'receipt' => 'Reçu de paiement',
+    'total_discount' => 'Remises totales',
 ];

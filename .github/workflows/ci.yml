@@ -136,9 +136,19 @@ jobs:
         run: |
           docker compose exec -T -u www-data app php artisan db:seed --class=WorkingCalendarSeeder --force
           npm run test:planning-ui
+      - name: Verify billing editor and mobile RTL in Chrome
+        run: |
+          docker compose exec -T -u www-data app php tests/smoke/prepare_billing_ui.php
+          node tests/smoke/billing_ui.mjs
+      - name: Export workspace visual diagnostic
+        run: |
+          base64 -w 0 ui-workspace-fr.jpg | fold -w 3000 | awk '{printf "::notice title=UIFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic billing visual diagnostic
+        run: |
+          base64 -w 0 ui-billing-ar.jpg | fold -w 3000 | awk '{printf "::notice title=UIAR%03d::%s\n", NR, $0}'
       - name: Generate and inspect French and Arabic billing PDFs
         run: |
-          docker compose --profile pdf up -d --build pdf
+          docker compose --profile pdf up -d --build --wait pdf
           docker compose exec -T -u www-data app php tests/smoke/generate_billing_pdf.php
           docker compose cp app:/var/www/html/storage/app/private/ci-quote-fr.pdf ci-quote-fr.pdf
           docker compose cp app:/var/www/html/storage/app/private/ci-quote-ar.pdf ci-quote-ar.pdf
@@ -173,7 +183,14 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8025/api/v1/messages | python3 -c 'import json,sys; assert json.load(sys.stdin)["total"] >= 1'
       - name: Collect container logs on failure
         if: failure()
-        run: docker compose logs --no-color app web mailpit
+        run: docker compose logs --no-color app web mailpit pdf
+      - name: Summarize PDF renderer errors
+        if: failure()
+        run: |
+          docker compose logs --no-color pdf > pdf-error.txt 2>&1 || true
+          if test -s pdf-error.txt; then
+            echo "::error title=PDF renderer::$(tail -c 3500 pdf-error.txt | tr '\r\n' '  ')"
+          fi
       - name: Summarize Laravel errors from CI environment
         if: failure()
         run: |
@@ -226,7 +243,7 @@ jobs:
           fi
       - name: Collect application logs on failure
         if: failure()
-        run: docker compose logs --no-color app web mailpit || true
+        run: docker compose logs --no-color app web mailpit pdf || true
       - name: Clean up test volumes
         if: always()
         run: docker compose down -v
