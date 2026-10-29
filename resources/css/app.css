@@ -34,6 +34,7 @@
     .app-tab[aria-selected='true'] { @apply border-brand-600 text-brand-700; }
 }
 [x-cloak] { display: none !important; }
+#planning-gantt { --dhx-gantt-task-background: #3730a3; --dhx-gantt-task-color: #fff; }
 .gantt_container .gantt_task_cell.planning-today { background-color: #fef3c7; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
 

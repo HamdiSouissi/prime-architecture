@@ -20,7 +20,13 @@ async function check(path, locale, width) {
     await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
     await page.evaluate(() => document.fonts.ready);
     const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth }));
-    if (overflow.scroll > overflow.viewport + 1) add('horizontal-overflow', `${locale}/${width} ${path}: ${overflow.scroll} > ${overflow.viewport}`);
+    if (overflow.scroll > overflow.viewport + 1) {
+        const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => {
+            const r = element.getBoundingClientRect();
+            return r.width && (r.left < -1 || r.right > innerWidth + 1) && !element.closest('.overflow-x-auto, #planning-gantt');
+        }).slice(-5).map(element => `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}.${String(element.className).replaceAll(' ', '.')}`));
+        add('horizontal-overflow', `${locale}/${width} ${path}: ${overflow.scroll} > ${overflow.viewport}; ${offenders.join(', ')}`);
+    }
     const duplicateIds = await page.evaluate(() => {
         const seen = new Set();
         const duplicates = new Set();
