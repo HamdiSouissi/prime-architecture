@@ -145,4 +145,7 @@ return [
     'profile_intro' => 'Gérez vos informations et sécurisez votre accès.',
     'security_intro' => 'Utilisez un mot de passe unique pour protéger votre compte.',
     'sessions_intro' => 'Vérifiez les appareils connectés et déconnectez les autres sessions si nécessaire.',
+    'invite_intro' => 'Invitez un membre et choisissez son rôle dans le cabinet.',
+    'user_edit_intro' => 'Gérez les informations et les droits de ce membre.',
+    'user_actions' => 'Actions du compte',
 ];
