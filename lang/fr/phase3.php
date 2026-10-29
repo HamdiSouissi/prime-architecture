@@ -103,4 +103,10 @@ return [
     'project_client_fixed' => 'Le client ne peut pas être changé après la création du projet.',
     'projects_intro' => 'Tous vos projets, organisés au même endroit.',
     'clients_intro' => 'Vos clients et leurs informations, à portée de main.',
+    'identity_section' => 'Identité',
+    'contact_section' => 'Coordonnées',
+    'additional_section' => 'Informations complémentaires',
+    'project_section' => 'Identification du projet',
+    'site_section' => 'Terrain et construction',
+    'dates_section' => 'Dates prévisionnelles',
 ];

@@ -103,4 +103,10 @@ return [
     'project_client_fixed' => 'لا يمكن تغيير الحريف بعد إنشاء المشروع.',
     'projects_intro' => 'كل مشاريعك منظمة في مكان واحد.',
     'clients_intro' => 'بيانات حرفائك في متناول يدك.',
+    'identity_section' => 'الهوية',
+    'contact_section' => 'بيانات الاتصال',
+    'additional_section' => 'معلومات إضافية',
+    'project_section' => 'بيانات المشروع',
+    'site_section' => 'الأرض والبناء',
+    'dates_section' => 'التواريخ المتوقعة',
 ];

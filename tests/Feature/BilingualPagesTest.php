@@ -31,7 +31,7 @@ class BilingualPagesTest extends TestCase
             foreach (['/login', '/forgot-password', '/reset-password/example?email=test@example.com', $invite] as $url) {
                 $this->withSession(['locale' => $locale])->get($url)->assertOk()->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false);
             }
-            foreach (['/dashboard', '/profile', '/users', '/users/create', route('users.edit', $admin), '/activity'] as $url) {
+            foreach (['/dashboard', '/profile', '/users', '/users/create', route('users.edit', $admin), '/activity', '/clients/create', '/projects/create'] as $url) {
                 $this->actingAs($admin)->withSession(['locale' => $locale])->get($url)->assertOk()->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false);
             }
             $this->post('/logout');
