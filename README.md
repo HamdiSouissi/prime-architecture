@@ -438,12 +438,18 @@ dédiée restent nécessaires.
 
 ## Espace de démonstration local
 
-Sur une base **neuve et isolée uniquement**, après les migrations et le seed habituel,
+Sur une installation **locale isolée**, après les migrations et le seed habituel,
 lancer explicitement `DEMO_PASSWORD='choisir-un-mot-de-passe-local-unique' php artisan db:seed --class=DemoWorkspaceSeeder`.
+Si l'installation contient déjà des comptes ou des données, il faut confirmer explicitement
+le risque en ajoutant `DEMO_ALLOW_EXISTING_DATA=1` à cette commande. Les comptes de
+démonstration administrateur et architecte bénéficient de leurs permissions normales :
+ils peuvent donc voir les données réelles existantes (et l'administrateur les gérer).
+Ne jamais activer cela sur une installation exposée ou contenant des données sensibles.
+Si la configuration est en cache, lancer d'abord `php artisan config:clear`.
 Le mot de passe (12 caractères minimum) est fourni par l'opérateur et n'est pas enregistré
 par l'application en clair. Ne pas utiliser cette base pour des données réelles ni exposer
-ces comptes sur Internet. Le seeder refuse la production et tout espace contenant déjà des
-utilisateurs, clients ou projets ; il ne modifie jamais les comptes existants. Il crée 15
+ces comptes sur Internet. Le seeder refuse la production et ne modifie jamais les comptes ou projets existants ;
+une collision avec une adresse de démonstration, même archivée, interrompt l'opération. Il crée 15
 clients et 30 projets fictifs. Les comptes sont :
 
 | Compte | Accès |
@@ -455,7 +461,7 @@ clients et 30 projets fictifs. Les comptes sont :
 | `demo-contractor@example.test` | Tableau de bord limité, selon les permissions existantes |
 
 Tous utilisent le mot de passe choisi dans `DEMO_PASSWORD`. Les taux initiaux restent
-indicatifs et non validés : un devis et une facture fictifs sont créés en brouillon, mais aucun document fiscal émis n'est fabriqué. Pour les PDF,
+indicatifs et non validés : si un taux fiscal applicable est configuré, un devis et une facture fictifs sont créés en brouillon, mais aucun document fiscal émis n'est fabriqué. Pour les PDF,
 configurer le profil du cabinet (dont le logo) et faire valider les paramètres fiscaux ;
 seuls les documents émis sont exportables. L'identité et le logo sont figés à l'émission :
 changer le profil ne modifie pas les PDF des documents déjà émis.
