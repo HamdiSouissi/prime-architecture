@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BillingSettingsRequest;
 use App\Services\BillingDecimal;
+use App\Services\DocumentFileInspector;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +63,19 @@ class BillingSettingsController extends Controller
     public function profile(BillingSettingsRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        unset($data['logo']);
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $info = app(DocumentFileInspector::class)->inspect($file);
+            if (! in_array($info['extension'], ['jpg', 'jpeg', 'png'], true)) {
+                throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
+            }
+            $path = Storage::disk('documents')->putFileAs('billing-logos', $file, Str::uuid().'.'.$info['extension']);
+            if (! is_string($path)) {
+                throw ValidationException::withMessages(['logo' => __('phase4.invalid_file')]);
+            }
+            $data['logo_path'] = $path;
+        }
         DB::transaction(function () use ($data, $request) {
             $this->lockSettings();
             $id = DB::table('billing_profiles')->insertGetId($data + ['created_at' => now(), 'updated_at' => now()]);

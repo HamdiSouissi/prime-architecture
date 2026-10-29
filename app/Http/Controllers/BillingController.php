@@ -192,6 +192,13 @@ class BillingController extends Controller
         return redirect()->route('billing.invoices.show', $invoice)->with('status', __('phase6.saved'));
     }
 
+    public function destroyInvoice(BillingActionRequest $request, Invoice $invoice): RedirectResponse
+    {
+        app(InvoiceService::class)->delete($invoice, $request->user());
+
+        return redirect()->route('billing.index')->with('status', __('phase6.saved'));
+    }
+
     public function issueInvoice(BillingActionRequest $request, Invoice $invoice): RedirectResponse
     {
         app(InvoiceService::class)->issue($invoice, $request->user());

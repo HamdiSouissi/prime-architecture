@@ -3,11 +3,11 @@
 @section('content')
 <x-card>
     <div class="flex flex-wrap justify-between gap-3"><div><h1 class="text-2xl font-bold">{{ __('phase4.documents') }} — {{ $project->name }}</h1><a class="underline" href="{{ route('projects.show', $project) }}">{{ __('phase4.back_project') }}</a></div>
-        @if($canCreate)<a class="underline" href="{{ route('documents.create', $project) }}">{{ __('phase4.new') }}</a>@endif
+        @if($canCreate)<a class="action-link" href="{{ route('documents.create', $project) }}">{{ __('phase4.new') }}</a>@endif
     </div>
     @if(session('status'))<x-alert class="my-3">{{ session('status') }}</x-alert>@endif
     @if($errors->any())<x-alert class="my-3" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
-    <form method="GET" action="{{ route('documents.index', $project) }}" class="my-4 flex flex-wrap items-end gap-3">
+    <form method="GET" action="{{ route('documents.index', $project) }}" class="my-6 flex flex-wrap items-end gap-3 rounded-2xl bg-slate-50 p-4">
         <label>{{ __('common.search') }} <input name="search" value="{{ request('search') }}"></label>
         <label>{{ __('phase4.category') }} <select name="category_id"><option value="">{{ __('common.all') }}</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>{{ app()->getLocale() === 'ar' ? $category->name_ar : $category->name_fr }}</option>@endforeach</select></label>
         <label>{{ __('phase4.type') }} <select name="extension"><option value="">{{ __('common.all') }}</option>@foreach(array_keys(config('documents.formats')) as $extension)<option value="{{ $extension }}" @selected(request('extension') === $extension)>{{ strtoupper($extension) }}</option>@endforeach</select></label>

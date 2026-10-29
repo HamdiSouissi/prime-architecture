@@ -16,6 +16,7 @@ use Database\Seeders\TaxSettingsSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\TestCase;
@@ -99,6 +100,12 @@ class BillingWorkflowTest extends TestCase
         $credit = DB::table('credit_notes')->where('invoice_id', $invoice->id)->first();
         $this->assertSame('AVR-2026-0001', $credit->number);
         $this->assertSame('119.000', json_decode($credit->snapshot, true)['invoice']['totals']['total_ttc']);
+        $this->withoutVite();
+        config(['billing.pdf_token' => str_repeat('a', 32), 'billing.pdf_url' => 'http://pdf:3000']);
+        Http::fake(['http://pdf:3000/render' => Http::response('%PDF-1.7 test', 200)]);
+        $this->actingAs($actor)->get(route('billing.invoices.credit-pdf', [$invoice, 'ar']))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        Http::assertSent(fn ($request) => str_contains($request->body(), $credit->number));
+
     }
 
     public function test_scheduler_marks_only_issued_unpaid_documents_as_overdue_or_expired(): void

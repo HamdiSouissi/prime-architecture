@@ -144,4 +144,6 @@ return [
     'fee_help' => 'Les honoraires sont indicatifs ; les factures utilisent leurs propres lignes et montants figés.',
     'receipt' => 'Reçu de paiement',
     'total_discount' => 'Remises totales',
+    'logo' => 'Logo PNG ou JPEG (256 Ko maximum)',
+    'logo_unavailable' => 'Le logo du cabinet est indisponible ou invalide.',
 ];

@@ -16,6 +16,7 @@ class BillingActionRequest extends FormRequest
             $this->routeIs('billing.quotes.convert', 'billing.quotes.duplicate') => 'view',
             $this->routeIs('billing.quotes.destroy') => 'update',
             $this->routeIs('billing.invoices.issue') => 'issue',
+            $this->routeIs('billing.invoices.destroy') => 'delete',
             $this->routeIs('billing.invoices.pay', 'billing.invoices.withholding') => 'pay',
             $this->routeIs('billing.invoices.cancel') => 'cancel',
             default => null,

@@ -59,3 +59,10 @@
     .billing-label { @apply mb-1 block text-sm font-semibold text-slate-700; }
     .billing-value { @apply font-semibold tabular-nums text-ink; }
 }
+@layer components {
+    .action-link { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-soft hover:bg-brand-700; }
+}
+@layer base {
+    thead th:first-child { border-start-start-radius: .75rem; }
+    thead th:last-child { border-start-end-radius: .75rem; }
+}

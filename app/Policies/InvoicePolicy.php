@@ -30,6 +30,11 @@ class InvoicePolicy
         return $this->view($user, $invoice) && $user->can('billing.invoices.update') && $user->can('update', $invoice->project) && $invoice->status === InvoiceStatus::Draft && $invoice->issued_at === null;
     }
 
+    public function delete(User $user, Invoice $invoice): bool
+    {
+        return $this->update($user, $invoice);
+    }
+
     public function issue(User $user, Invoice $invoice): bool
     {
         return $this->update($user, $invoice) && $user->can('billing.invoices.issue');

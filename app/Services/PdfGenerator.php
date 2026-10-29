@@ -16,6 +16,7 @@ class PdfGenerator
         if (! in_array($language, ['fr', 'ar'], true) || $document->issued_at === null || ! is_array($document->snapshot)) {
             throw new RuntimeException('A PDF requires an issued document and a supported language.');
         }
+
         return $this->render('billing.pdf', ['document' => $document, 'snapshot' => $document->snapshot, 'credit' => null], $language);
     }
 
@@ -81,7 +82,7 @@ class PdfGenerator
         }
         $pdf = $response->body();
         if (! $response->successful() || ! str_starts_with($pdf, '%PDF-') || strlen($pdf) > 10485760) {
-            throw new RuntimeException('The PDF renderer returned an invalid document.');
+            throw new RuntimeException('The PDF renderer returned an invalid document (HTTP '.$response->status().').');
         }
 
         return $pdf;

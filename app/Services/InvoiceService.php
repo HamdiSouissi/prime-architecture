@@ -72,6 +72,17 @@ class InvoiceService
         }, 3);
     }
 
+    public function delete(Invoice $invoice, User $actor): void
+    {
+        DB::transaction(function () use ($invoice, $actor) {
+            $invoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+            Gate::forUser($actor)->authorize('delete', $invoice);
+            $invoice->lines()->delete();
+            activity('billing')->causedBy($actor)->performedOn($invoice)->event('invoice.draft_deleted')->log('invoice.draft_deleted');
+            $invoice->delete();
+        }, 3);
+    }
+
     public function issue(Invoice $invoice, User $actor): Invoice
     {
         return DB::transaction(function () use ($invoice, $actor) {

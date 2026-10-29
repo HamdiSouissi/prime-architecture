@@ -39,7 +39,8 @@ const server = http.createServer(async (req, res) => {
         ]).finally(() => clearTimeout(timer));
         if (pdf.length > 10 * 1024 * 1024) { res.writeHead(413).end(); return; }
         res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Length': pdf.length, 'Cache-Control': 'no-store' }).end(pdf);
-    } catch {
+    } catch (error) {
+        console.error('PDF rendering failed:', error instanceof Error ? `${error.name}: ${error.message}`.slice(0, 600) : 'unknown error');
         if (!res.headersSent) res.writeHead(500).end();
     } finally {
         if (context) await context.close().catch(() => {});

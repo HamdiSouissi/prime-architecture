@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Project;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
@@ -40,6 +42,22 @@ class BillingCalculation
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['lines' => __('phase6.invalid_amount')]);
         }
+        $logo = null;
+        if ($requireVerified && $profile && $profile->logo_path) {
+            if (! preg_match('/^billing-logos\/[0-9a-f-]{36}\.(png|jpg|jpeg)$/D', $profile->logo_path, $match)) {
+                throw ValidationException::withMessages(['tax_settings' => __('phase6.logo_unavailable')]);
+            }
+            try {
+                $contents = Storage::disk('documents')->get($profile->logo_path);
+                if (! is_string($contents) || strlen($contents) < 1 || strlen($contents) > 262144) {
+                    throw new InvalidArgumentException('Invalid stored logo');
+                }
+                $mime = $match[1] === 'png' ? 'image/png' : 'image/jpeg';
+                $logo = 'data:'.$mime.';base64,'.base64_encode($contents);
+            } catch (Throwable) {
+                throw ValidationException::withMessages(['tax_settings' => __('phase6.logo_unavailable')]);
+            }
+        }
         $client = $project->client;
         if (! $client || $client->trashed()) {
             throw ValidationException::withMessages(['project' => __('phase6.client_unavailable')]);
@@ -56,7 +74,7 @@ class BillingCalculation
                 'tax_groups' => $calculation['taxes'],
                 'project' => ['reference' => $project->reference, 'name' => $project->name],
                 'client' => ['name' => $client->name, 'legal_name' => $client->legal_name, 'tax_id' => $client->tax_id, 'address' => $client->address],
-                'profile' => $profile ? ['name' => $profile->name, 'tax_id' => $profile->tax_id, 'address' => $profile->address, 'phone' => $profile->phone, 'email' => $profile->email, 'bank_details' => $profile->bank_details, 'legal_terms_fr' => $profile->legal_terms_fr, 'legal_terms_ar' => $profile->legal_terms_ar] : null,
+                'profile' => $profile ? ['name' => $profile->name, 'tax_id' => $profile->tax_id, 'address' => $profile->address, 'phone' => $profile->phone, 'email' => $profile->email, 'bank_details' => $profile->bank_details, 'legal_terms_fr' => $profile->legal_terms_fr, 'legal_terms_ar' => $profile->legal_terms_ar, 'logo' => $logo] : null,
             ],
         ];
     }

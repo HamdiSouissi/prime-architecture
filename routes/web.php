@@ -163,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/billing/invoices/{invoice}', [BillingController::class, 'showInvoice'])->name('billing.invoices.show');
         Route::get('/billing/invoices/{invoice}/edit', [BillingController::class, 'editInvoice'])->name('billing.invoices.edit');
         Route::put('/billing/invoices/{invoice}', [BillingController::class, 'updateInvoice'])->name('billing.invoices.update');
+        Route::delete('/billing/invoices/{invoice}', [BillingController::class, 'destroyInvoice'])->name('billing.invoices.destroy');
         Route::post('/billing/invoices/{invoice}/issue', [BillingController::class, 'issueInvoice'])->name('billing.invoices.issue');
         Route::post('/billing/invoices/{invoice}/payments', [BillingController::class, 'pay'])->name('billing.invoices.pay');
         Route::post('/billing/invoices/{invoice}/withholding', [BillingController::class, 'withholding'])->name('billing.invoices.withholding');

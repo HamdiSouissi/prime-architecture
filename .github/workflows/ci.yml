@@ -66,6 +66,8 @@ jobs:
         run: php tests/smoke/concurrent_document_versions.php
       - name: Verify concurrent billing number allocation
         run: php tests/smoke/concurrent_billing_numbers.php
+      - name: Verify concurrent quote issuance
+        run: php tests/smoke/concurrent_billing_issuance.php
       - name: Check PHP formatting
         if: success() || failure()
         run: |
@@ -142,10 +144,10 @@ jobs:
           node tests/smoke/billing_ui.mjs
       - name: Export workspace visual diagnostic
         run: |
-          base64 -w 0 ui-workspace-fr.jpg | fold -w 3000 | awk '{printf "::notice title=UIFR%03d::%s\n", NR, $0}'
+          base64 -w 0 ui-workspace-fr.jpg | fold -w 10000 | awk '{printf "::notice title=UIFR%03d::%s\n", NR, $0}'
       - name: Export Arabic billing visual diagnostic
         run: |
-          base64 -w 0 ui-billing-ar.jpg | fold -w 3000 | awk '{printf "::notice title=UIAR%03d::%s\n", NR, $0}'
+          base64 -w 0 ui-billing-ar.jpg | fold -w 10000 | awk '{printf "::notice title=UIAR%03d::%s\n", NR, $0}'
       - name: Generate and inspect French and Arabic billing PDFs
         run: |
           docker compose --profile pdf up -d --build --wait pdf
@@ -162,10 +164,16 @@ jobs:
           pdftoppm -f 1 -l 1 -scale-to 850 -singlefile -jpeg ci-quote-ar.pdf ci-quote-ar
       - name: Export French PDF visual diagnostic
         run: |
-          base64 -w 0 ci-quote-fr.jpg | fold -w 3000 | awk '{printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
+          base64 -w 0 ci-quote-fr.jpg | fold -w 10000 | awk '{printf "::notice title=PDFFR%03d::%s\n", NR, $0}'
       - name: Export Arabic PDF visual diagnostic
         run: |
-          base64 -w 0 ci-quote-ar.jpg | fold -w 3000 | awk '{printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
+          base64 -w 0 ci-quote-ar.jpg | fold -w 10000 | awk '{printf "::notice title=PDFAR%03d::%s\n", NR, $0}'
+      - name: Export French PDF sample
+        run: |
+          gzip -c ci-quote-fr.pdf | base64 -w 0 | fold -w 10000 | awk '{printf "::notice title=SAMPLEFR%03d::%s\n", NR, $0}'
+      - name: Export Arabic PDF sample
+        run: |
+          gzip -c ci-quote-ar.pdf | base64 -w 0 | fold -w 10000 | awk '{printf "::notice title=SAMPLEAR%03d::%s\n", NR, $0}'
       - name: Verify development scheduler container
         run: |
           docker compose --profile scheduler up -d scheduler

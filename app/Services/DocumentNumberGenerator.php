@@ -14,13 +14,13 @@ class DocumentNumberGenerator
         if (DB::transactionLevel() < 1 || ! in_array($type, ['quote', 'invoice', 'credit_note'], true)) {
             throw new LogicException('Document numbering requires an issuing transaction and a valid type.');
         }
+        $year = (int) $date->format('Y');
+        DB::table('billing_number_counters')->insertOrIgnore(['document_type' => $type, 'year' => $year, 'last_number' => 0]);
+        $counter = DB::table('billing_number_counters')->where('document_type', $type)->where('year', $year)->lockForUpdate()->firstOrFail();
         $format = DB::table('billing_number_formats')->where('document_type', $type)->whereDate('effective_from', '<=', $date->toDateString())->orderByDesc('effective_from')->first();
         if (! $format || substr_count($format->format, '{year}') !== 1 || substr_count($format->format, '{sequence}') !== 1 || preg_match('/[{}]/', str_replace(['{year}', '{sequence}'], '', $format->format)) || $format->padding < 1 || $format->padding > 12) {
             throw new LogicException('Invalid or missing document numbering configuration.');
         }
-        $year = (int) $date->format('Y');
-        DB::table('billing_number_counters')->insertOrIgnore(['document_type' => $type, 'year' => $year, 'last_number' => 0]);
-        $counter = DB::table('billing_number_counters')->where('document_type', $type)->where('year', $year)->lockForUpdate()->firstOrFail();
         if ($counter->last_number >= PHP_INT_MAX) {
             throw new LogicException('Document counter exhausted.');
         }

@@ -25,7 +25,7 @@ class BillingSettingsRequest extends FormRequest
             ];
         }
         if ($this->routeIs('billing.settings.profile')) {
-            return ['effective_from' => $date, 'name' => ['required', 'string', 'max:255'], 'tax_id' => ['nullable', 'string', 'max:255'], 'address' => ['nullable', 'string', 'max:2000'], 'phone' => ['nullable', 'string', 'max:255'], 'email' => ['nullable', 'email', 'max:255'], 'bank_details' => ['nullable', 'string', 'max:2000'], 'legal_terms_fr' => ['nullable', 'string', 'max:10000'], 'legal_terms_ar' => ['nullable', 'string', 'max:10000']];
+            return ['effective_from' => $date, 'name' => ['required', 'string', 'max:255'], 'tax_id' => ['nullable', 'string', 'max:255'], 'address' => ['nullable', 'string', 'max:2000'], 'phone' => ['nullable', 'string', 'max:255'], 'email' => ['nullable', 'email', 'max:255'], 'bank_details' => ['nullable', 'string', 'max:2000'], 'legal_terms_fr' => ['nullable', 'string', 'max:10000'], 'legal_terms_ar' => ['nullable', 'string', 'max:10000'], 'logo' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:256']];
         }
 
         return ['effective_from' => $date, 'document_type' => ['required', Rule::in(['quote', 'invoice', 'credit_note'])], 'format' => ['required', 'string', 'max:100'], 'padding' => ['required', 'integer', 'min:1', 'max:12']];

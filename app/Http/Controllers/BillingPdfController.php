@@ -6,8 +6,8 @@ use App\Models\Invoice;
 use App\Models\Quote;
 use App\Services\PdfGenerator;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use RuntimeException;
 
 class BillingPdfController extends Controller

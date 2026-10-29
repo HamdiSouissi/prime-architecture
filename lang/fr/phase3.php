@@ -101,4 +101,6 @@ return [
     'no_delegations' => 'Aucune délégation disponible pour ce gouvernorat.',
     'cannot_restore_project' => 'Restaurez le client avant de restaurer ce projet.',
     'project_client_fixed' => 'Le client ne peut pas être changé après la création du projet.',
+    'projects_intro' => 'Tous vos projets, organisés au même endroit.',
+    'clients_intro' => 'Vos clients et leurs informations, à portée de main.',
 ];
