@@ -31,6 +31,7 @@ class OfflineSnagTest extends TestCase
         $this->assertDatabaseCount('snags', 1);
         $this->assertDatabaseHas('snags', ['id' => $id, 'project_id' => $project->id, 'internal_notes' => 'Privé']);
     }
+
     public function test_snapshot_and_edit_are_authorized_versioned_and_idempotent(): void
     {
         $this->seed(RolePermissionSeeder::class);

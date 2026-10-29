@@ -59,7 +59,8 @@ try {
     await page.locator('#prepare-snags').click();
     await page.getByText('Réserves préparées.', { exact: false }).waitFor();
     await context.setOffline(true);
-    await page.locator('#edit-snag').selectOption({ label: /RESERVE-PRIVEE-CI/ });
+    const snagOption = await page.locator('#edit-snag option').filter({ hasText: 'RESERVE-PRIVEE-CI' }).getAttribute('value');
+    await page.locator('#edit-snag').selectOption(snagOption);
     await page.locator('#edit-title').fill('RESERVE-MODIFIEE-CI');
     await page.locator('#edit-internal').fill('NOTE-MODIFIEE-CI');
     await page.locator('#edit-snag-form button[type=submit]').click();
