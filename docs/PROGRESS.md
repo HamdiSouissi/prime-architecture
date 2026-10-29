@@ -4,7 +4,7 @@ Fichier de reprise. Il résume l'état réel du dépôt à la fin de la dernièr
 validée, les conventions à ne pas casser et les points ouverts. Mettre à jour à la fin de
 chaque phase, en même temps que le README.
 
-Dernière mise à jour : phase 8 (suivi de chantier), avant validation.
+Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de validation.
 
 ## Méthode de travail
 
@@ -26,12 +26,13 @@ Dernière mise à jour : phase 8 (suivi de chantier), avant validation.
 | 5 | Planning, tâches, dépendances, charge, calendrier ouvré, notifications | Livré |
 | 6 | Devis, factures, avoirs, paiements, retenues, PDF FR/AR, interface | Livré avec réserves (PDF arabe, fiscalité, revue humaine) |
 | 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
-| 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Développé, validation en cours |
+| 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Livré, CI verte (`aadee8c`), en attente de validation |
 | 9 et suivantes | Non commencées | — |
 
 Le détail des réserves et la liste de corrections sont dans
 [`docs/phase7-mvp-review.md`](phase7-mvp-review.md) ; les preuves de la phase 6 dans
-[`docs/phase6-validation.md`](phase6-validation.md).
+[`docs/phase6-validation.md`](phase6-validation.md) et, pour le chantier,
+[`docs/phase8-validation.md`](phase8-validation.md).
 
 ## Architecture et points d'entrée
 
