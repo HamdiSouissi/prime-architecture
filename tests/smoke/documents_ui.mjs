@@ -3,8 +3,31 @@ import { chromium } from 'playwright-core';
 
 const base = 'http://localhost:8080';
 const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox'] });
+function pdfBytes(text) {
+    const content = `BT /F1 12 Tf 30 50 Td (${text}) Tj ET`;
+    const objects = [
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+        '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    ];
+    let data = '%PDF-1.4\n';
+    const offsets = [];
+    for (const [index, object] of objects.entries()) {
+        offsets.push(Buffer.byteLength(data));
+        data += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    }
+    const xref = Buffer.byteLength(data);
+    data += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    for (const offset of offsets) data += `${String(offset).padStart(10, '0')} 00000 n \n`;
+    data += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+    return Buffer.from(data, 'ascii');
+}
+
 try {
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
     await page.goto(`${base}/login`);
     await page.locator('#email').fill(process.env.ADMIN_EMAIL ?? 'admin@example.com');
     await page.locator('#password').fill(process.env.ADMIN_PASSWORD ?? 'CI-admin-password-123');
@@ -15,11 +38,11 @@ try {
     await page.getByRole('link', { name: 'Documents', exact: true }).click();
     await page.getByRole('link', { name: 'Nouveau document' }).click();
     await page.locator('#title').fill('Document UI');
-    await page.locator('#file').setInputFiles({ name: 'plan.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% Version 1\n%%EOF\n') });
+    await page.locator('#file').setInputFiles({ name: 'plan.pdf', mimeType: 'application/pdf', buffer: pdfBytes('Version 1') });
     await Promise.all([page.waitForURL(/\/documents\/\d+$/), page.locator('form[enctype="multipart/form-data"] button[type="submit"]').click()]);
     const documentUrl = page.url();
     for (const version of [2, 3]) {
-        await page.locator('input[name="file"]').setInputFiles({ name: 'plan.pdf', mimeType: 'application/pdf', buffer: Buffer.from(`%PDF-1.4\n% Version ${version}\n%%EOF\n`) });
+        await page.locator('input[name="file"]').setInputFiles({ name: 'plan.pdf', mimeType: 'application/pdf', buffer: pdfBytes(`Version ${version}`) });
         await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[enctype="multipart/form-data"] button[type="submit"]').click()]);
     }
     assert.equal(await page.locator('section table tbody tr').count(), 3);
@@ -28,6 +51,11 @@ try {
     assert.equal(preview.status(), 200);
     assert.match(preview.headers()['content-disposition'], /^inline/);
     assert.equal(preview.headers()['x-content-type-options'], 'nosniff');
+    const pdfPage = await context.newPage();
+    const pdfResponse = await pdfPage.goto(previewLink);
+    assert.equal(pdfResponse.status(), 200);
+    await pdfPage.waitForFunction(() => document.contentType === 'application/pdf' || !!document.querySelector('embed, iframe'));
+    await pdfPage.close();
     await page.locator('input[name="file"]').setInputFiles({
         name: 'image.png', mimeType: 'image/png',
         buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
