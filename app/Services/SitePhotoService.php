@@ -47,6 +47,9 @@ class SitePhotoService
             throw ValidationException::withMessages(['photo' => __('phase8.invalid_photo')]);
         }
 
+        // Normalise orientation before metadata is removed by JPEG re-encoding.
+        $source = $this->orient($source, $file->getRealPath(), $info[2]);
+
         $disk = (string) config('site.disk');
         $directory = 'site/'.$project->id.'/'.now()->format('Y/m');
         $name = (string) Str::uuid();
@@ -112,6 +115,35 @@ class SitePhotoService
             'project_id' => $photo->project_id,
             'photo_id' => $photo->id,
         ])->event('site.photo_deleted')->log('site.photo_deleted');
+    }
+
+    private function orient(GdImage $source, string $path, int $type): GdImage
+    {
+        if ($type !== IMAGETYPE_JPEG || ! function_exists('exif_read_data')) {
+            return $source;
+        }
+        $metadata = @exif_read_data($path, 'IFD0', true);
+        $orientation = (int) ($metadata['IFD0']['Orientation'] ?? 1);
+        if (in_array($orientation, [2, 4, 5, 7], true)) {
+            imageflip($source, IMG_FLIP_HORIZONTAL);
+        }
+        $angle = match ($orientation) {
+            3, 4 => 180,
+            6, 7 => -90,
+            5, 8 => 90,
+            default => 0,
+        };
+        if ($angle === 0) {
+            return $source;
+        }
+        $rotated = imagerotate($source, $angle, 0);
+        if (! $rotated instanceof GdImage) {
+            imagedestroy($source);
+            throw new RuntimeException('Unable to orient the site photo.');
+        }
+        imagedestroy($source);
+
+        return $rotated;
     }
 
     private function resize(GdImage $source, int $max): GdImage

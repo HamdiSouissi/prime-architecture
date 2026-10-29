@@ -284,6 +284,25 @@ class PhaseEightTest extends TestCase
         $this->assertTrue(Storage::disk($this->disk)->exists((string) $photo->thumbnail_path));
     }
 
+    public function test_photo_orientation_is_applied_and_metadata_is_removed(): void
+    {
+        $project = $this->project();
+        $architect = $this->member($project, 'architect');
+        $file = UploadedFile::fake()->image('portrait.jpg', 120, 80);
+        $jpeg = (string) file_get_contents($file->getRealPath());
+        // APP1 EXIF, little-endian TIFF IFD0 with orientation 6 (90° clockwise).
+        $exif = "Exif\0\0".pack('v', 0x4949).pack('v', 42).pack('V', 8)
+            .pack('v', 1).pack('v', 0x0112).pack('v', 3).pack('V', 1)
+            .pack('v', 6).pack('v', 0).pack('V', 0);
+        file_put_contents($file->getRealPath(), substr($jpeg, 0, 2)."\xFF\xE1".pack('n', strlen($exif) + 2).$exif.substr($jpeg, 2));
+
+        $photo = app(SitePhotoService::class)->store($project, $architect, $file, []);
+        $this->assertSame(80, $photo->width);
+        $this->assertSame(120, $photo->height);
+        $stored = (string) Storage::disk($this->disk)->get($photo->path);
+        $this->assertStringNotContainsString("Exif\0\0", $stored);
+    }
+
     public function test_site_report_pdf_uses_the_private_renderer(): void
     {
         $this->withoutVite();

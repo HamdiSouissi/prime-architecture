@@ -11,7 +11,7 @@ FROM php:8.2-fpm-bookworm AS app
 # GD is required to re-encode site photos and generate their thumbnails.
 RUN apt-get update && apt-get install -y --no-install-recommends git unzip libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libwebp-dev \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql intl zip bcmath gd \
+    && docker-php-ext-install pdo_mysql intl zip bcmath gd exif \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer-bin /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html

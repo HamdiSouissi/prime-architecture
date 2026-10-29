@@ -8,13 +8,13 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 
 ## Méthode de travail
 
-1. Une phase à la fois, jamais de phase suivante sans validation explicite.
+1. Enchaîner les phases 9 à 14 sans validation intermédiaire, selon la demande du cabinet ; conserver les vérifications et bilans de chaque phase.
 2. Plan court et questions **avant** d'écrire du code.
 3. Exécution par petites étapes : migration, modèles, services, policies, requests,
    contrôleurs, vues, traductions FR/AR, tests.
 4. Vérifications : `php artisan test`, `vendor/bin/pint --test`,
    `vendor/bin/phpstan analyse`, CI verte, recette manuelle FR/AR mobile et desktop.
-5. Mise à jour du README et de ce fichier, puis résumé et arrêt avant fusion.
+5. Mise à jour du README et de ce fichier, puis résumé ; aucune fusion sans accord.
 
 ## État des phases
 
@@ -98,6 +98,6 @@ Le détail des réserves et la liste de corrections sont dans
 
 ## Prochaine étape
 
-Attendre la validation de la phase 8, puis ouvrir la phase 9 (base de prix et métré) avec un
-plan court et les questions associées. Les phases 1 à 7 restent à fusionner selon le
+Engager la phase 9 (base de prix et métré), puis poursuivre les phases suivantes selon
+[`docs/phases-9-14-plan.md`](phases-9-14-plan.md). Les phases 1 à 7 restent à fusionner selon le
 processus prévu ; aucune branche `develop` n'est touchée par cette session.
