@@ -28,6 +28,18 @@ try {
     assert.equal(preview.status(), 200);
     assert.match(preview.headers()['content-disposition'], /^inline/);
     assert.equal(preview.headers()['x-content-type-options'], 'nosniff');
+    await page.locator('input[name="file"]').setInputFiles({
+        name: 'image.png', mimeType: 'image/png',
+        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+n42UAAAAASUVORK5CYII=', 'base64'),
+    });
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('form[enctype="multipart/form-data"] button[type="submit"]').click()]);
+    assert.equal(await page.locator('section table tbody tr').count(), 4);
+    const imageLink = await page.getByRole('link', { name: 'Aperçu' }).first().getAttribute('href');
+    const imagePage = await page.context().newPage();
+    await imagePage.goto(imageLink);
+    await imagePage.locator('img').waitFor();
+    assert.equal(await imagePage.locator('img').evaluate(image => image.naturalWidth), 1);
+    await imagePage.close();
     await page.goto(documentUrl.replace(/\/\d+$/, '/create'));
     const multi = page.locator('section[x-data="documentMultiUpload"]');
     await multi.locator('input[type="file"]').setInputFiles([
