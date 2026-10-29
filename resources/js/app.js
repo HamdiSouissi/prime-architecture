@@ -10,3 +10,7 @@ Alpine.start();
 if (document.getElementById('planning-gantt')) {
     import('./planning-gantt');
 }
+
+if (document.querySelector('[data-dashboard-chart]')) {
+    import('./dashboard-charts');
+}
