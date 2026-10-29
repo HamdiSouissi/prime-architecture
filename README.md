@@ -122,7 +122,8 @@ docker compose exec -u www-data app php artisan db:seed --class=PhaseThreeDemoSe
 
 ```text
 users (client, optionnel) <- clients -> governorates <- delegations
-                               |                                 |   +-- client_contacts (archivables)
+                               |
+                               +------ client_contacts (archivables)
                                +------ projects -> users (responsable)
                                            |  +-- project_user -> users (équipe)
                                            |  +-- project_status_history -> users (auteur)
@@ -138,4 +139,4 @@ Les références ont par défaut la forme `2026-001` : l’année est calculée 
 
 La CIN est une chaîne de huit chiffres. Les téléphones tunisiens sont stockés sous `+216XXXXXXXX`, avec ou sans indicatif en entrée. Le matricule fiscal est contrôlé **syntaxiquement seulement** : par défaut sept chiffres, trois lettres et trois chiffres, par exemple `1234567/A/A/M/000`. La règle est configurable dans `config/projects.php` (`CLIENT_TAX_ID_PATTERN`). **Ce format et les catégories acceptées doivent être confirmés auprès de l’administration compétente** ; aucun contrôle de validité officiel ou d’existence n’est effectué. Les champs financiers sont indicatifs, en TND avec trois décimales ; aucune logique de facturation n’est incluse.
 
-Le tableau Kanban est en lecture seule et porte sur la page de résultats courante. Les états actifs du tableau de bord sont configurés dans `config/projects.php`. Pour protéger les données internes, les clients ne reçoivent ni notes ni historique détaillé, et les listes sont filtrées en base avant pagination.
+Le tableau Kanban est en lecture seule et porte sur la page de résultats courante. Le statut initial (`PROJECT_INITIAL_STATUS`, `sketch` par défaut) et les états actifs du tableau de bord sont configurés dans `config/projects.php`. Pour protéger les données internes, les clients ne reçoivent ni notes ni historique détaillé, et les listes sont filtrées en base avant pagination.

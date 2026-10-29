@@ -19,7 +19,7 @@ class ProjectAdministration
             // Locks the parent in the same order as client archival.
             Client::query()->lockForUpdate()->findOrFail($data['client_id']);
             $data['reference'] = app(ProjectReferenceGenerator::class)->next();
-            $data['status'] = ProjectStatus::Sketch;
+            $data['status'] = ProjectStatus::from((string) config('projects.initial_status'));
             $project = Project::create($data);
             $project->members()->attach($project->lead_architect_id, ['project_role' => 'lead']);
             $project->statusHistory()->create(['from_status' => null, 'to_status' => $project->status->value, 'changed_by' => $actor->id]);

@@ -78,4 +78,43 @@ class PhaseThreeWorkflowTest extends TestCase
         $this->withSession(['locale' => 'fr'])->get(route('clients.create'))->assertOk()->assertSee('Nord-1')->assertSee('lang="fr" dir="ltr"', false);
         $this->withSession(['locale' => 'ar'])->get(route('projects.create'))->assertOk()->assertSee('lang="ar" dir="rtl"', false)->assertSee('الولاية');
     }
+
+    public function test_main_phase_three_pages_render_in_french_and_arabic(): void
+    {
+        $actor = $this->user('architect');
+        $client = Client::factory()->create();
+        $project = $this->project($actor, $client);
+        $urls = [
+            route('dashboard'), route('clients.index'), route('clients.create'), route('clients.show', $client), route('clients.edit', $client),
+            route('projects.index'), route('projects.index', ['view' => 'kanban']), route('projects.create'), route('projects.show', $project), route('projects.edit', $project),
+        ];
+        foreach (['fr' => 'ltr', 'ar' => 'rtl'] as $locale => $direction) {
+            foreach ($urls as $url) {
+                $this->actingAs($actor)->withSession(['locale' => $locale])->get($url)->assertOk()->assertSee('lang="'.$locale.'" dir="'.$direction.'"', false)->assertDontSee('phase3.');
+            }
+        }
+    }
+
+    public function test_demo_seeder_is_repeatable_and_spans_several_statuses(): void
+    {
+        $this->user('architect');
+        $this->seed(\Database\Seeders\PhaseThreeDemoSeeder::class);
+        $this->seed(\Database\Seeders\PhaseThreeDemoSeeder::class);
+        $this->assertSame(15, Client::count());
+        $this->assertSame(30, Project::count());
+        $this->assertGreaterThan(1, Project::query()->distinct()->count('status'));
+    }
+
+    public function test_client_list_does_not_issue_queries_per_row(): void
+    {
+        $actor = $this->user('architect');
+        Client::factory()->count(15)->create();
+        $queries = [];
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
+        $this->actingAs($actor)->get(route('clients.index'))->assertOk();
+        $this->assertLessThan(30, count($queries));
+    }
+
 }

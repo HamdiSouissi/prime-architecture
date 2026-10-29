@@ -36,7 +36,7 @@ class PhaseThreeDemoSeeder extends Seeder
                 }
                 $project = $service->create(['client_id' => $client->id, 'name' => $projectName, 'project_type' => $number === 1 ? 'villa' : 'renovation', 'lead_architect_id' => $architect->id], $architect);
                 $status = $statuses[($index * 2 + $number) % count($statuses)];
-                if ($status !== ProjectStatus::Sketch) {
+                if ($status !== $project->status) {
                     $service->changeStatus($project, $architect, $status, null);
                 }
             }

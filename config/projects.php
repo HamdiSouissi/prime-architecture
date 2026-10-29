@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'initial_status' => env('PROJECT_INITIAL_STATUS', 'sketch'),
     // Both placeholders are mandatory; sequence padding is a minimum, not a limit.
     'reference_format' => env('PROJECT_REFERENCE_FORMAT', '{year}-{sequence}'),
     'reference_padding' => (int) env('PROJECT_REFERENCE_PADDING', 3),
