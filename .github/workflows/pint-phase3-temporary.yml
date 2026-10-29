@@ -1,0 +1,27 @@
+name: Temporary phase 3 formatting
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/a7217585-prime-architecture
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, intl, zip
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: vendor/bin/pint
+      - name: Commit formatting
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if ! git diff --quiet; then
+            git add app config database routes tests
+            git commit -m 'style: format phase three php'
+            git push origin HEAD:arena/a7217585-prime-architecture
+          fi
