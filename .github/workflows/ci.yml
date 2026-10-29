@@ -46,6 +46,8 @@ jobs:
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: composer audit --locked --no-interaction
       - run: npm ci && npm run build
+      - name: Check design token contrast
+        run: node tests/smoke/contrast_tokens.mjs
       - name: Audit private PDF renderer dependencies
         run: npm --prefix docker/pdf audit --package-lock-only --omit=dev --audit-level=moderate
       - name: Migrate database

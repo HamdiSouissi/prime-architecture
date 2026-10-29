@@ -58,13 +58,14 @@ async function check(path, locale, width) {
 }
 async function checkValidation(path, locale, width) {
     await open(path);
-    const submit = page.locator('#main-content form:has(button[type="submit"]) button[type="submit"]').first();
-    await Promise.all([page.waitForLoadState('load'), submit.click()]);
+    const form = page.locator('#main-content form[method="POST"]').first();
+    await form.evaluate(element => { element.noValidate = true; });
+    const submit = form.locator('button[type="submit"], [type="submit"]').first();
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load' }).catch(() => {}), submit.click()]);
+    await page.locator('#main-content [aria-invalid="true"], #main-content [role="alert"]').first().waitFor({ timeout: 15000 });
     await page.waitForFunction(() => !!window.Alpine, null, { timeout: 15000 });
     await page.evaluate(() => document.fonts.ready);
     await page.addScriptTag({ content: axe.source });
-    const feedback = await page.locator('#main-content [aria-invalid="true"], #main-content [role="alert"], #main-content .text-red-700').count();
-    assert.ok(feedback > 0, `${path} did not display validation feedback`);
     await scanState('validation', path, locale, width);
 }
 async function checkMenu(locale, width) {
