@@ -22,4 +22,5 @@ return [
     'upload_files' => 'Envoyer les fichiers', 'upload_failed' => 'Le dépôt a échoué.', 'upload_complete' => 'Dépôt terminé.',
     'back_project' => 'Retour au projet', 'back_documents' => 'Retour aux documents', 'no_preview' => 'Aucun aperçu pour ce format.',
     'file_help' => 'Formats et taille selon la configuration du serveur. Un seul point est accepté dans le nom du fichier.',
+    'upload_progress' => 'Progression du téléversement',
 ];

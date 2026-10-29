@@ -34,7 +34,7 @@ const server = http.createServer(async (req, res) => {
         await page.setContent(input.html, { waitUntil: 'load', timeout: 15000 });
         let timer;
         const pdf = await Promise.race([
-            page.pdf({ format: 'A4', printBackground: true, margin: { top: '15mm', right: '14mm', bottom: '15mm', left: '14mm' } }),
+            page.pdf({ format: 'A4', printBackground: true, tagged: true, margin: { top: '15mm', right: '14mm', bottom: '15mm', left: '14mm' } }),
             new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('PDF timeout')), 15000); }),
         ]).finally(() => clearTimeout(timer));
         if (pdf.length > 10 * 1024 * 1024) { res.writeHead(413).end(); return; }

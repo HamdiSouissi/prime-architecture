@@ -166,7 +166,10 @@ jobs:
           docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-fr.pdf > ci-quote-fr.pdf
           docker compose exec -T -u www-data app cat /var/www/html/storage/app/private/ci-quote-ar.pdf > ci-quote-ar.pdf
           pdfinfo ci-quote-fr.pdf | grep -q 'Pages:'
+          pdfinfo ci-quote-fr.pdf | grep -Eq '^Title:[[:space:]]+Devis'
           pdfinfo ci-quote-ar.pdf | grep -q 'Pages:'
+          pdfinfo ci-quote-fr.pdf | grep -Eq '^Tagged:[[:space:]]+yes$'
+          pdfinfo ci-quote-ar.pdf | grep -Eq '^Tagged:[[:space:]]+yes$'
           pdffonts ci-quote-fr.pdf | grep -qi 'Inter'
           pdffonts ci-quote-ar.pdf | grep -qi 'Cairo'
           pdftotext ci-quote-ar.pdf ci-quote-ar.txt

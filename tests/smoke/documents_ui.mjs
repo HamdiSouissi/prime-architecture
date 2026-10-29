@@ -74,6 +74,7 @@ try {
         { name: 'multiple.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n% Multi\n%%EOF\n') },
         { name: 'fake.pdf', mimeType: 'application/pdf', buffer: Buffer.from('<?php echo 1;') },
     ]);
+    await multi.getByRole('progressbar', { name: 'Progression du téléversement – multiple.pdf' }).waitFor();
     await multi.locator('button[type="submit"]').click();
     await multi.getByText('Modifications enregistrées.').waitFor();
     await multi.getByText('Fichier invalide, trop volumineux ou de format non autorisé.').waitFor();

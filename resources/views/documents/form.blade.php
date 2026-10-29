@@ -21,7 +21,7 @@
             <label><input type="checkbox" name="visible_to_client" value="1"> {{ __('phase4.visible_to_client') }}</label>
             <label>{{ __('phase4.file') }} <input type="file" multiple required @change="choose($event)"></label>
             <x-button type="submit" x-bind:disabled="busy">{{ __('phase4.upload_files') }}</x-button>
-            <template x-for="(item, index) in files" :key="index"><div><span x-text="item.file.name"></span> <progress max="100" :value="item.progress"></progress> <span role="status" x-text="item.message"></span></div></template>
+            <template x-for="(item, index) in files" :key="index"><div><span x-text="item.file.name"></span> <progress max="100" :value="item.progress" :aria-label="@js(__('phase4.upload_progress')) + ' – ' + item.file.name"></progress> <span role="status" x-text="item.message"></span></div></template>
         </form>
     </section>
     @endif

@@ -2,6 +2,7 @@
 <html lang="{{ $language }}" dir="{{ $language === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
 <meta charset="utf-8">
+<title>{{ __($credit ? 'phase6.credit_note' : ($document instanceof \App\Models\Quote ? 'phase6.quote' : 'phase6.invoice')) }} — {{ $credit ? $credit->number : $document->number }}</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:; base-uri 'none'; form-action 'none'">
 <style>
 @include('billing.pdf-fonts')
