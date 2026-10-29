@@ -8,7 +8,7 @@
     $defaultRate = $rates->first()?->rate ?? '';
     $formLines = old('lines', $lines) ?: [['description' => '', 'unit' => '', 'quantity' => '1', 'unit_price' => '0.000', 'discount_percent' => '0', 'tax_rate' => (string) $defaultRate]];
 @endphp
-<div class="mb-6"><a class="text-sm font-semibold text-brand-700 hover:underline" href="{{ route('billing.index') }}">← {{ __('phase6.back_billing') }}</a><h1 class="mt-3 text-3xl font-bold tracking-tight">{{ __($type === 'quote' ? 'phase6.new_quote' : 'phase6.new_invoice') }}</h1><p class="mt-1 text-slate-600">{{ $project->reference }} · {{ $project->name }}</p></div>
+<div class="mb-6"><a class="text-sm font-semibold text-brand-700 hover:underline" href="{{ route('billing.index') }}"><span class="inline-block rtl:rotate-180" aria-hidden="true">←</span> {{ __('phase6.back_billing') }}</a><h1 class="mt-3 text-3xl font-bold tracking-tight">{{ __($type === 'quote' ? 'phase6.new_quote' : 'phase6.new_invoice') }}</h1><p class="mt-1 text-slate-600">{{ $project->reference }} · {{ $project->name }}</p></div>
 <x-alert class="mb-5">{{ __('phase6.fiscal_warning') }} @if(! $settings) {{ __('phase6.no_settings') }} @elseif(! $settings->is_verified) {{ __('phase6.unverified') }} @endif</x-alert>
 @if($errors->any())<x-alert class="mb-5"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
 <form method="POST" action="{{ $action }}" x-data="billingEditor(@js(array_values($formLines)), @js((string) $defaultRate), @js($preview))" @input.debounce.500ms="preview($el)" @change.debounce.500ms="preview($el)" x-init="$nextTick(() => preview($el))" class="space-y-5">

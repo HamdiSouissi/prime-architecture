@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', __('phase6.settings'))
 @section('content')
-<div class="mb-6"><a href="{{ route('billing.index') }}" class="text-sm font-semibold text-brand-700 hover:underline">← {{ __('phase6.back_billing') }}</a><h1 class="mt-3 text-3xl font-bold tracking-tight">{{ __('phase6.settings') }}</h1></div>
+<div class="mb-6"><a href="{{ route('billing.index') }}" class="text-sm font-semibold text-brand-700 hover:underline"><span class="inline-block rtl:rotate-180" aria-hidden="true">←</span> {{ __('phase6.back_billing') }}</a><h1 class="mt-3 text-3xl font-bold tracking-tight">{{ __('phase6.settings') }}</h1></div>
 <x-alert class="mb-5">{{ __('phase6.fiscal_warning') }}</x-alert>
 @if(session('status'))<x-alert variant="success" class="mb-5">{{ session('status') }}</x-alert>@endif
 @if($errors->any())<x-alert class="mb-5"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif

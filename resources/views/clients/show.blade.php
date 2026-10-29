@@ -1,15 +1,15 @@
 @extends('layouts.app')
 @section('title', $client->name)
 @section('content')
-<x-card><div class="flex flex-wrap justify-between gap-3"><h1 class="text-2xl font-bold">{{ $client->name }}</h1><a class="underline" href="{{ route('clients.edit', $client) }}">{{ __('common.edit') }}</a></div>
+<x-card><div class="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-slate-50 p-5 sm:p-6"><div><p class="eyebrow">{{ __('phase3.clients') }}</p><h1 class="mt-2 text-3xl font-bold tracking-tight">{{ $client->name }}</h1></div><a class="secondary-action-link" href="{{ route('clients.edit', $client) }}">{{ __('common.edit') }}</a></div>
 @if(session('status'))<x-alert variant="success" class="mt-3">{{ session('status') }}</x-alert>@endif
-<dl class="my-4 grid gap-2 sm:grid-cols-2">
+<dl class="detail-grid my-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 @foreach(['type' => __('phase3.'.$client->type), 'legal_name' => $client->legal_name, 'tax_id' => $client->tax_id, 'national_id' => $client->national_id, 'email' => $client->email, 'phone' => $client->phone, 'whatsapp_phone' => $client->whatsapp_phone, 'address' => $client->address, 'notes' => $client->notes] as $field => $value)<div><dt class="font-semibold">{{ __(in_array($field, ['email', 'phone']) ? 'common.'.$field : 'phase3.'.$field) }}</dt><dd>{{ $value ?: '—' }}</dd></div>@endforeach
 <div><dt class="font-semibold">{{ __('phase3.governorate') }}</dt><dd>{{ app()->getLocale() === 'ar' ? $client->governorate?->name_ar : $client->governorate?->name_fr }}</dd></div><div><dt class="font-semibold">{{ __('phase3.delegation') }}</dt><dd>{{ app()->getLocale() === 'ar' ? $client->delegation?->name_ar : $client->delegation?->name_fr }}</dd></div></dl>
 <form method="POST" action="{{ route('clients.destroy', $client) }}" data-confirm="{{ __('phase3.client_archive_warning') }}" onsubmit="return confirm(this.dataset.confirm)" class="my-4">@csrf @method('DELETE')<x-button type="submit">{{ __('phase3.archive') }}</x-button></form>
 <h2 class="mt-6 text-xl font-bold">{{ __('phase3.projects') }}</h2><ul class="my-3 space-y-2">@forelse($client->projects as $project)<li><a class="underline" href="{{ route('projects.show', $project) }}">{{ $project->reference }} — {{ $project->name }}</a></li>@empty<li>{{ __('phase3.empty') }}</li>@endforelse</ul>
 <h2 class="mt-6 text-xl font-bold">{{ __('phase3.contacts') }}</h2>
-@foreach($client->contacts as $contact)<div class="my-3 rounded border border-slate-200 p-3">
+@foreach($client->contacts as $contact)<div class="my-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
 @if($contact->trashed())<p>{{ $contact->name }} — {{ __('phase3.archived_items') }}</p><form method="POST" action="{{ route('clients.contacts.restore', [$client, $contact]) }}">@csrf<x-button type="submit">{{ __('phase3.restore') }}</x-button></form>
 @else
 <form method="POST" action="{{ route('clients.contacts.update', [$client, $contact]) }}" class="grid gap-2 sm:grid-cols-2">@csrf @method('PUT')
