@@ -387,8 +387,7 @@ et les devis émis restent immuables. Permissions : `prices.view`, `prices.manag
 Des dossiers par projet permettent de saisir le type, la commune, l'état, les dates,
 les observations et des étapes ou pièces à fournir. Il est possible de lier des
 documents existants du même projet. Les règles et échéances sont saisies par le
-cabinet et ne constituent pas des règles officielles préremplies. Les rappels
-automatiques et la recette humaine ne sont pas encore réalisés. Après migration,
+cabinet et ne constituent pas des règles officielles préremplies. La recette humaine reste à réaliser. Après migration,
 resynchroniser les rôles via `php artisan db:seed --class=RolePermissionSeeder` ;
 les droits sont `permits.view` et `permits.manage`.
 

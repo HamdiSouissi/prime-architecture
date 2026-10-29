@@ -28,7 +28,7 @@ Dernière mise à jour : phase 8 livrée (suivi de chantier), en attente de vali
 | 7 | Tableau de bord par rôle, temps et chronomètre, rentabilité, exports | Livré, CI verte (`3b21a97`), en attente de validation |
 | 8 | Suivi de chantier : comptes rendus, réserves, avancement, photos privées, PDF | Livré, CI verte (`aadee8c`), en attente de validation |
 | 9 | Base de prix et métré | Développé ; vérifications et recette en cours |
-| 10 | Permis et urbanisme | Dossiers, étapes et documents développés ; rappels et recette à réaliser |
+| 10 | Permis et urbanisme | Dossiers, étapes, documents et rappels développés ; recette humaine à réaliser |
 | 11–14 | Portail, PWA, sauvegardes, recette | Non commencées |
 
 Le détail des réserves et la liste de corrections sont dans
@@ -96,23 +96,28 @@ Le détail des réserves et la liste de corrections sont dans
 4. Writer XLSX maison à éprouver, à remplacer par `openspout` dès que Composer est disponible.
 5. Audits navigateur de la phase 7 et recette manuelle FR/AR encore à consigner.
 6. Confirmer que seul l'administrateur gère les coûts horaires et le format des nombres.
-7. Chantier : faire valider par le cabinet les facteurs d'avancement, la numérotation des comptes rendus et la durée de conservation des photos ; prévoir l'orientation EXIF (extension non installée) et une politique de sauvegarde des images.
+7. Chantier : faire valider par le cabinet les facteurs d'avancement, la numérotation des comptes rendus et la durée de conservation des photos ; vérifier l'orientation EXIF sur des photos réelles et une politique de sauvegarde des images.
 
 ## Prochaine étape
 
-Engager la phase 9 (base de prix et métré), puis poursuivre les phases suivantes selon
+Poursuivre les phases suivantes selon
 [`docs/phases-9-14-plan.md`](phases-9-14-plan.md). Les phases 1 à 7 restent à fusionner selon le
 processus prévu ; aucune branche `develop` n'est touchée par cette session.
 
 ## Reprise phase 9
 
-Le catalogue et son historique sont exposés aux administrateurs et architectes ; les métrés utilisent les prix courants et se transfèrent vers des devis brouillon via les services de facturation. Les tests et l’analyse PHP ont réussi en CI sur `98aa667` ; une correction Pint est en cours. La recette humaine FR/AR reste à effectuer. Les notes internes des réserves sont séparées et masquées au client ; des tests de non-divulgation couvrent la page chantier et la sérialisation.
+Le catalogue et son historique sont exposés aux administrateurs et architectes ; les métrés utilisent les prix courants et se transfèrent vers des devis brouillon via les services de facturation. La CI complète est verte sur `585c454`. La recette humaine FR/AR reste à effectuer. Les notes internes des réserves sont séparées et masquées au client ; des tests de non-divulgation couvrent la page chantier et la sérialisation.
 
 ## Reprise phase 10
 
 Dossiers par projet, informations saisies par le cabinet, étapes modifiables et liens
 vers documents du projet : `PermitAdministration`, `PermitDossierPolicy`, écrans FR/AR
 `permits.*`. Les administrateurs et architectes modifient, les collaborateurs membres
-consultent. La CI est verte sur `585c454`. **Les rappels automatiques ne sont pas encore
-implémentés** ; la recette humaine et des tests supplémentaires, notamment sur les liens
-de documents entre projets, restent à faire. Les phases 11 à 14 restent à développer.
+consultent. Les étapes non terminées et échues ou proches sont rappelées dans le centre
+de notifications ; horizon, heure et fuseau sont configurables (`config/permits.php`),
+un rappel par jour et par utilisateur, limité aux 500 premières étapes. Aucun courriel
+n'est envoyé et la date du dossier ne déclenche pas de rappel sans étape correspondante.
+L'accès courant est revérifié à l'affichage. Tests automatisés des droits, du rattachement
+entre projets, de la déduplication et du retrait des droits ; audits navigateur FR/AR des
+pages de dossier sur bureau et mobile. Recette humaine toujours nécessaire. Les phases
+11 à 14 restent à développer.

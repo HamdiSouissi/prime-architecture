@@ -43,6 +43,7 @@ class PermitWebTest extends TestCase
             $this->actingAs($user)->get(route('permits.index', $project))->assertForbidden();
         }
     }
+
     public function test_attached_documents_must_belong_to_the_same_project(): void
     {
         $this->withoutVite();
@@ -87,5 +88,4 @@ class PermitWebTest extends TestCase
         $project->members()->detach($member->id);
         $this->get(route('planning.notifications'))->assertOk()->assertDontSee('Dossier confidentiel');
     }
-
 }
