@@ -93,6 +93,7 @@ class InvoiceService
             'method' => ['required', Rule::enum(PaymentMethod::class)],
             'reference' => ['nullable', 'string', 'max:255'],
         ])->validate();
+
         return DB::transaction(function () use ($invoice, $actor, $data) {
             $invoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
             Gate::forUser($actor)->authorize('pay', $invoice);
@@ -115,6 +116,7 @@ class InvoiceService
             'amount' => ['required', 'string', 'max:16', 'regex:/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,3})?$/D'],
             'recorded_date' => ['required', 'date_format:Y-m-d'], 'certificate_reference' => ['required', 'string', 'max:255'],
         ])->validate();
+
         return DB::transaction(function () use ($invoice, $actor, $data) {
             $invoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
             Gate::forUser($actor)->authorize('pay', $invoice);
@@ -134,6 +136,7 @@ class InvoiceService
     public function cancel(Invoice $invoice, User $actor, string $reason): Invoice
     {
         $data = Validator::make(['reason' => $reason], ['reason' => ['required', 'string', 'max:2000']])->validate();
+
         return DB::transaction(function () use ($invoice, $actor, $data) {
             $invoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
             Gate::forUser($actor)->authorize('cancel', $invoice);

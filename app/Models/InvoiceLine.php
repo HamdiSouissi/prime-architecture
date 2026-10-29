@@ -12,7 +12,7 @@ class InvoiceLine extends Model
     protected static function booted(): void
     {
         $check = function (self $line): void {
-            if (DB::table('invoices')->where('id', $line->invoice_id)->whereNotNull('issued_at')->exists()) {
+            if (DB::table('invoices')->whereIn('id', array_filter([$line->invoice_id, $line->getRawOriginal('invoice_id')]))->whereNotNull('issued_at')->exists()) {
                 throw new LogicException('Lines of an issued financial document cannot be edited.');
             }
         };

@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Quote;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Validator;
 
 /** Validation is deliberately repeated in the service, not entrusted to the browser. */
 class BillingDraft
 {
     /** @param array<string, mixed> $data
-     *  @return array<string, mixed>
+     * @return array<string, mixed>
      */
     public function validate(array $data, string $type): array
     {
@@ -38,7 +39,7 @@ class BillingDraft
         $data = $this->validate($data, $type);
         $lines = array_values($data['lines']);
         $withholdingId = isset($data['withholding_rate_id']) ? (int) $data['withholding_rate_id'] : null;
-        $result = app(BillingCalculation::class)->calculate($project, \Carbon\CarbonImmutable::parse($data['document_date']), $lines, $data['discount_percent'], $withholdingId, $type, false);
+        $result = app(BillingCalculation::class)->calculate($project, CarbonImmutable::parse($data['document_date']), $lines, $data['discount_percent'], $withholdingId, $type, false);
         $totals = $result['totals'];
         $document->fill([
             'document_date' => $data['document_date'],

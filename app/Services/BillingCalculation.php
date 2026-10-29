@@ -12,7 +12,7 @@ use InvalidArgumentException;
 class BillingCalculation
 {
     /** @param list<array<string, mixed>> $lines
-     *  @return array<string, mixed>
+     * @return array<string, mixed>
      */
     public function calculate(Project $project, CarbonImmutable $date, array $lines, string $discount, ?int $withholdingId, string $type, bool $requireVerified): array
     {

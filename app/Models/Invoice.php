@@ -3,13 +3,22 @@
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
-/** @property InvoiceStatus $status */
+/**
+ * @property InvoiceStatus $status
+ * @property CarbonImmutable $document_date
+ * @property CarbonImmutable $due_date
+ * @property numeric-string $discount_percent
+ * @property numeric-string $total_ttc
+ * @property numeric-string $withholding_amount
+ * @property int|null $withholding_rate_id
+ */
 class Invoice extends Model
 {
     protected static function booted(): void
@@ -30,7 +39,7 @@ class Invoice extends Model
 
     protected function casts(): array
     {
-        return ['status' => InvoiceStatus::class, 'document_date' => 'immutable_date', 'due_date' => 'immutable_date', 'issued_at' => 'immutable_datetime', 'snapshot' => 'array', 'discount_percent' => 'decimal:4', 'total_ht' => 'decimal:3', 'total_discount' => 'decimal:3', 'total_tax' => 'decimal:3', 'stamp_amount' => 'decimal:3', 'withholding_amount' => 'decimal:3', 'total_ttc' => 'decimal:3', 'net_due' => 'decimal:3'];
+        return ['status' => InvoiceStatus::class, 'document_date' => 'immutable_date', 'due_date' => 'immutable_date', 'issued_at' => 'immutable_datetime', 'snapshot' => 'array', 'withholding_rate_id' => 'integer', 'discount_percent' => 'decimal:4', 'total_ht' => 'decimal:3', 'total_discount' => 'decimal:3', 'total_tax' => 'decimal:3', 'stamp_amount' => 'decimal:3', 'withholding_amount' => 'decimal:3', 'total_ttc' => 'decimal:3', 'net_due' => 'decimal:3'];
     }
 
     public function scopeVisibleTo(Builder $query, User $user): void

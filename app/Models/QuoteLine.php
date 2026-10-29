@@ -12,7 +12,7 @@ class QuoteLine extends Model
     protected static function booted(): void
     {
         $check = function (self $line): void {
-            if (DB::table('quotes')->where('id', $line->quote_id)->whereNotNull('issued_at')->exists()) {
+            if (DB::table('quotes')->whereIn('id', array_filter([$line->quote_id, $line->getRawOriginal('quote_id')]))->whereNotNull('issued_at')->exists()) {
                 throw new LogicException('Lines of an issued financial document cannot be edited.');
             }
         };

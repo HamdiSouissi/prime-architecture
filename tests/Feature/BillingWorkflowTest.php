@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\QuoteStatus;
 use App\Models\Invoice;
 use App\Models\Project;
+use App\Models\Quote;
 use App\Models\User;
 use App\Services\InvoiceService;
 use App\Services\QuoteService;
@@ -99,4 +100,21 @@ class BillingWorkflowTest extends TestCase
         $this->assertSame('AVR-2026-0001', $credit->number);
         $this->assertSame('119.000', json_decode($credit->snapshot, true)['invoice']['totals']['total_ttc']);
     }
+    public function test_scheduler_marks_only_issued_unpaid_documents_as_overdue_or_expired(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 10:00:00', 'Africa/Tunis'));
+        $project = Project::factory()->create();
+        $invoice = Invoice::create(['project_id' => $project->id, 'client_id' => $project->client_id, 'status' => InvoiceStatus::Sent, 'document_date' => '2026-10-01', 'due_date' => '2026-10-31', 'issued_at' => now(), 'total_ttc' => '10.000']);
+        $paid = Invoice::create(['project_id' => $project->id, 'client_id' => $project->client_id, 'status' => InvoiceStatus::Paid, 'document_date' => '2026-10-01', 'due_date' => '2026-10-31', 'issued_at' => now(), 'total_ttc' => '10.000']);
+        $draft = Invoice::create(['project_id' => $project->id, 'client_id' => $project->client_id, 'status' => InvoiceStatus::Draft, 'document_date' => '2026-10-01', 'due_date' => '2026-10-31']);
+        $quote = Quote::create(['project_id' => $project->id, 'client_id' => $project->client_id, 'status' => QuoteStatus::Sent, 'document_date' => '2026-10-01', 'valid_until' => '2026-10-31', 'issued_at' => now()]);
+        $this->artisan('billing:update-statuses')->assertSuccessful();
+        $this->artisan('billing:update-statuses')->assertSuccessful();
+        $this->assertSame(InvoiceStatus::Overdue, $invoice->fresh()->status);
+        $this->assertSame(InvoiceStatus::Paid, $paid->fresh()->status);
+        $this->assertSame(InvoiceStatus::Draft, $draft->fresh()->status);
+        $this->assertSame(QuoteStatus::Expired, $quote->fresh()->status);
+        $this->assertSame(1, DB::table('activity_log')->where('event', 'invoice.overdue')->count());
+    }
+
 }
